@@ -61,7 +61,7 @@ dependencies {
     implementation 'com.mysql:mysql-connector-j'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
-    testImplementation 'org.awaitility:awaitility:' + awaitility
+    implementation 'org.awaitility:awaitility:' + awaitility
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

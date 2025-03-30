@@ -31,15 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class NostrRelayService {
-  private final StandardWebSocketClient eventSocketClient;
-  private Map<String, StandardWebSocketClient> requestSocketClientMap = new ConcurrentHashMap<>();
+  private final AfterimageWebSocketClient eventSocketClient;
+  private Map<String, AfterimageWebSocketClient> requestSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
   public NostrRelayService(@Value("${afterimage.relay.uri}") String relayUri) throws ExecutionException, InterruptedException {
     this.relayUri = relayUri;
     log.debug("relayUri: \n{}", relayUri);
-    this.eventSocketClient = new StandardWebSocketClient(relayUri);
+    this.eventSocketClient = new AfterimageWebSocketClient(relayUri);
   }
 
   public NostrRelayService(
@@ -54,7 +54,7 @@ public class NostrRelayService {
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.eventSocketClient = new StandardWebSocketClient(relayUri, sslBundles);
+    this.eventSocketClient = new AfterimageWebSocketClient(relayUri, sslBundles);
   }
 
   public void createEvent(@NonNull String eventJson) throws IOException {
@@ -162,7 +162,7 @@ public class NostrRelayService {
   private List<String> request(@NonNull String reqJson, @NonNull String clientUuid) throws ExecutionException, InterruptedException, IOException {
 //    final String subscriberPrefixEventIdSuffix = subscriberIdPrefix + clientUuid;
     final String subscriberPrefixEventIdSuffix = clientUuid;
-    final StandardWebSocketClient existingSubscriberUuidWebClient = requestSocketClientMap.get(subscriberPrefixEventIdSuffix);
+    final AfterimageWebSocketClient existingSubscriberUuidWebClient = requestSocketClientMap.get(subscriberPrefixEventIdSuffix);
     if (existingSubscriberUuidWebClient != null) {
       log.debug("3333333333333 existing REQ socket\nkey:\n  [{}]\nsocket:\n  [{}]\n\n", subscriberPrefixEventIdSuffix, existingSubscriberUuidWebClient.getClientSession().getId());
       List<String> events = existingSubscriberUuidWebClient.getEvents();
@@ -175,7 +175,7 @@ public class NostrRelayService {
 
     requestSocketClientMap.put(subscriberPrefixEventIdSuffix, getStandardWebSocketClient());
 
-    final StandardWebSocketClient newSubscriberUuidWebClient = requestSocketClientMap.get(subscriberPrefixEventIdSuffix);
+    final AfterimageWebSocketClient newSubscriberUuidWebClient = requestSocketClientMap.get(subscriberPrefixEventIdSuffix);
     final String newSubscriberUuidWebClientsessionId = newSubscriberUuidWebClient.getClientSession().getId();
     log.debug("222222222222 new REQ socket\nkey:\n  [{}]\nsocket:\n  [{}]\n\n", subscriberPrefixEventIdSuffix, newSubscriberUuidWebClientsessionId);
     newSubscriberUuidWebClient.send(reqJson);
@@ -187,8 +187,8 @@ public class NostrRelayService {
     return events;
   }
 
-  private StandardWebSocketClient getStandardWebSocketClient() throws ExecutionException, InterruptedException {
-    return Objects.nonNull(sslBundles) ? new StandardWebSocketClient(relayUri, sslBundles) :
-        new StandardWebSocketClient(relayUri);
+  private AfterimageWebSocketClient getStandardWebSocketClient() throws ExecutionException, InterruptedException {
+    return Objects.nonNull(sslBundles) ? new AfterimageWebSocketClient(relayUri, sslBundles) :
+        new AfterimageWebSocketClient(relayUri);
   }
 }
