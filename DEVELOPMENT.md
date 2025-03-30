@@ -1,17 +1,19 @@
 ```java
-███████╗██╗   ██╗██████╗ ███████╗██████╗  ██████╗ ██████╗ ███╗   ██╗██████╗ ██╗   ██╗ ██████╗████████╗ ██████╗ ██████╗
-██╔════╝██║   ██║██╔══██╗██╔════╝██╔══██╗██╔════╝██╔═══██╗████╗  ██║██╔══██╗██║   ██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
-███████╗██║   ██║██████╔╝█████╗  ██████╔╝██║     ██║   ██║██╔██╗ ██║██║  ██║██║   ██║██║        ██║   ██║   ██║██████╔╝
-╚════██║██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██║   ██║██║╚██╗██║██║  ██║██║   ██║██║        ██║   ██║   ██║██╔══██╗
-███████║╚██████╔╝██║     ███████╗██║  ██║╚██████╗╚██████╔╝██║ ╚████║██████╔╝╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║
-╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+               _//  _//                                                                 
+             _/     _//                    _/                                           
+    _//    _/_/ _/_/_/ _/   _//    _/ _///    _/// _// _//    _//       _//      _//    
+  _//  _//   _//    _//   _/   _//  _//   _//  _//  _/  _// _//  _//  _//  _// _/   _// 
+ _//   _//   _//    _//  _///// _// _//   _//  _//  _/  _//_//   _// _//   _//_///// _//
+ _//   _//   _//    _//  _/         _//   _//  _//  _/  _//_//   _//  _//  _//_/        
+   _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
+                                                                       _//
 ```
 
 ### Development Mode
 
 - [SOLID](https://www.digitalocean.com/community/conceptual-articles/s-o-l-i-d-the-first-five-principles-of-object-oriented-design) engineering principles.  Simple.  Clean.  OO.
   - understandability
-  - extensibility / modularization [(_HOW-TO: creating relay event-handlers_)](#adding-newcustom-events-to-superconductor)
+  - extensibility / modularization [(_HOW-TO: creating relay event-handlers_)](#adding-newcustom-events-to-afterimage)
   - testing
   - customization
 
@@ -52,11 +54,11 @@
     $ git checkout develop
     $ mvn clean install
 
-#### Build and install SuperConductor
+#### Build and install AfterImage
 
     $ cd <your_git_home_dir>
-    $ git clone https://github.com/avlo/superconductor
-    $ cd superconductor
+    $ git clone https://github.com/avlo/afterimage
+    $ cd afterimage
     $ mvn clean install
 
 ----
@@ -69,7 +71,7 @@
 # security test (ws) disabled ('false') by default.
 server.ssl.enabled=false                                           <--------  "false" for ws/non-secure
 # ...
-superconductor.relay.url=ws://localhost:5555                       <--------  "ws" protocol for ws/non-secure 
+afterimage.relay.url=ws://localhost:5556                       <--------  "ws" protocol for ws/non-secure 
 ```
 
 ##### 2. Secure (WSS/TLS) tests mode
@@ -78,12 +80,12 @@ superconductor.relay.url=ws://localhost:5555                       <--------  "w
 # to enable secure tests (wss), change below value to 'true' and...
 server.ssl.enabled=true                                            <--------  "true" for wss/secure
 # ...also for secure (wss), change below value to 'wss'...
-superconductor.relay.url=wss://localhost:5555                      <--------  "wss" protocol for wss/secure 
+afterimage.relay.url=wss://localhost:5556                      <--------  "wss" protocol for wss/secure 
 ```
 
 ----
 
-#### Configure SuperConductor run-time security, 3 options:
+#### Configure AfterImage run-time security, 3 options:
 
 | SecurityLevel | Specification                                                        | Details                                                                                                                                                                                                                                                                                                                                                                                 |
 |---------------|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -93,7 +95,7 @@ superconductor.relay.url=wss://localhost:5555                      <--------  "w
 
 ----
 
-### Run SuperConductor (4 options)
+### Run AfterImage (4 options)
 
 #### 1.  Docker + Docker Compose
 ##### Confirm minimal docker requirements
@@ -126,7 +128,7 @@ run with container logging displayed to console:
 
 run with docker logging displayed to console:
 
-    docker compose -f docker-compose-dev_wss.yml up -d && dcls | grep 'superconductor-app' | awk '{print $1}' | xargs docker logs -f
+    docker compose -f docker-compose-dev_wss.yml up -d && dcls | grep 'afterimage-app' | awk '{print $1}' | xargs docker logs -f
 </details> 
 
 <details>
@@ -142,7 +144,7 @@ run with container logging displayed to console:
 
 run with docker logging displayed to console:
 
-    docker compose -f docker-compose-dev_ws.yml up -d && dcls | grep 'superconductor-app' | awk '{print $1}' | xargs docker logs -f
+    docker compose -f docker-compose-dev_ws.yml up -d && dcls | grep 'afterimage-app' | awk '{print $1}' | xargs docker logs -f
 </details> 
 
 ----
@@ -152,13 +154,13 @@ run with docker logging displayed to console:
 <details>
   <summary>WSS/HTTPS</summary>
 
-    docker compose -f docker-compose-dev_wss.yml stop superconductor superconductor-db
+    docker compose -f docker-compose-dev_wss.yml stop afterimage afterimage-db
 </details> 
 
 <details>
   <summary>WS/HTTP</summary>  
 
-    docker compose -f docker-compose-prod_ws.yml stop superconductor superconductor-db
+    docker compose -f docker-compose-prod_ws.yml stop afterimage afterimage-db
 </details>
 
 ----  
@@ -185,14 +187,14 @@ run with docker logging displayed to console:
   <summary>WSS/HTTPS</summary>
 
 
-    cd <your_git_home_dir>/superconductor
+    cd <your_git_home_dir>/afterimage
     mvn spring-boot:run -P local_wss
 </details> 
 
 <details>
   <summary>WS/HTTP</summary>
 
-    cd <your_git_home_dir>/superconductor
+    cd <your_git_home_dir>/afterimage
     mvn spring-boot:run -P local_ws
 </details>  
 
@@ -200,14 +202,14 @@ run with docker logging displayed to console:
 
 ### 3.  Run locally as executable jar
 
-    $ cd <your_git_home_dir>/superconductor
-    $ java -jar target/superconductor-1.11.0.war  
+    $ cd <your_git_home_dir>/afterimage
+    $ java -jar target/afterimage-0.0.1.war  
 
 ----
 
 ### 4.  Run using pre-existing local application-server-container instance
 
-    $ cp <your_git_home_dir>/superconductor/target/superconductor-1.11.0.war <your_container/instance/deployment_directory>
+    $ cp <your_git_home_dir>/afterimage/target/afterimage-0.0.1.war <your_container/instance/deployment_directory>
 
 ----
 
@@ -216,20 +218,20 @@ run with docker logging displayed to console:
 <details>
   <summary>WSS/HTTPS</summary>
 
-    wss://localhost:5555
+    wss://localhost:5556
 </details> 
 
 <details>
   <summary>WS/HTTP</summary>  
 
-    ws://localhost:5555
+    ws://localhost:5556
 </details>
 
 <hr style="border:2px solid grey">
 
 ### Default/embedded H2 DB console (local non-docker development mode): ##
 
-    localhost:5555/h2-console/
+    localhost:5556/h2-console/
 
 *user: sa*  
 *password: // blank*
@@ -262,19 +264,19 @@ Display all framework table contents (case-sensitive quoted fields/tables when q
 
 ##### (Optional Use) bundled web-client URLs for convenience/dev-testing/etc
 
-http://localhost:5555/api-tests.html <sup>_(nostr **events** web-client)_</sup>
+http://localhost:5556/api-tests.html <sup>_(nostr **events** web-client)_</sup>
 
-http://localhost:5555/request-test.html <sup>_(nostr **request** web-client)_</sup>
+http://localhost:5556/request-test.html <sup>_(nostr **request** web-client)_</sup>
 <br>
 <hr style="border:2px solid grey">
 
-### Adding new/custom events to SuperConductor
+### Adding new/custom events to AfterImage
 
-For Nostr clients generating canonical Nostr JSON (as defined in [NIP01 spec: Basic protocol flow description, Events, Signatures and Tags](https://nostr-nips.com/nip-01)), SuperConductor will automatically recognize those JSON events- including their database storage, retrieval and subscriber notification.  No additional work or customization is necessary.
+For Nostr clients generating canonical Nostr JSON (as defined in [NIP01 spec: Basic protocol flow description, Events, Signatures and Tags](https://nostr-nips.com/nip-01)), AfterImage will automatically recognize those JSON events- including their database storage, retrieval and subscriber notification.  No additional work or customization is necessary.
 <br>
 <hr style="border:2px solid grey">
 
-### Adding new/custom tags to SuperConductor
+### Adding new/custom tags to AfterImage
 
-SuperConductor supports any _**generic**_ tags automatically.  Otherwise, if custom tag structure is required, simply implement the [`TagPlugin`](https://github.com/avlo/superconductor/blob/master/src/main/java/com/prosilion/superconductor/dto/TagPlugin.java) interface (an example can be seen [here](https://github.com/avlo/superconductor/blob/master/src/main/java/com/prosilion/superconductor/dto/EventTagPlugin.java)) and your tag will automatically get included by SuperConductor after rebuilding and redeploying.
+AfterImage supports any _**generic**_ tags automatically.  Otherwise, if custom tag structure is required, simply implement the [`TagPlugin`](https://github.com/avlo/afterimage/blob/master/src/main/java/com/prosilion/afterimage/dto/TagPlugin.java) interface (an example can be seen [here](https://github.com/avlo/afterimage/blob/master/src/main/java/com/prosilion/afterimage/dto/EventTagPlugin.java)) and your tag will automatically get included by AfterImage after rebuilding and redeploying.
 

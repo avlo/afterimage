@@ -40,11 +40,11 @@ class MultipleZapRequestEventMessageIT extends AbstractMultipleSubscriber {
   }
 
   public String getGlobalEventJson(String startEventId) {
-    return "[\"EVENT\",{\"id\":\"" + startEventId + "\", \"kind\": 9734, \"content\": \"" + content + "\", \"pubkey\": \"" + authorPubKey + "\", \"created_at\": 1719016694217, \"tags\": [[\"e\",\"" + eventTagId + "\"], [\"g\",\"" + geoTagText + "\"], [\"t\",\"" + hashTagText + "\"], [\"p\",\"" + pubKeyTagPubKey + "\"], [\"relays\",\"wss://localhost:5555\"], [\"subject\",\"" + subject + "\"], [\"amount\",\"271.00\"], [\"lnurl\",\"" + lnUrl + "\"]], \"sig\": \"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
+    return "[\"EVENT\",{\"id\":\"" + startEventId + "\", \"kind\": 9734, \"content\": \"" + content + "\", \"pubkey\": \"" + authorPubKey + "\", \"created_at\": 1719016694217, \"tags\": [[\"e\",\"" + eventTagId + "\"], [\"g\",\"" + geoTagText + "\"], [\"t\",\"" + hashTagText + "\"], [\"p\",\"" + pubKeyTagPubKey + "\"], [\"relays\",\"wss://localhost:5556\"], [\"subject\",\"" + subject + "\"], [\"amount\",\"271.00\"], [\"lnurl\",\"" + lnUrl + "\"]], \"sig\": \"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}]";
   }
 
   public String getExpectedJsonInAnyOrder(String startEventId) {
-    return "{\"id\":\"" + startEventId + "\", \"pubkey\": \"" + authorPubKey + "\", \"created_at\": 1719016694217, \"tags\": [[\"e\",\"" + eventTagId + "\"], [\"p\",\"" + pubKeyTagPubKey + "\"], [\"g\",\"" + geoTagText + "\"], [\"t\",\"" + hashTagText + "\"], [\"relays\",\"wss://localhost:5555\"], [\"subject\",\"" + this.subject + "\"], [\"amount\",\"271.00\"], [\"lnurl\",\"" + lnUrl + "\"]], \"kind\": 9734, \"content\": \"" + content + "\", \"sig\": \"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}";
+    return "{\"id\":\"" + startEventId + "\", \"pubkey\": \"" + authorPubKey + "\", \"created_at\": 1719016694217, \"tags\": [[\"e\",\"" + eventTagId + "\"], [\"p\",\"" + pubKeyTagPubKey + "\"], [\"g\",\"" + geoTagText + "\"], [\"t\",\"" + hashTagText + "\"], [\"relays\",\"wss://localhost:5556\"], [\"subject\",\"" + this.subject + "\"], [\"amount\",\"271.00\"], [\"lnurl\",\"" + lnUrl + "\"]], \"kind\": 9734, \"content\": \"" + content + "\", \"sig\": \"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546\"}";
   }
 
   public String createReqJson(@NonNull String uuid) {

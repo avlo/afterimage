@@ -1,12 +1,14 @@
 ```java
-███████╗██╗   ██╗██████╗ ███████╗██████╗  ██████╗ ██████╗ ███╗   ██╗██████╗ ██╗   ██╗ ██████╗████████╗ ██████╗ ██████╗
-██╔════╝██║   ██║██╔══██╗██╔════╝██╔══██╗██╔════╝██╔═══██╗████╗  ██║██╔══██╗██║   ██║██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
-███████╗██║   ██║██████╔╝█████╗  ██████╔╝██║     ██║   ██║██╔██╗ ██║██║  ██║██║   ██║██║        ██║   ██║   ██║██████╔╝
-╚════██║██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██║   ██║██║╚██╗██║██║  ██║██║   ██║██║        ██║   ██║   ██║██╔══██╗
-███████║╚██████╔╝██║     ███████╗██║  ██║╚██████╗╚██████╔╝██║ ╚████║██████╔╝╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║  ██║
-╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═════╝  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+               _//  _//                                                                 
+             _/     _//                    _/                                           
+    _//    _/_/ _/_/_/ _/   _//    _/ _///    _/// _// _//    _//       _//      _//    
+  _//  _//   _//    _//   _/   _//  _//   _//  _//  _/  _// _//  _//  _//  _// _/   _// 
+ _//   _//   _//    _//  _///// _// _//   _//  _//  _/  _//_//   _// _//   _//_///// _//
+ _//   _//   _//    _//  _/         _//   _//  _//  _/  _//_//   _//  _//  _//_/        
+   _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
+                                                                       _//
 ```
-# Java Nostr-Relay Framework & Web Application
+# AfterImage Nostr-Reputation Authority
 
 ----
 
@@ -26,12 +28,12 @@ _(note: Confirmed compatible with Docker 27.0.3 and Docker Compose version v2.28
 
 ----
 
-#### Download Superconductor Docker Image from [hub.docker](https://hub.docker.com/repository/docker/avlo/superconductor-app/tags)
-    $ docker pull avlo/superconductor:1.11.0
+#### Download Superconductor Docker Image from [hub.docker](https://hub.docker.com/repository/docker/avlo/afterimage-app/tags)
+    $ docker pull avlo/afterimage:0.0.1
 
 ----
 
-#### Configure SuperConductor security level, 3 options:
+#### Configure AfterImage security level, 3 options:
 
 <details>
   <summary>Highest | SSL Certificate (WSS/HTTPS)</summary>
@@ -63,7 +65,7 @@ _(note: Confirmed compatible with Docker 27.0.3 and Docker Compose version v2.28
 
 ----
 
-#### Run SuperConductor
+#### Run AfterImage
 
 <details>
   <summary>WSS/HTTPS</summary>  
@@ -78,7 +80,7 @@ run with container logging displayed to console:
 
 run with docker logging displayed to console:  
 
-    docker compose -f docker-compose-prod_wss.yml up -d && dcls | grep 'superconductor-app' | awk '{print $1}' | xargs docker logs -f
+    docker compose -f docker-compose-prod_wss.yml up -d && dcls | grep 'afterimage-app' | awk '{print $1}' | xargs docker logs -f
 </details> 
 
 <details>
@@ -94,28 +96,28 @@ run with container logging displayed to console:
 
 run with docker logging displayed to console:
 
-    docker compose -f docker-compose-prod_ws.yml up -d && dcls | grep 'superconductor-app' | awk '{print $1}' | xargs docker logs -f
+    docker compose -f docker-compose-prod_ws.yml up -d && dcls | grep 'afterimage-app' | awk '{print $1}' | xargs docker logs -f
 </details> 
 
 ----
 
-##### Stop SuperConductor
+##### Stop AfterImage
 
 <details>
   <summary>WSS/HTTPS</summary>
 
-    docker compose -f docker-compose-prod_wss.yml stop superconductor superconductor-db
+    docker compose -f docker-compose-prod_wss.yml stop afterimage afterimage-db
 </details> 
 
 <details>
   <summary>WS/HTTP</summary>  
 
-    docker compose -f docker-compose-prod_ws.yml stop superconductor superconductor-db
+    docker compose -f docker-compose-prod_ws.yml stop afterimage afterimage-db
 </details>
 
 ----  
 
-##### Remove SuperConductor docker containers
+##### Remove AfterImage docker containers
 
 <details>
   <summary>WSS/HTTPS</summary>

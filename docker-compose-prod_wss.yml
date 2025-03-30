@@ -1,0 +1,47 @@
+services:
+  afterimage-db:
+    container_name: afterimage-mysqldb
+    image: mysql:9.1.0
+    ports:
+      - "3316:3316"
+    labels:
+      org.springframework.boot.service-connection: mysql
+    environment:
+      MYSQL_DATABASE: afterimage
+#      set below db name and credentials as desired
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: mysqluserpass
+      MYSQL_ROOT_PASSWORD: mysqlrootuserpass
+      MYSQL_TCP_PORT: 3316
+    networks:
+      docker-network:
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "afterimage-mysqldb"]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+  afterimage:
+    container_name: afterimage-app
+    image: avlo/afterimage:0.0.1
+    ports:
+      - "5556:5556"
+      - "443:443"
+    depends_on:
+      afterimage-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod_wss
+      SPRING_DATASOURCE_URL: jdbc:mysql://afterimage-mysqldb:3316/afterimage
+#      set below spring datasource credentials as desired
+      SPRING_DATASOURCE_USERNAME: mysqluser
+      SPRING_DATASOURCE_PASSWORD: mysqluserpass
+#      authentication is off by default.  update below with "true" to activate
+      afterimage.auth.active: false
+    networks:
+      docker-network:
+volumes:
+  afterimage-db:
+    driver: local
+networks:
+  docker-network:
+    driver: bridge

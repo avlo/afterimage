@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootTest
 class RelayDocumentIT {
-  public static final String HTTP_LOCALHOST_5555 = "http://localhost:5555/";
+  public static final String HTTP_LOCALHOST_5556 = "http://localhost:5556/";
   @Autowired
   ClientHttpConnector clientHttpConnector;
   WebTestClient webTestClient;
@@ -25,7 +25,7 @@ class RelayDocumentIT {
 //  @Test
 //  void testRelayDocumentReturnsBody() {
 //    webTestClient.get()
-//        .uri(HTTP_LOCALHOST_5555)
+//        .uri(HTTP_LOCALHOST_5556)
 //        .accept(MediaType.asMediaType(NostrMediaType.APPLICATION_NOSTR_JSON))
 //        .exchange()
 //        .expectBody();
@@ -34,7 +34,7 @@ class RelayDocumentIT {
 //  @Test
 //  void testRelayDocumentReturnsBody2() {
 //    webTestClient.get()
-//        .uri(HTTP_LOCALHOST_5555)
+//        .uri(HTTP_LOCALHOST_5556)
 //        .accept(MediaType.asMediaType(NostrMediaType.APPLICATION_NOSTR_JSON))
 //        .exchange()
 //        .expectBody();
@@ -43,7 +43,7 @@ class RelayDocumentIT {
   @Test
   void testRelayDocumentReturnsOk() {
     webTestClient.get()
-        .uri(HTTP_LOCALHOST_5555)
+        .uri(HTTP_LOCALHOST_5556)
         .accept(
             MediaType.asMediaType(NostrMediaType.APPLICATION_NOSTR_JSON));
 
