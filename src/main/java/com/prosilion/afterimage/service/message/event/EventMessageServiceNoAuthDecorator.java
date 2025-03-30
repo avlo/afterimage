@@ -1,0 +1,38 @@
+package com.prosilion.afterimage.service.message.event;
+
+import com.prosilion.afterimage.service.clientresponse.ClientResponseService;
+import com.prosilion.afterimage.service.event.EventServiceIF;
+import com.prosilion.afterimage.service.message.MessageService;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import nostr.event.impl.GenericEvent;
+import nostr.event.message.EventMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@ConditionalOnProperty(
+    name = "afterimage.auth.active",
+    havingValue = "false")
+public class EventMessageServiceNoAuthDecorator<T extends EventMessage> implements MessageService<T> {
+  private final EventMessageService<T> eventMessageService;
+
+  @Autowired
+  public EventMessageServiceNoAuthDecorator(EventServiceIF<GenericEvent> eventService, ClientResponseService okResponseService) {
+    this.eventMessageService = new EventMessageService<>(eventService, okResponseService);
+  }
+
+  public void processIncoming(@NonNull T eventMessage, @NonNull String sessionId) {
+    log.debug("EVENT message NIP: {}", eventMessage.getNip());
+    log.debug("EVENT message type: {}", eventMessage.getEvent());
+    eventMessageService.processIncoming(eventMessage, sessionId);
+    eventMessageService.processOkClientResponse(eventMessage, sessionId);
+  }
+
+  @Override
+  public String getCommand() {
+    return eventMessageService.getCommand();
+  }
+}

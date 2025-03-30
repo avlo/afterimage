@@ -1,0 +1,16 @@
+.mvn
+.idea
+.project
+.gitattributes
+
+afterimage.iml
+target/
+
+pom.xml.versionsBackup
+
+.gradle/
+build/
+gradle/
+gradlew
+gradlew.bat
+
