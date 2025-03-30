@@ -21,13 +21,14 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "afterimage.noop.event", havingValue = "false")
 public class EventMessageServiceConfig {
 
-  @Bean
-  EventServiceIF<GenericEvent> eventService(
-      NotifierService<GenericEvent> notifierService,
-      EventTypeServiceIF<GenericEvent> eventTypeService) {
-    log.debug("loaded EventService bean (EVENT)");
-    return new EventService<>(notifierService, eventTypeService);
-  }
+//  TODO: remove below comment once confirm proper to always load EventService as @Service
+//  @Bean
+//  EventServiceIF<GenericEvent> eventService(
+//      NotifierService<GenericEvent> notifierService,
+//      EventTypeServiceIF<GenericEvent> eventTypeService) {
+//    log.debug("loaded EventService bean (EVENT)");
+//    return new EventService<>(notifierService, eventTypeService);
+//  }
 
   @Bean
   @ConditionalOnProperty(name = "afterimage.auth.active", havingValue = "false")
