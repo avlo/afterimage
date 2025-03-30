@@ -2,6 +2,16 @@ package com.prosilion.afterimage.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Streams;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.api.factory.impl.NIP01Impl.EventMessageFactory;
@@ -16,23 +26,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Slf4j
 public class NostrRelayService {
   private final AfterimageWebSocketClient eventSocketClient;
-  private Map<String, AfterimageWebSocketClient> requestSocketClientMap = new ConcurrentHashMap<>();
+  private final Map<String, AfterimageWebSocketClient> requestSocketClientMap = new ConcurrentHashMap<>();
   private final String relayUri;
   private SslBundles sslBundles;
 
@@ -57,19 +54,15 @@ public class NostrRelayService {
     this.eventSocketClient = new AfterimageWebSocketClient(relayUri, sslBundles);
   }
 
-  public void createEvent(@NonNull String eventJson) throws IOException {
-    assertTrue(
-        getOkMessage(
-            sendEvent(eventJson)
-        ).getFlag());
+  public OkMessage createEvent(@NonNull String eventJson) throws IOException {
+    return getOkMessage(
+        sendEvent(eventJson));
   }
 
-  public void createEvent(@NonNull GenericEvent event) throws IOException {
-    assertTrue(
-        getOkMessage(
-            sendEvent(
-                new EventMessageFactory(event).create())
-        ).getFlag());
+  public OkMessage createEvent(@NonNull GenericEvent event) throws IOException {
+    return getOkMessage(
+        sendEvent(
+            new EventMessageFactory(event).create()));
   }
 
   private static OkMessage getOkMessage(List<String> received) {

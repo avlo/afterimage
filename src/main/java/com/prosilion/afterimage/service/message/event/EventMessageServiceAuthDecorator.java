@@ -8,22 +8,14 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
 
 @Slf4j
-@Service
-@ConditionalOnProperty(
-    name = "afterimage.auth.active",
-    havingValue = "true")
 public class EventMessageServiceAuthDecorator<T extends EventMessage> implements MessageService<T> {
   private final EventMessageService<T> eventMessageService;
   private final AuthEntityService authEntityService;
 
-  @Autowired
   public EventMessageServiceAuthDecorator(
       EventServiceIF<GenericEvent> eventService,
       ClientResponseService clientResponseService,
