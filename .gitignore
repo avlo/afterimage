@@ -10,7 +10,7 @@ pom.xml.versionsBackup
 
 .gradle/
 build/
-gradle/
-gradlew
-gradlew.bat
+#gradle/
+#gradlew
+#gradlew.bat
 
