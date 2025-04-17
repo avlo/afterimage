@@ -38,6 +38,8 @@ repositories {
 dependencies {
     def springBootVersion = '3.4.3'
     def nostrJavaVersion = '0.6.5-SNAPSHOT'
+    def superconductorStarterVersion  = '1.12.0'
+    def subdivisionsVersion = '0.0.1'
     def apacheCommonsLang3 = '3.17.0'
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
@@ -53,6 +55,8 @@ dependencies {
 
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
+    implementation 'com.prosilion.superconductor:starter:' + superconductorStarterVersion
+    implementation 'com.prosilion:subdivisions:' + subdivisionsVersion
 
     implementation 'org.apache.commons:commons-lang3:' + apacheCommonsLang3
     implementation 'com.fasterxml.jackson.module:jackson-module-afterburner:' + jacksonModuleAfterburner

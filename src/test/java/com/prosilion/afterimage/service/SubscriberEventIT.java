@@ -1,5 +1,8 @@
-package com.prosilion.afterimage.service.event.type;
+package com.prosilion.afterimage.service;
 
+import com.prosilion.afterimage.util.Factory;
+import com.prosilion.superconductor.service.event.type.EventEntityService;
+import lombok.NonNull;
 import nostr.base.PublicKey;
 import nostr.event.BaseTag;
 import nostr.event.impl.ClassifiedListing;
@@ -21,21 +24,22 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class SubscriberEventIT {
-  public static final String EVENT_ID = "5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e5914cc";
-  public static final PublicKey EVENT_PUBKEY = new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984");
-  public static final String CONTENT = "1111111111";
+  public static final String EVENT_ID = Factory.generateRandomHex64String();
+  public static final PublicKey EVENT_PUBKEY = Factory.createNewIdentity().getPublicKey();
+  public static final String CONTENT = Factory.lorumIpsum();
   public static final Integer KIND = 1;
   public static final Integer NIP = 1;
   public static final long CREATED_AT = 1717633851743L;
 
-  @Autowired
-  EventEntityService<GenericEvent> eventEntityService;
-  ClassifiedListingEvent classifiedListingEvent;
+  private final EventEntityService<GenericEvent> eventEntityService;
+  private final ClassifiedListingEvent classifiedListingEvent;
 
-  SubscriberEventIT() {
+  @Autowired
+  SubscriberEventIT(@NonNull EventEntityService<GenericEvent> eventEntityService) {
+    this.eventEntityService = eventEntityService;
     GenericEvent genericEvent = new GenericEvent();
     genericEvent.setNip(NIP); // superfluous?
     genericEvent.setId(EVENT_ID);
@@ -43,8 +47,8 @@ class SubscriberEventIT {
     genericEvent.setContent(CONTENT);
 
     List<BaseTag> tags = new ArrayList<>();
-    tags.add(new EventTag("494001ac0c8af2a10f60f23538e5b35d3cdacb8e1cc956fe7a16dfa5cbfc4346"));
-    tags.add(new PubKeyTag(new PublicKey("2bed79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984")));
+    tags.add(new EventTag(EVENT_ID));
+    tags.add(new PubKeyTag(EVENT_PUBKEY));
     tags.add(new SubjectTag("SUBJECT"));
     genericEvent.setTags(tags);
 
