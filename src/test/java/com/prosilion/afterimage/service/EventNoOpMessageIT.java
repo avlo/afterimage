@@ -45,7 +45,7 @@ class EventNoOpMessageIT {
     log.debug("setup() send event:\n  {}", globalEventJson);
 
     OkMessage okMessage = this.nostrRelayService.sendEvent(globalEventJson);
-    final String noOpResponse = "application-test-noop.properties afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
+    final String noOpResponse = "application-test.properties afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
 
     assertEquals(false, okMessage.getFlag());
     assertEquals(noOpResponse, okMessage.getMessage());

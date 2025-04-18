@@ -21,14 +21,13 @@ import org.springframework.boot.ssl.SslBundles;
 public class NostrRelayService {
   private final com.prosilion.subdivisions.service.NostrRelayService nostrRelayService;
 
-  public NostrRelayService(@Value("${superconductor.relay.url}") String relayUri) throws ExecutionException, InterruptedException {
+  public NostrRelayService(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     this.nostrRelayService = new com.prosilion.subdivisions.service.NostrRelayService(relayUri);
+    System.out.println("relayUri: " + relayUri);
   }
 
-  public NostrRelayService(
-      @Value("${superconductor.relay.url}") String relayUri,
-      SslBundles sslBundles
+  public NostrRelayService(@NonNull String relayUri, @NonNull SslBundles sslBundles
   ) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);

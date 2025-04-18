@@ -1,33 +1,30 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.util.NostrRelayService;
+import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
-import java.util.concurrent.ExecutionException;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
+@Lazy
 @Configuration
 @ConditionalOnProperty(
     name = "server.ssl.enabled",
     havingValue = "true")
-@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
-@EnableJpaRepositories("com.prosilion.superconductor.repository")
+//@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
+//@EnableJpaRepositories("com.prosilion.superconductor.repository")
 public class NostrWssConfig {
 
   public NostrWssConfig() {
     System.out.println("NostrWssConfig()");
   }
 
-  @Lazy
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public NostrRelayService nostrRelayService(

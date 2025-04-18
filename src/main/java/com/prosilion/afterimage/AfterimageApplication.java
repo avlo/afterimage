@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
+@ComponentScan(basePackages = {"com.prosilion.afterimage.*", "com.prosilion.superconductor.*"})
 @EntityScan(basePackages = {"com.prosilion.superconductor.*"})
 @EnableJpaRepositories("com.prosilion.superconductor.repository")
 public class AfterimageApplication extends SpringBootServletInitializer {
