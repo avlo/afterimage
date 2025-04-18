@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-class SubscriberEventIT {
+public class SubscriberEventIT {
   public static final String EVENT_ID = Factory.generateRandomHex64String();
   public static final PublicKey EVENT_PUBKEY = Factory.createNewIdentity().getPublicKey();
   public static final String CONTENT = Factory.lorumIpsum();
@@ -38,7 +38,7 @@ class SubscriberEventIT {
   private final ClassifiedListingEvent classifiedListingEvent;
 
   @Autowired
-  SubscriberEventIT(@NonNull EventEntityService<GenericEvent> eventEntityService) {
+  public SubscriberEventIT(@NonNull EventEntityService<GenericEvent> eventEntityService) {
     this.eventEntityService = eventEntityService;
     GenericEvent genericEvent = new GenericEvent();
     genericEvent.setNip(NIP); // superfluous?
@@ -74,7 +74,7 @@ class SubscriberEventIT {
   }
 
   @Test
-  void saveAndGetEvent() {
+  public void saveAndGetEvent() {
 //    String newContent = "2222";
 //    textNoteEvent.setContent(newContent);
     Long savedEventId = eventEntityService.saveEventEntity(classifiedListingEvent);

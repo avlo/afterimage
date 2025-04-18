@@ -29,9 +29,7 @@ configurations {
 repositories {
     mavenLocal()
     mavenCentral()
-    gradlePluginPortal {
-        url = 'https://plugins.gradle.org/m2/'
-    }
+    gradlePluginPortal()
 }
 
 
@@ -44,9 +42,10 @@ dependencies {
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
-    
-    developmentOnly 'org.springframework.boot:spring-boot-devtools:' + springBootVersion
-    implementation 'org.springframework.boot:spring-boot-starter'
+
+    implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
+    implementation 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

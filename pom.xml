@@ -7,7 +7,7 @@
   <artifactId>afterimage</artifactId>
   <version>0.0.1</version>
   <name>afterimage</name>
-  <description>SuperConductor Java Nostr-Relay Framework and Web Application</description>
+  <description>AfterImage Reputation Relay/Server</description>
   <packaging>war</packaging>
 
   <parent>
@@ -35,6 +35,8 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
     <postgresql.version>42.7.3</postgresql.version>
+    <subdivisions.version>0.0.1</subdivisions.version>
+    <superconductor.version>1.12.0</superconductor.version>
   </properties>
 
   <dependencyManagement>
@@ -88,6 +90,18 @@
       <artifactId>nostr-java-id</artifactId>
       <version>${nostr-java.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.prosilion.superconductor</groupId>
+      <artifactId>starter</artifactId>
+      <version>${superconductor.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.prosilion</groupId>
+      <artifactId>subdivisions</artifactId>
+      <version>${subdivisions.version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-afterburner</artifactId>
@@ -191,15 +205,15 @@
       <!--        </executions>-->
       <!--      </plugin>-->
 
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <image>
-            <builder>paketobuildpacks/builder-jammy-base:latest</builder>
-          </image>
-        </configuration>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.springframework.boot</groupId>-->
+<!--        <artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          <image>-->
+<!--            <builder>paketobuildpacks/builder-jammy-base:latest</builder>-->
+<!--          </image>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
