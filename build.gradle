@@ -2,6 +2,9 @@ import java.time.Duration
 
 plugins {
     id 'java'
+    id 'war'
+    id 'java-library'
+    id 'maven-publish'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
 
@@ -32,6 +35,20 @@ repositories {
     gradlePluginPortal()
 }
 
+publishing {
+    publications {
+        mavenJar(MavenPublication) {
+            from components.java
+            groupId 'com.prosilion.afterimage'
+        }
+    }
+    publications {
+        mavenWar(MavenPublication) {
+            from components.web
+            groupId 'com.prosilion.afterimage'
+        }
+    }
+}
 
 dependencies {
     def springBootVersion = '3.4.3'
@@ -101,9 +118,25 @@ integrationTest {
 
 check.dependsOn integrationTest
 
+tasks.bootJar {
+    enabled = false
+}
+
+tasks.named("jar") {
+    archiveClassifier = ''
+}
+
+tasks.bootWar {
+    enabled = false
+}
+
+tasks.named("war") {
+    archiveClassifier = ''
+}
+
 tasks.register("bootRunLocalWs") {
     group = "application"
-    description = "Superconductor STANDARD MODE: local_ws"
+    description = "afterimage STANDARD MODE: local_ws"
     doFirst {
         tasks.bootRun.configure {
             systemProperty("spring.profiles.active", "local_ws")
@@ -114,7 +147,7 @@ tasks.register("bootRunLocalWs") {
 
 tasks.register("bootRunLocalWss") {
     group = "application"
-    description = "Superconductor SECURE MODE: local_wss"
+    description = "afterimage SECURE MODE: local_wss"
     doFirst {
         tasks.bootRun.configure {
             systemProperty("spring.profiles.active", "local_wss")
