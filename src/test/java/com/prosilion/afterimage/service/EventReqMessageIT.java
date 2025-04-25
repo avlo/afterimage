@@ -1,0 +1,95 @@
+package com.prosilion.afterimage.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.afterimage.util.AfterimageRelayClient;
+import com.prosilion.afterimage.util.Factory;
+import com.prosilion.superconductor.service.event.type.EventEntityService;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import nostr.base.PublicKey;
+import nostr.event.BaseTag;
+import nostr.event.filter.AuthorFilter;
+import nostr.event.filter.Filters;
+import nostr.event.filter.VoteTagFilter;
+import nostr.event.impl.GenericEvent;
+import nostr.event.message.ReqMessage;
+import nostr.event.tag.VoteTag;
+import nostr.id.Identity;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@Slf4j
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
+class EventReqMessageIT {
+  private final AfterimageRelayClient afterImageRelayClient;
+
+  private static final Identity IDENTITY = Factory.createNewIdentity();
+  private static final PublicKey VOTE_TAG_AUTHOR_PUBKEY = IDENTITY.getPublicKey();
+  private static final VoteTag VOTE_TAG = new VoteTag(1);
+
+  private final static String CONTENT = Factory.lorumIpsum(EventReqMessageIT.class);
+  private final static int KIND = 2112;
+
+  private static GenericEvent textNoteEvent;
+
+  @Autowired
+  EventReqMessageIT(@NonNull AfterimageRelayClient afterImageRelayClient, @NonNull EventEntityService<GenericEvent> eventEntityService) {
+    this.afterImageRelayClient = afterImageRelayClient;
+
+    List<BaseTag> tags = new ArrayList<>();
+    tags.add(VOTE_TAG);
+
+    textNoteEvent = Factory.createTextNoteEvent(IDENTITY, tags, CONTENT);
+    textNoteEvent.setKind(KIND);
+    textNoteEvent.setPubKey(VOTE_TAG_AUTHOR_PUBKEY);
+    IDENTITY.sign(textNoteEvent);
+
+    System.out.println("textNoteEvent getId(): " + textNoteEvent.getId());
+    System.out.println("textNoteEvent getPubKey().toString(): " + textNoteEvent.getPubKey().toString());
+    System.out.println("textNoteEvent getPubKey().toHexString(): " + textNoteEvent.getPubKey().toHexString());
+    System.out.println("textNoteEvent getPubKey().toBech32String(): " + textNoteEvent.getPubKey().toBech32String());
+
+    eventEntityService.saveEventEntity(textNoteEvent);
+  }
+
+  @Test
+  void testReqFilteredByVoteTag() throws JsonProcessingException {
+    final String subscriberId = Factory.generateRandomHex64String();
+
+    List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new VoteTagFilter<>(VOTE_TAG))));
+
+    log.debug("okMessage:");
+    log.debug("  " + returnedEvents);
+    assertTrue(returnedEvents.stream().anyMatch(e -> e.getId().equals(textNoteEvent.getId())));
+    assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
+    assertTrue(returnedEvents.stream().anyMatch(e -> e.getKind().equals(KIND)));
+  }
+
+  @Test
+  void testReqFilteredByAuthor() throws JsonProcessingException {
+    final String subscriberId = Factory.generateRandomHex64String();
+
+    List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new AuthorFilter<>(VOTE_TAG_AUTHOR_PUBKEY))));
+
+    log.debug("okMessage:");
+    log.debug("  " + returnedEvents);
+
+    assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
+  }
+}
