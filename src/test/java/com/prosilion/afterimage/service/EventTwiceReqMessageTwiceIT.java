@@ -6,6 +6,7 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.EventService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@DirtiesContext
 class EventTwiceReqMessageTwiceIT {
   private final AfterimageRelayClient afterImageRelayClient;
   private final EventService<GenericEvent> eventService;
@@ -45,7 +48,7 @@ class EventTwiceReqMessageTwiceIT {
   }
 
   @Test
-  void testReqFilteredByVoteTag() throws JsonProcessingException {
+  void testReqFilteredByVoteTag() throws JsonProcessingException, InterruptedException {
     final String CONTENT = Factory.lorumIpsum(EventTwiceReqMessageTwiceIT.class);
 
     List<BaseTag> tags = new ArrayList<>();
@@ -55,13 +58,14 @@ class EventTwiceReqMessageTwiceIT {
     textNoteEvent.setKind(KIND);
     identity.sign(textNoteEvent);
 
-    System.out.println("textNoteEvent getId(): " + textNoteEvent.getId());
-    System.out.println("textNoteEvent getPubKey().toHexString(): " + textNoteEvent.getPubKey().toHexString());
+    log.debug("textNoteEvent getId(): " + textNoteEvent.getId());
+    log.debug("textNoteEvent getPubKey().toHexString(): " + textNoteEvent.getPubKey().toHexString());
     assertEquals(textNoteEvent.getPubKey().toHexString(), identity.getPublicKey().toHexString());
 
     eventService.processIncomingEvent(new EventMessage(textNoteEvent));
+    TimeUnit.SECONDS.sleep(1);
 
-    System.out.println("subscriberId testReqFilteredByVoteTag(): " + subscriberId);
+    log.debug("subscriberId testReqFilteredByVoteTag(): " + subscriberId);
     List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
@@ -70,11 +74,14 @@ class EventTwiceReqMessageTwiceIT {
 
     log.debug("okMessage:");
     log.debug("  " + returnedEvents);
-    assertEquals( 1, returnedEvents.size());
+    assertEquals(1, returnedEvents.size());
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getId().equals(textNoteEvent.getId())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getKind().equals(KIND)));
-    System.out.println("~~~~~~~~~~~~~~~~~~~");
+
+//    
+//    END 1
+//    
 
     final String CONTENT_2 = Factory.lorumIpsum(EventTwiceReqMessageTwiceIT.class);
 
@@ -85,28 +92,33 @@ class EventTwiceReqMessageTwiceIT {
     textNoteEvent_2.setKind(KIND);
     identity.sign(textNoteEvent_2);
 
-    System.out.println("textNoteEvent_2 getId(): " + textNoteEvent_2.getId());
-    System.out.println("textNoteEvent_2 getPubKey().toHexString(): " + textNoteEvent_2.getPubKey().toHexString());
+    log.debug("textNoteEvent_2 getId(): " + textNoteEvent_2.getId());
+    log.debug("textNoteEvent_2 getPubKey().toHexString(): " + textNoteEvent_2.getPubKey().toHexString());
     assertEquals(textNoteEvent_2.getPubKey().toHexString(), identity.getPublicKey().toHexString());
 
     eventService.processIncomingEvent(new EventMessage(textNoteEvent_2));
+    TimeUnit.SECONDS.sleep(1);
 
-    System.out.println("subscriberId testReqFilteredBy2ndVoteTag(): " + subscriberId);
+    log.debug("subscriberId testReqFilteredBy2ndVoteTag(): " + subscriberId);
     List<GenericEvent> returnedEvents_2 = afterImageRelayClient.updateReqResults(subscriberId);
 
     log.debug("okMessage:");
     log.debug("  " + returnedEvents_2);
 
-    System.out.println("returnedEvents_2: ");
-    returnedEvents_2.forEach(System.out::println);
-    
-    assertEquals( 1, returnedEvents_2.size());
+    log.debug("returnedEvents_2: ");
+    returnedEvents_2.forEach(e -> log.debug("  " + e));
+
+    assertEquals(1, returnedEvents_2.size());
     assertTrue(returnedEvents_2.stream().anyMatch(e -> e.getId().equals(textNoteEvent_2.getId())));
     assertTrue(returnedEvents_2.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent_2.getPubKey())));
 
+//    
+//    END 2
+//      
+
     List<GenericEvent> returnedEvents_3 = afterImageRelayClient.updateReqResults(subscriberId);
-    assertEquals( 0, returnedEvents_3.size());
-    System.out.println("returnedEvents_3: ");
-    returnedEvents_3.forEach(System.out::println);
+    assertEquals(0, returnedEvents_3.size());
+    log.debug("returnedEvents_3: ");
+    returnedEvents_3.forEach(e -> log.debug("  " + e));
   }
 }
