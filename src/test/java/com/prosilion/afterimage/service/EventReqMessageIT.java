@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.base.PublicKey;
 import nostr.event.BaseTag;
 import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.Filters;
@@ -32,7 +31,6 @@ class EventReqMessageIT {
   private final AfterimageRelayClient afterImageRelayClient;
 
   private static final Identity IDENTITY = Factory.createNewIdentity();
-  private static final PublicKey VOTE_TAG_AUTHOR_PUBKEY = IDENTITY.getPublicKey();
   private static final VoteTag VOTE_TAG = new VoteTag(1);
 
   private final static String CONTENT = Factory.lorumIpsum(EventReqMessageIT.class);
@@ -49,7 +47,6 @@ class EventReqMessageIT {
 
     textNoteEvent = Factory.createTextNoteEvent(IDENTITY, tags, CONTENT);
     textNoteEvent.setKind(KIND);
-    textNoteEvent.setPubKey(VOTE_TAG_AUTHOR_PUBKEY);
     IDENTITY.sign(textNoteEvent);
 
     System.out.println("textNoteEvent getId(): " + textNoteEvent.getId());
@@ -85,7 +82,7 @@ class EventReqMessageIT {
         new ReqMessage(
             subscriberId,
             new Filters(
-                new AuthorFilter<>(VOTE_TAG_AUTHOR_PUBKEY))));
+                new AuthorFilter<>(IDENTITY.getPublicKey()))));
 
     log.debug("okMessage:");
     log.debug("  " + returnedEvents);

@@ -49,11 +49,11 @@ public class AfterimageRelayClient {
     return nostrRelayClient.sendRequestReturnEvents(reqMessage);
   }
 
-  public Map<Command, List<String>> sendRequest(@NonNull String reqJson, @NonNull String clientUuid) {
-    Map<Command, List<Object>> resultsMap = nostrRelayClient.sendRequestReturnCommandResultsMap(clientUuid, reqJson);
+  public Map<Command, List<String>> sendRequest(@NonNull String reqJson, @NonNull String subscriberId) {
+    Map<Command, List<Object>> resultsMap = nostrRelayClient.sendRequestReturnCommandResultsMap(subscriberId, reqJson);
     List<Object> objects = resultsMap.get(Command.EVENT);
     List<String> returnedEvents = objects.stream().map(Object::toString).toList();
-    log.debug("socket [{}] getEvents():", clientUuid);
+    log.debug("socket [{}] getEvents():", subscriberId);
     returnedEvents.forEach(event -> log.debug("  {}\n", event));
     log.debug("222222222222\n");
     //    String joined = String.join(",", returnedEvents);
@@ -63,5 +63,9 @@ public class AfterimageRelayClient {
     //    Optional<String> value = Optional.of(joined).orElseThrow().isEmpty() ? Optional.empty() : Optional.of(joined);
     returnMap.put(Command.EVENT, returnedEvents);
     return returnMap;
+  }
+
+  public List<GenericEvent> updateReqResults(String subscriberId) throws JsonProcessingException {
+    return nostrRelayClient.updateReqResults(subscriberId);
   }
 }
