@@ -1,4 +1,3 @@
-.mvn
 .idea
 .project
 .gitattributes
@@ -10,7 +9,3 @@ pom.xml.versionsBackup
 
 .gradle/
 build/
-#gradle/
-#gradlew
-#gradlew.bat
-
