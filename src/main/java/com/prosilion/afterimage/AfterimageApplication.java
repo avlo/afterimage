@@ -26,6 +26,11 @@ public class AfterimageApplication extends SpringBootServletInitializer {
    * spring-boot executable JAR hook
    */
   public static void main(String[] args) {
-    SpringApplication.run(AfterimageApplication.class, args);
+    SpringApplication
+//        .from(AfterimageApplication::main)
+//        .with(SuperconductorRelaysConfig.class)
+//        .run(args);
+        .run(AfterimageApplication.class, args);
+
   }
 }
