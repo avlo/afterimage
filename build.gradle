@@ -58,6 +58,7 @@ dependencies {
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
+    def testcontainers = '1.20.6'
 
     implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
     implementation 'org.springframework.boot:spring-boot-devtools'
@@ -82,6 +83,9 @@ dependencies {
 
     implementation 'org.awaitility:awaitility:' + awaitility
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers:' + testcontainers
+    testImplementation 'org.testcontainers:junit-jupiter:' + testcontainers
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
