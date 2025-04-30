@@ -51,9 +51,9 @@ publishing {
 
 dependencies {
     def springBootVersion = '3.4.3'
-    def nostrJavaVersion = '0.6.5-SNAPSHOT'
-    def superconductorStarterVersion  = '1.12.0'
-    def subdivisionsVersion = '0.0.1'
+    def nostrJavaVersion = '0.6.6-SNAPSHOT'
+    def superconductorStarterVersion  = '1.13.0'
+    def subdivisionsVersion = '1.0.0'
     def apacheCommonsLang3 = '3.17.0'
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
