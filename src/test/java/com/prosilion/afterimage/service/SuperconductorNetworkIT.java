@@ -72,14 +72,14 @@ class SuperconductorNetworkIT {
     textNoteEvent.setKind(KIND);
     identity.sign(textNoteEvent);
 
-    log.debug("textNoteEvent getId(): " + textNoteEvent.getId());
-    log.debug("textNoteEvent getPubKey().toHexString(): " + textNoteEvent.getPubKey().toHexString());
+    log.debug("textNoteEvent getId(): {}", textNoteEvent.getId());
+    log.debug("textNoteEvent getPubKey().toHexString(): {}", textNoteEvent.getPubKey().toHexString());
     assertEquals(textNoteEvent.getPubKey().toHexString(), identity.getPublicKey().toHexString());
 
     eventService.processIncomingEvent(new EventMessage(textNoteEvent));
     TimeUnit.SECONDS.sleep(1);
 
-    log.debug("subscriberId testReqFilteredByVoteTag(): " + subscriberId);
+    log.debug("subscriberId testReqFilteredByVoteTag():  {}", subscriberId);
     List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
@@ -87,7 +87,7 @@ class SuperconductorNetworkIT {
                 new VoteTagFilter<>(voteTag))));
 
     log.debug("okMessage:");
-    log.debug("  " + returnedEvents);
+    log.debug("  {}", returnedEvents);
     assertEquals(1, returnedEvents.size());
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getId().equals(textNoteEvent.getId())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
@@ -106,21 +106,21 @@ class SuperconductorNetworkIT {
     textNoteEvent_2.setKind(KIND);
     identity.sign(textNoteEvent_2);
 
-    log.debug("textNoteEvent_2 getId(): " + textNoteEvent_2.getId());
-    log.debug("textNoteEvent_2 getPubKey().toHexString(): " + textNoteEvent_2.getPubKey().toHexString());
+    log.debug("textNoteEvent_2 getId():  {}", textNoteEvent_2.getId());
+    log.debug("textNoteEvent_2 getPubKey().toHexString():  {}", textNoteEvent_2.getPubKey().toHexString());
     assertEquals(textNoteEvent_2.getPubKey().toHexString(), identity.getPublicKey().toHexString());
 
     eventService.processIncomingEvent(new EventMessage(textNoteEvent_2));
     TimeUnit.SECONDS.sleep(1);
 
-    log.debug("subscriberId testReqFilteredBy2ndVoteTag(): " + subscriberId);
+    log.debug("subscriberId testReqFilteredBy2ndVoteTag():  {}", subscriberId);
     List<GenericEvent> returnedEvents_2 = afterImageRelayClient.updateReqResults(subscriberId);
 
     log.debug("okMessage:");
-    log.debug("  " + returnedEvents_2);
+    log.debug("   {}", returnedEvents_2);
 
     log.debug("returnedEvents_2: ");
-    returnedEvents_2.forEach(e -> log.debug("  " + e));
+    returnedEvents_2.forEach(e -> log.debug("   {}", e));
 
     assertEquals(1, returnedEvents_2.size());
     assertTrue(returnedEvents_2.stream().anyMatch(e -> e.getId().equals(textNoteEvent_2.getId())));
@@ -133,6 +133,6 @@ class SuperconductorNetworkIT {
     List<GenericEvent> returnedEvents_3 = afterImageRelayClient.updateReqResults(subscriberId);
     assertEquals(0, returnedEvents_3.size());
     log.debug("returnedEvents_3: ");
-    returnedEvents_3.forEach(e -> log.debug("  " + e));
+    returnedEvents_3.forEach(e -> log.debug("   {}", e));
   }
 }
