@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.subdivisions.service.NostrRelayClient;
+import com.prosilion.subdivisions.client.standard.StandardNostrRelayClient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -19,11 +19,11 @@ import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
 public class AfterimageRelayClient {
-  private final NostrRelayClient nostrRelayClient;
+  private final StandardNostrRelayClient nostrRelayClient;
 
   public AfterimageRelayClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
-    this.nostrRelayClient = new NostrRelayClient(relayUri);
+    this.nostrRelayClient = new StandardNostrRelayClient(relayUri);
     System.out.println("relayUri: " + relayUri);
   }
 
@@ -34,7 +34,7 @@ public class AfterimageRelayClient {
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.nostrRelayClient = new NostrRelayClient(relayUri, sslBundles);
+    this.nostrRelayClient = new StandardNostrRelayClient(relayUri, sslBundles);
   }
 
   public OkMessage sendEvent(@NonNull String eventJson) throws IOException {

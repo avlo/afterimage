@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.subdivisions.request.RequestConsolidator;
+import com.prosilion.subdivisions.client.standard.StandardRequestConsolidator;
 import com.prosilion.superconductor.service.clientresponse.ClientResponseService;
 import com.prosilion.superconductor.service.event.EventService;
 import com.prosilion.superconductor.service.message.req.ReqMessageServiceBean;
@@ -19,12 +19,12 @@ public class ReqReputationService<T extends ReqMessage> implements ReqMessageSer
   private final ReqService<GenericEvent> reqService;
   private final ClientResponseService clientResponseService;
 
-  private final RequestConsolidator requestConsolidator;
+  private final StandardRequestConsolidator requestConsolidator;
   private final EventService<GenericEvent> eventService;
 
   @Autowired
   public ReqReputationService(
-      @NonNull RequestConsolidator requestConsolidator,
+      @NonNull StandardRequestConsolidator requestConsolidator,
       @NonNull EventService<GenericEvent> eventService,
       @NonNull ReqService<GenericEvent> reqService,
       @NonNull ClientResponseService clientResponseService) {

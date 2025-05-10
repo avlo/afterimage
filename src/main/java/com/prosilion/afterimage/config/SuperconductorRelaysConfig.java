@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.subdivisions.request.RequestConsolidator;
+import com.prosilion.subdivisions.client.standard.StandardRequestConsolidator;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ public class SuperconductorRelaysConfig {
   }
 
   @Bean
-  public RequestConsolidator requestConsolidator(Map<String, String> superconductorRelays) {
-    return new RequestConsolidator(superconductorRelays);
+  public StandardRequestConsolidator requestConsolidator(Map<String, String> superconductorRelays) {
+    return new StandardRequestConsolidator(superconductorRelays);
   }
 }
