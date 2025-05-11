@@ -31,6 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Flux;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
@@ -122,8 +123,6 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
 
   @Test
   void testSuperconductorTwoEventsThenAfterimageReq() throws IOException {
-    TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
-    
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
 
@@ -133,14 +132,15 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     textNoteEvent_1.setKind(KIND);
     identity.sign(textNoteEvent_1);
 
-//    submit subscriber's first Event to superconductor
+    log.debug("AAAAAAAAAAAAAAAAAAAAAAAAA");
+    log.debug("AAAAAAAAAAAAAAAAAAAAAAAAA");
+    //    submit subscriber's first Event to superconductor
+    TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.sendF(new EventMessage(textNoteEvent_1)).subscribe(okMessageSubscriber_1);
     assertEquals(true, okMessageSubscriber_1
         .getItems()
         .getFirst()
         .getFlag());
-    log.debug("!!!!!!!!!!!!!!!!!!!!!!!!!");
-    log.debug("!!!!!!!!!!!!!!!!!!!!!!!!!");
     log.debug("received 1of2 OkMessage...");
     
     GenericEvent textNoteEvent_2 = Factory.createTextNoteEvent(
@@ -151,13 +151,11 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
 
 //    submit subscriber's second Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
-    log.debug("@@@@@@@@@@@@@@@@@@@@@@@@@");
-    log.debug("@@@@@@@@@@@@@@@@@@@@@@@@@");
-    superconductorRelayReactiveClient.sendF(new EventMessage(textNoteEvent_2))
-        .subscribe(okMessageSubscriber_2)
-    ;
-    log.debug("#########################");
-    log.debug("#########################");
+    log.debug("BBBBBBBBBBBBBBBBBBBBBBBBB");
+    log.debug("BBBBBBBBBBBBBBBBBBBBBBBBB");
+    superconductorRelayReactiveClient.sendF(new EventMessage(textNoteEvent_2)).subscribe(okMessageSubscriber_2);
+    log.debug("CCCCCCCCCCCCCCCCCCCCCCCCC");
+    log.debug("CCCCCCCCCCCCCCCCCCCCCCCCC");
     assertEquals(true, okMessageSubscriber_2
         .getItems()
         .getFirst()
@@ -166,24 +164,33 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     
 // # --------------------- REQ -------------------    
 //    submit matching author & vote tag Req to superconductor
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDDDD");
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDDDD");
     log.debug("subscriberId testReqFilteredByVoteTag():  {}", subscriberId);
-    Flux<GenericEvent> returnedSuperConductorEvents = superconductorRelayReactiveClient.sendF(
+    TestSubscriber<GenericEvent> eventsSubscriber = new TestSubscriber<>();
+    superconductorRelayReactiveClient.sendF(
         new ReqMessage(
             subscriberId,
             new Filters(
                 new AuthorFilter<>(identity.getPublicKey()),
-                new VoteTagFilter<>(voteTag))));
+                new VoteTagFilter<>(voteTag)))).subscribe(eventsSubscriber);
 
-    log.debug("2222222222222222222222222");
-    log.debug("2222222222222222222222222");
-    List<GenericEvent> genericEvents = returnedSuperConductorEvents.collectList().block();
-    log.debug("3333333333333333333333333");
-    log.debug("3333333333333333333333333");
+    List<GenericEvent> genericEvents = eventsSubscriber.getItems();
+    genericEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
+    log.debug("EEEEEEEEEEEEEEEEEEEEEEEEE");
+    log.debug("EEEEEEEEEEEEEEEEEEEEEEEEE");
+    assertTrue(genericEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
+    assertTrue(genericEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_2.getContent())));
+
+    log.debug("FFFFFFFFFFFFFFFFFFFFFFFFF");
+    log.debug("FFFFFFFFFFFFFFFFFFFFFFFFF");
 
 //    save SC result to Aimg
     genericEvents.forEach(event ->
         eventService.processIncomingEvent(new EventMessage(event)));
 
+    log.debug("GGGGGGGGGGGGGGGGGGGGGGGGG");
+    log.debug("GGGGGGGGGGGGGGGGGGGGGGGGG");
 //    query Aimg for (as yet to be impl'd) reputation score event
     GenericEvent returnAfterimageEvents = afterimageRelayReactiveClient.send(
         new ReqMessage(
@@ -192,6 +199,8 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
                 new AuthorFilter<>(identity.getPublicKey()),
                 new VoteTagFilter<>(voteTag))));
 
+    log.debug("HHHHHHHHHHHHHHHHHHHHHHHHH");
+    log.debug("HHHHHHHHHHHHHHHHHHHHHHHHH");
     log.debug("afterimage returned superconductor events:");
     log.debug("  {}", returnAfterimageEvents);
 //    assertEquals(returnAfterimageEvents.getId(), textNoteEvent_1.getId());
