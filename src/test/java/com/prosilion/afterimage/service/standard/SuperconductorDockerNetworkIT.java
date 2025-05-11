@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -35,9 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@DirtiesContext
 class SuperconductorDockerNetworkIT {
-
   public static ComposeContainer superconductorContainer = new ComposeContainer(
       new File("src/test/resources/superconductor-docker-compose-dev_ws.yml"))
       .withExposedService("superconductor-afterimage", 5555, Wait.forHealthcheck());

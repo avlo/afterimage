@@ -3,6 +3,7 @@ package com.prosilion.afterimage.service.reactive;
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.EventService;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +25,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
+@Testcontainers
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class SuperconductorEventThenAfterimageReqIT {
+  public static ComposeContainer superconductorContainer = new ComposeContainer(
+      new File("src/test/resources/superconductor-docker-compose-dev_ws.yml"))
+      .withExposedService("superconductor-afterimage", 5555, Wait.forHealthcheck());
+  
   private final AfterimageRelayReactiveClient superconductorRelayReactiveClient;
   private final AfterimageRelayReactiveClient afterimageRelayReactiveClient;
   private final EventService<GenericEvent> eventService;
@@ -47,9 +56,11 @@ class SuperconductorEventThenAfterimageReqIT {
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri
   ) {
+    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
+    
     log.debug("00000000000000000000000");
     log.debug("00000000000000000000000");
-    log.debug("superconductorRelayUri: {}", superconductorRelayUri);
+    log.debug("superconductorRelayUri: {}", serviceHost);
     log.debug("-----------------------");
     log.debug("afterimageRelayUri: {}", afterimageRelayUri);
     log.debug("00000000000000000000000");
