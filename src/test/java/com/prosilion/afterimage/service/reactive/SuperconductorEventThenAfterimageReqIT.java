@@ -1,9 +1,9 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.prosilion.afterimage.service.CommonContainer;
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.EventService;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
+import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.Filters;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
@@ -25,21 +26,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-@Testcontainers
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-class SuperconductorEventThenAfterimageReqIT {
-  public static ComposeContainer superconductorContainer = new ComposeContainer(
-      new File("src/test/resources/superconductor-docker-compose-dev_ws.yml"))
-      .withExposedService("superconductor-afterimage", 5555, Wait.forHealthcheck());
-  
+class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
   private final AfterimageRelayReactiveClient superconductorRelayReactiveClient;
   private final AfterimageRelayReactiveClient afterimageRelayReactiveClient;
   private final EventService<GenericEvent> eventService;
@@ -57,10 +50,11 @@ class SuperconductorEventThenAfterimageReqIT {
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri
   ) {
     String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
-    
+
     log.debug("00000000000000000000000");
     log.debug("00000000000000000000000");
-    log.debug("superconductorRelayUri: {}", serviceHost);
+    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
+    log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
     log.debug("-----------------------");
     log.debug("afterimageRelayUri: {}", afterimageRelayUri);
     log.debug("00000000000000000000000");
@@ -96,6 +90,7 @@ class SuperconductorEventThenAfterimageReqIT {
         new ReqMessage(
             subscriberId,
             new Filters(
+                new AuthorFilter<>(identity.getPublicKey()),
                 new VoteTagFilter<>(voteTag))));
 
     log.debug("superconductor events:");
@@ -112,6 +107,7 @@ class SuperconductorEventThenAfterimageReqIT {
         new ReqMessage(
             subscriberId,
             new Filters(
+                new AuthorFilter<>(identity.getPublicKey()),
                 new VoteTagFilter<>(voteTag))));
 
     log.debug("afterimage returned superconductor events:");
