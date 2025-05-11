@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @DirtiesContext
-class SuperconductorNetworkIT {
+class SuperconductorDockerNetworkIT {
 
   public static ComposeContainer superconductorContainer = new ComposeContainer(
       new File("src/test/resources/superconductor-docker-compose-dev_ws.yml"))
@@ -52,7 +52,7 @@ class SuperconductorNetworkIT {
   private final static String subscriberId = Factory.generateRandomHex64String();
 
   @Autowired
-  SuperconductorNetworkIT(@NonNull AfterimageRelayStandardClient afterImageRelayStandardClient, @NonNull EventService<GenericEvent> eventService) {
+  SuperconductorDockerNetworkIT(@NonNull AfterimageRelayStandardClient afterImageRelayStandardClient, @NonNull EventService<GenericEvent> eventService) {
     this.afterImageRelayStandardClient = afterImageRelayStandardClient;
     this.eventService = eventService;
   }
@@ -65,7 +65,7 @@ class SuperconductorNetworkIT {
     log.debug("serviceHost: {}", serviceHost);
     log.debug("00000000000000000000000");
     log.debug("00000000000000000000000");
-    final String CONTENT = Factory.lorumIpsum(SuperconductorNetworkIT.class);
+    final String CONTENT = Factory.lorumIpsum(SuperconductorDockerNetworkIT.class);
 
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
@@ -99,7 +99,7 @@ class SuperconductorNetworkIT {
 //    END 1
 //    
 
-    final String CONTENT_2 = Factory.lorumIpsum(SuperconductorNetworkIT.class);
+    final String CONTENT_2 = Factory.lorumIpsum(SuperconductorDockerNetworkIT.class);
 
     List<BaseTag> tags_2 = new ArrayList<>();
     tags_2.add(voteTag);

@@ -41,9 +41,9 @@ public class AfterimageRelayReactiveClient {
     return okMessage;
   }
 
-  public List<GenericEvent> send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+  public GenericEvent send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     Flux<GenericEvent> send = nostrRelayClient.send(reqMessage);
-    List<GenericEvent> block = send.collectList().block();
+    GenericEvent block = send.blockFirst();
     return block;
   }
 }
