@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.service.standard;
 
 import com.prosilion.afterimage.util.Factory;
-import com.prosilion.afterimage.util.AfterimageRelayClient;
+import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
 import java.util.List;
 import java.util.Map;
 import lombok.NonNull;
@@ -22,20 +22,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class EventNoOpReqMessageIT {
-  private final AfterimageRelayClient afterImageRelayClient;
+  private final AfterimageRelayStandardClient afterImageRelayStandardClient;
 
   private final String eventIdFromEventSql = "dddeee6101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e5914cc";
   private final String authorPubkeyFromEventSql = "dddeeef81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984";
 
   @Autowired
-  EventNoOpReqMessageIT(@NonNull AfterimageRelayClient afterImageRelayClient) {
-    this.afterImageRelayClient = afterImageRelayClient;
+  EventNoOpReqMessageIT(@NonNull AfterimageRelayStandardClient afterImageRelayStandardClient) {
+    this.afterImageRelayStandardClient = afterImageRelayStandardClient;
   }
 
   @Test
   void testReqFilteredByEventAndAuthor() {
     final String subscriberId = Factory.generateRandomHex64String();
-    Map<Command, List<String>> returnedJsonMap = afterImageRelayClient.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = afterImageRelayStandardClient.sendRequest(
         createReqJson(subscriberId, eventIdFromEventSql, authorPubkeyFromEventSql),
         subscriberId
     );
@@ -52,7 +52,7 @@ class EventNoOpReqMessageIT {
   @Test
   void testReqFilteredByEventId() {
     final String subscriberId = Factory.generateRandomHex64String();
-    Map<Command, List<String>> returnedJsonMap = afterImageRelayClient.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = afterImageRelayStandardClient.sendRequest(
         createEventReqJson(subscriberId, eventIdFromEventSql),
         subscriberId
     );
@@ -68,7 +68,7 @@ class EventNoOpReqMessageIT {
   @Test
   void testReqFilteredByAuthor() {
     final String subscriberId = Factory.generateRandomHex64String();
-    Map<Command, List<String>> returnedJsonMap = afterImageRelayClient.sendRequest(
+    Map<Command, List<String>> returnedJsonMap = afterImageRelayStandardClient.sendRequest(
         createAuthorReqJson(subscriberId, authorPubkeyFromEventSql),
         subscriberId
     );

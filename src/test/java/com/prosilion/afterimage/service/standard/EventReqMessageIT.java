@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.service.standard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.util.AfterimageRelayClient;
+import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @DirtiesContext
 class EventReqMessageIT {
-  private final AfterimageRelayClient afterImageRelayClient;
+  private final AfterimageRelayStandardClient afterImageRelayStandardClient;
 
   private static final Identity IDENTITY = Factory.createNewIdentity();
   private static final VoteTag VOTE_TAG = new VoteTag(1);
@@ -41,8 +41,8 @@ class EventReqMessageIT {
   private static GenericEvent textNoteEvent;
 
   @Autowired
-  EventReqMessageIT(@NonNull AfterimageRelayClient afterImageRelayClient, @NonNull EventEntityService<GenericEvent> eventEntityService) {
-    this.afterImageRelayClient = afterImageRelayClient;
+  EventReqMessageIT(@NonNull AfterimageRelayStandardClient afterImageRelayStandardClient, @NonNull EventEntityService<GenericEvent> eventEntityService) {
+    this.afterImageRelayStandardClient = afterImageRelayStandardClient;
 
     List<BaseTag> tags = new ArrayList<>();
     tags.add(VOTE_TAG);
@@ -63,7 +63,7 @@ class EventReqMessageIT {
   void testReqFilteredByVoteTag() throws JsonProcessingException {
     final String subscriberId = Factory.generateRandomHex64String();
 
-    List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
+    List<GenericEvent> returnedEvents = afterImageRelayStandardClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
             new Filters(
@@ -80,7 +80,7 @@ class EventReqMessageIT {
   void testReqFilteredByAuthor() throws JsonProcessingException {
     final String subscriberId = Factory.generateRandomHex64String();
 
-    List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
+    List<GenericEvent> returnedEvents = afterImageRelayStandardClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
             new Filters(

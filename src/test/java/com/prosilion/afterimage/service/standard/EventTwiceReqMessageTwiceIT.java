@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.service.standard;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.util.AfterimageRelayClient;
+import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.EventService;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @DirtiesContext
 class EventTwiceReqMessageTwiceIT {
-  private final AfterimageRelayClient afterImageRelayClient;
+  private final AfterimageRelayStandardClient afterImageRelayStandardClient;
   private final EventService<GenericEvent> eventService;
 
   private final Identity identity = Factory.createNewIdentity();
@@ -42,8 +42,8 @@ class EventTwiceReqMessageTwiceIT {
   private final static String subscriberId = Factory.generateRandomHex64String();
 
   @Autowired
-  EventTwiceReqMessageTwiceIT(@NonNull AfterimageRelayClient afterImageRelayClient, @NonNull EventService<GenericEvent> eventService) {
-    this.afterImageRelayClient = afterImageRelayClient;
+  EventTwiceReqMessageTwiceIT(@NonNull AfterimageRelayStandardClient afterImageRelayStandardClient, @NonNull EventService<GenericEvent> eventService) {
+    this.afterImageRelayStandardClient = afterImageRelayStandardClient;
     this.eventService = eventService;
   }
 
@@ -66,7 +66,7 @@ class EventTwiceReqMessageTwiceIT {
     TimeUnit.SECONDS.sleep(1);
 
     log.debug("subscriberId testReqFilteredByVoteTag(): " + subscriberId);
-    List<GenericEvent> returnedEvents = afterImageRelayClient.sendRequestReturnEvents(
+    List<GenericEvent> returnedEvents = afterImageRelayStandardClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
             new Filters(
@@ -100,7 +100,7 @@ class EventTwiceReqMessageTwiceIT {
     TimeUnit.SECONDS.sleep(1);
 
     log.debug("subscriberId testReqFilteredBy2ndVoteTag(): " + subscriberId);
-    List<GenericEvent> returnedEvents_2 = afterImageRelayClient.updateReqResults(subscriberId);
+    List<GenericEvent> returnedEvents_2 = afterImageRelayStandardClient.updateReqResults(subscriberId);
 
     log.debug("okMessage:");
     log.debug("  " + returnedEvents_2);
@@ -116,7 +116,7 @@ class EventTwiceReqMessageTwiceIT {
 //    END 2
 //      
 
-    List<GenericEvent> returnedEvents_3 = afterImageRelayClient.updateReqResults(subscriberId);
+    List<GenericEvent> returnedEvents_3 = afterImageRelayStandardClient.updateReqResults(subscriberId);
     assertEquals(0, returnedEvents_3.size());
     log.debug("returnedEvents_3: ");
     returnedEvents_3.forEach(e -> log.debug("  " + e));

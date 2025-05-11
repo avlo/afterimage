@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.service.standard;
 
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.superconductor.service.event.type.EventEntityService;

@@ -18,16 +18,16 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class AfterimageRelayClient {
+public class AfterimageRelayStandardClient {
   private final StandardNostrRelayClient nostrRelayClient;
 
-  public AfterimageRelayClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
+  public AfterimageRelayStandardClient(@NonNull String relayUri) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     this.nostrRelayClient = new StandardNostrRelayClient(relayUri);
     System.out.println("relayUri: " + relayUri);
   }
 
-  public AfterimageRelayClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public AfterimageRelayStandardClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");

@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.util.AfterimageRelayClient;
+import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,10 +23,10 @@ public class AfterimageRelayMeshWssConfig {
 
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  public AfterimageRelayClient nostrRelayService(
+  public AfterimageRelayStandardClient nostrRelayService(
       @NonNull @Value("${afterimage.relay.url}") String relayUri,
       @NonNull SslBundles sslBundles
   ) throws ExecutionException, InterruptedException {
-    return new AfterimageRelayClient(relayUri, sslBundles);
+    return new AfterimageRelayStandardClient(relayUri, sslBundles);
   }
 }
