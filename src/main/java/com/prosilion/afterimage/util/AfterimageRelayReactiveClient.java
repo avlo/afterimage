@@ -3,7 +3,6 @@ package com.prosilion.afterimage.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +40,17 @@ public class AfterimageRelayReactiveClient {
     return okMessage;
   }
 
+  public Flux<OkMessage> sendF(@NonNull EventMessage eventMessage) throws IOException {
+    return nostrRelayClient.send(eventMessage);
+  }
+
   public GenericEvent send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
     Flux<GenericEvent> send = nostrRelayClient.send(reqMessage);
     GenericEvent block = send.blockFirst();
     return block;
+  }
+
+  public Flux<GenericEvent> sendF(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
+    return nostrRelayClient.send(reqMessage);
   }
 }
