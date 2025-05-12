@@ -1,0 +1,181 @@
+package com.prosilion.afterimage.service.reactive;
+
+import com.prosilion.afterimage.service.CommonContainer;
+import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
+import com.prosilion.afterimage.util.Factory;
+import com.prosilion.afterimage.util.TestSubscriber;
+import com.prosilion.superconductor.service.event.EventService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import nostr.event.BaseTag;
+import nostr.event.filter.AuthorFilter;
+import nostr.event.filter.Filters;
+import nostr.event.filter.VoteTagFilter;
+import nostr.event.impl.GenericEvent;
+import nostr.event.message.EventMessage;
+import nostr.event.message.OkMessage;
+import nostr.event.message.ReqMessage;
+import nostr.event.tag.VoteTag;
+import nostr.id.Identity;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@Slf4j
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
+class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
+  private final AfterimageRelayReactiveClient superconductorRelayReactiveClient;
+  private final AfterimageRelayReactiveClient afterimageRelayReactiveClient;
+  private final EventService<GenericEvent> eventService;
+
+  private final Identity identity = Factory.createNewIdentity();
+  private final VoteTag voteTag = new VoteTag(1);
+  private final static int KIND = 2112;
+
+  private final static String subscriberId = Factory.generateRandomHex64String();
+
+  @Autowired
+  AfterimageReqThenSuperconductorEventIT(
+      @NonNull EventService<GenericEvent> eventService,
+      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri
+  ) {
+    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
+
+    log.debug("00000000000000000000000");
+    log.debug("00000000000000000000000");
+    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
+    log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
+    log.debug("-----------------------");
+    log.debug("afterimageRelayUri: {}", afterimageRelayUri);
+    log.debug("00000000000000000000000");
+    log.debug("00000000000000000000000");
+    this.superconductorRelayReactiveClient = new AfterimageRelayReactiveClient(superconductorRelayUri);
+    this.afterimageRelayReactiveClient = new AfterimageRelayReactiveClient(afterimageRelayUri);
+    this.eventService = eventService;
+  }
+
+  @Test
+  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException {
+//    // # --------------------- Aimg EVENT -------------------
+//    // query Aimg for (as yet to be impl'd) reputation score event
+//    //   results should process at end of test once pre-req SC events have completed
+//    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
+//    afterimageRelayReactiveClient.sendF(
+//        new ReqMessage(
+//            subscriberId,
+//            new Filters(
+//                new AuthorFilter<>(identity.getPublicKey()),
+//                new VoteTagFilter<>(voteTag)))).subscribe(afterImageEventsSubscriber);
+
+    // # --------------------- SC EVENT -------------------
+    //    begin event creation for submission to SC
+    List<BaseTag> tags = new ArrayList<>();
+    tags.add(voteTag);
+
+    GenericEvent textNoteEvent_1 = Factory.createTextNoteEvent(
+        identity, tags,
+        Factory.lorumIpsum(AfterimageReqThenSuperconductorEventIT.class));
+    textNoteEvent_1.setKind(KIND);
+    identity.sign(textNoteEvent_1);
+
+    log.debug("AAAAAAAAAAAAAAAAAAAAAAAAA");
+    log.debug("AAAAAAAAAAAAAAAAAAAAAAAAA");
+    //    submit subscriber's first Event to superconductor
+    TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
+    superconductorRelayReactiveClient.sendF(new EventMessage(textNoteEvent_1)).subscribe(okMessageSubscriber_1);
+    assertEquals(true, okMessageSubscriber_1
+        .getItems()
+        .getFirst()
+        .getFlag());
+    log.debug("received 1of2 OkMessage...");
+
+    GenericEvent textNoteEvent_2 = Factory.createTextNoteEvent(
+        identity, tags,
+        Factory.lorumIpsum(AfterimageReqThenSuperconductorEventIT.class));
+    textNoteEvent_2.setKind(KIND);
+    identity.sign(textNoteEvent_2);
+
+    //    submit subscriber's second Event to superconductor
+    TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
+    log.debug("BBBBBBBBBBBBBBBBBBBBBBBBB");
+    log.debug("BBBBBBBBBBBBBBBBBBBBBBBBB");
+    superconductorRelayReactiveClient.sendF(new EventMessage(textNoteEvent_2)).subscribe(okMessageSubscriber_2);
+    log.debug("CCCCCCCCCCCCCCCCCCCCCCCCC");
+    log.debug("CCCCCCCCCCCCCCCCCCCCCCCCC");
+    assertEquals(true, okMessageSubscriber_2
+        .getItems()
+        .getFirst()
+        .getFlag());
+    log.debug("received 2of2 OkMessage...");
+
+    // # --------------------- SC REQ -------------------
+    //    submit matching author & vote tag Req to superconductor
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDDDD");
+    log.debug("DDDDDDDDDDDDDDDDDDDDDDDDD");
+    log.debug("subscriberId testReqFilteredByVoteTag():  {}", subscriberId);
+    TestSubscriber<GenericEvent> superConductorEventsSubscriber = new TestSubscriber<>();
+    superconductorRelayReactiveClient.sendF(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new AuthorFilter<>(identity.getPublicKey()),
+                new VoteTagFilter<>(voteTag)))).subscribe(superConductorEventsSubscriber);
+
+    List<GenericEvent> superCondutorEvents = superConductorEventsSubscriber.getItems();
+    superCondutorEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
+    log.debug("EEEEEEEEEEEEEEEEEEEEEEEEE");
+    log.debug("EEEEEEEEEEEEEEEEEEEEEEEEE");
+    assertTrue(superCondutorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
+    assertTrue(superCondutorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_2.getContent())));
+
+    log.debug("FFFFFFFFFFFFFFFFFFFFFFFFF");
+    log.debug("FFFFFFFFFFFFFFFFFFFFFFFFF");
+
+    //    save SC result to Aimg
+    //    should trigger Aimg afterImageEventsSubscriber
+    superCondutorEvents.forEach(event ->
+        eventService.processIncomingEvent(new EventMessage(event)));
+
+
+
+
+    // # --------------------- Aimg EVENT -------------------
+    // query Aimg for (as yet to be impl'd) reputation score event
+    //   results should process at end of test once pre-req SC events have completed
+    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
+    afterimageRelayReactiveClient.sendF(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new AuthorFilter<>(identity.getPublicKey()),
+                new VoteTagFilter<>(voteTag)))).subscribe(afterImageEventsSubscriber);
+
+
+
+
+    // # --------------------- Aimg EVENTS returned -------------------
+    log.debug("GGGGGGGGGGGGGGGGGGGGGGGGG");
+    log.debug("GGGGGGGGGGGGGGGGGGGGGGGGG");
+    List<GenericEvent> afterImageEvents = afterImageEventsSubscriber.getItems();
+    log.debug("afterimage returned events:");
+    afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
+    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
+    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_2.getContent())));
+    log.debug("ZZZZZZZZZZZZZZZZZZZZZZZZZ");
+    log.debug("ZZZZZZZZZZZZZZZZZZZZZZZZZ");
+    //    assertEquals(returnAfterimageEvents.getId(), textNoteEvent_1.getId());
+    //    assertEquals(returnAfterimageEvents.getPubKey(), textNoteEvent_1.getPubKey());
+    //    assertEquals(KIND, (int) returnAfterimageEvents.getKind());
+  }
+}
