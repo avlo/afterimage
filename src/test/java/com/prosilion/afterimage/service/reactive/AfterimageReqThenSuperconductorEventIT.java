@@ -64,14 +64,14 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 //    // # --------------------- Aimg EVENT -------------------
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
-//    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
-//    afterimageRelayReactiveClient.sendF(
-//        new ReqMessage(
-//            subscriberId,
-//            new Filters(
-//                new AuthorFilter<>(identity.getPublicKey()),
-//                new VoteTagFilter<>(voteTag)))).subscribe(afterImageEventsSubscriber);
-
+    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
+    afterimageRelayReactiveClient.send(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new AuthorFilter<>(identity.getPublicKey()),
+                new VoteTagFilter<>(voteTag))), afterImageEventsSubscriber);
+    
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
     List<BaseTag> tags = new ArrayList<>();
@@ -131,19 +131,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     superCondutorEvents.forEach(event ->
         eventService.processIncomingEvent(new EventMessage(event)));
 
-    // # --------------------- Aimg EVENT -------------------
-    // query Aimg for (as yet to be impl'd) reputation score event
-    //   results should process at end of test once pre-req SC events have completed
-    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
-    afterimageRelayReactiveClient.send(
-        new ReqMessage(
-            subscriberId,
-            new Filters(
-                new AuthorFilter<>(identity.getPublicKey()),
-                new VoteTagFilter<>(voteTag))), afterImageEventsSubscriber);
-
     // # --------------------- Aimg EVENTS returned -------------------
-
     List<GenericEvent> afterImageEvents = afterImageEventsSubscriber.getItems();
     log.debug("afterimage returned events:");
     afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
