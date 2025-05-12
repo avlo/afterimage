@@ -10,9 +10,9 @@ import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
+import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
-import reactor.core.publisher.Flux;
 
 @Slf4j
 public class AfterimageRelayReactiveClient {
@@ -34,23 +34,11 @@ public class AfterimageRelayReactiveClient {
     this.nostrRelayClient = new ReactiveNostrRelayClient(relayUri, sslBundles);
   }
 
-  public OkMessage send(@NonNull EventMessage eventMessage) throws IOException {
-    Flux<OkMessage> send = nostrRelayClient.send(eventMessage);
-    OkMessage okMessage = send.blockFirst();
-    return okMessage;
+  public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
+    nostrRelayClient.send(eventMessage, subscriber);
   }
 
-  public Flux<OkMessage> sendF(@NonNull EventMessage eventMessage) throws IOException {
-    return nostrRelayClient.send(eventMessage);
-  }
-
-  public GenericEvent send(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    Flux<GenericEvent> send = nostrRelayClient.send(reqMessage);
-    GenericEvent block = send.blockFirst();
-    return block;
-  }
-
-  public Flux<GenericEvent> sendF(@NonNull ReqMessage reqMessage) throws JsonProcessingException {
-    return nostrRelayClient.send(reqMessage);
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<GenericEvent> subscriber) throws JsonProcessingException {
+    nostrRelayClient.send(reqMessage, subscriber);
   }
 }

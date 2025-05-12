@@ -2,10 +2,12 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
 import com.prosilion.afterimage.util.Factory;
+import com.prosilion.afterimage.util.TestSubscriber;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import nostr.api.NIP01;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
@@ -34,18 +36,18 @@ class EventNoOpMessageReactiveIT {
     String content = Factory.lorumIpsum(getClass());
     Identity identity = Factory.createNewIdentity();
 
-    GenericEvent genericEvent = Factory.createTextNoteEvent(identity, new ArrayList<>(), content);
-    genericEvent.setKind(1);
-    identity.sign(genericEvent);
+    GenericEvent genericEvent = new NIP01<>(identity).createTextNoteEvent(content).sign().getEvent();
 
     log.debug("textNoteEvent getId(): " + genericEvent.getId());
     log.debug("textNoteEvent getPubKey().toHexString(): " + genericEvent.getPubKey().toHexString());
     assertEquals(genericEvent.getPubKey().toHexString(), identity.getPublicKey().toHexString());
 
-    OkMessage okMessage = this.afterImageRelayClient.send(new EventMessage(genericEvent));
+    TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
+    this.afterImageRelayClient.send(new EventMessage(genericEvent), okMessageSubscriber);
     final String noOpResponse = "application-test.properties afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
 
-    assertEquals(false, okMessage.getFlag());
-    assertEquals(noOpResponse, okMessage.getMessage());
+    List<OkMessage> items = okMessageSubscriber.getItems();
+    assertEquals(false, items.getFirst().getFlag());
+    assertEquals(noOpResponse, items.getFirst().getMessage());
   }
 }
