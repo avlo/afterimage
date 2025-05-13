@@ -11,13 +11,14 @@ import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
-import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.Filters;
+import nostr.event.filter.ReferencedPublicKeyFilter;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
+import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
@@ -42,10 +43,13 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
   private final static int KIND = 2112;
 
   @Autowired
-  SuperconductorEventThenAfterimageReqIT(@NonNull EventService<GenericEvent> eventService, @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri, @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) {
+  SuperconductorEventThenAfterimageReqIT(
+      @NonNull EventService<GenericEvent> eventService,
+      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
 //    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
-    log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
+    log.debug("superconductorRelayUri: {}", superconductorRelayUri);
     log.debug("afterimageRelayUri: {}", afterimageRelayUri);
 
     this.superconductorRelayReactiveClient = new AfterimageRelayReactiveClient(superconductorRelayUri);
@@ -56,10 +60,12 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
   @Test
   void testSuperconductorEventThenAfterimageReq() throws IOException {
     final Identity identity = Factory.createNewIdentity();
+    final Identity authorIdentity = Factory.createNewIdentity();
     final String CONTENT = Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class);
 
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
+    tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     GenericEvent textNoteEvent = Factory.createTextNoteEvent(identity, tags, CONTENT);
     textNoteEvent.setKind(KIND);
@@ -80,7 +86,7 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     superconductorRelayReactiveClient.send(
         new ReqMessage(subscriberId,
             new Filters(
-                new AuthorFilter<>(identity.getPublicKey()),
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))),
         superconductorEventsSubscriber_X);
 
@@ -99,7 +105,7 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     afterimageRelayReactiveClient.send(
         new ReqMessage(subscriberId,
             new Filters(
-                new AuthorFilter<>(identity.getPublicKey()),
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))),
         afterImageEventsSubscriber_Y);
 
@@ -114,8 +120,11 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
   @Test
   void testSuperconductorTwoEventsThenAfterimageReq() throws IOException {
     final Identity identity = Factory.createNewIdentity();
+    final Identity authorIdentity = Factory.createNewIdentity();
+
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
+    tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     GenericEvent textNoteEvent_1 = Factory.createTextNoteEvent(identity, tags, Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class));
     textNoteEvent_1.setKind(KIND);
@@ -147,7 +156,11 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     String subscriberId = Factory.generateRandomHex64String();
 
     TestSubscriber<GenericEvent> superConductorEventsSubscriber_W = new TestSubscriber<>();
-    superconductorRelayReactiveClient.send(new ReqMessage(subscriberId, new Filters(new AuthorFilter<>(identity.getPublicKey()), new VoteTagFilter<>(voteTag))), superConductorEventsSubscriber_W);
+    superconductorRelayReactiveClient.send(
+        new ReqMessage(subscriberId,
+            new Filters(
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
+                new VoteTagFilter<>(voteTag))), superConductorEventsSubscriber_W);
 
     List<GenericEvent> superCondutorEvents = superConductorEventsSubscriber_W.getItems();
     superCondutorEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
@@ -161,7 +174,12 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
 
 //    query Aimg for (as yet to be impl'd) reputation score event
     TestSubscriber<GenericEvent> afterImageEventsSubscriber_V = new TestSubscriber<>();
-    afterimageRelayReactiveClient.send(new ReqMessage(subscriberId, new Filters(new AuthorFilter<>(identity.getPublicKey()), new VoteTagFilter<>(voteTag))), afterImageEventsSubscriber_V);
+    afterimageRelayReactiveClient.send(
+        new ReqMessage(
+            subscriberId,
+            new Filters(
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
+                new VoteTagFilter<>(voteTag))), afterImageEventsSubscriber_V);
 
     List<GenericEvent> afterImageEvents = afterImageEventsSubscriber_V.getItems();
     log.debug("afterimage returned events:");

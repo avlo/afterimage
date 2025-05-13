@@ -11,10 +11,12 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
 import nostr.event.filter.Filters;
+import nostr.event.filter.ReferencedPublicKeyFilter;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
+import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
@@ -50,9 +52,11 @@ class EventTwiceReqMessageTwiceIT {
   @Test
   void testReqFilteredByVoteTag() throws JsonProcessingException, InterruptedException {
     final String CONTENT = Factory.lorumIpsum(EventTwiceReqMessageTwiceIT.class);
+    final Identity authorIdentity = Factory.createNewIdentity();
 
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
+    tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     GenericEvent textNoteEvent = Factory.createTextNoteEvent(identity, tags, CONTENT);
     textNoteEvent.setKind(KIND);
@@ -70,6 +74,7 @@ class EventTwiceReqMessageTwiceIT {
         new ReqMessage(
             subscriberId,
             new Filters(
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))));
 
     log.debug("okMessage:");
@@ -79,14 +84,13 @@ class EventTwiceReqMessageTwiceIT {
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getKind().equals(KIND)));
 
-//    
 //    END 1
-//    
 
     final String CONTENT_2 = Factory.lorumIpsum(EventTwiceReqMessageTwiceIT.class);
 
     List<BaseTag> tags_2 = new ArrayList<>();
     tags_2.add(voteTag);
+    tags_2.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     GenericEvent textNoteEvent_2 = Factory.createTextNoteEvent(identity, tags_2, CONTENT_2);
     textNoteEvent_2.setKind(KIND);
@@ -112,9 +116,7 @@ class EventTwiceReqMessageTwiceIT {
     assertTrue(returnedEvents_2.stream().anyMatch(e -> e.getId().equals(textNoteEvent_2.getId())));
     assertTrue(returnedEvents_2.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent_2.getPubKey())));
 
-//    
 //    END 2
-//      
 
     List<GenericEvent> returnedEvents_3 = afterImageRelayStandardClient.updateReqResults(subscriberId);
     assertEquals(0, returnedEvents_3.size());

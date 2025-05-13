@@ -9,11 +9,12 @@ import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
-import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.Filters;
+import nostr.event.filter.ReferencedPublicKeyFilter;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.ReqMessage;
+import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ class EventReqMessageIT {
   private final AfterimageRelayStandardClient afterImageRelayStandardClient;
 
   private static final Identity IDENTITY = Factory.createNewIdentity();
+  private static final Identity authorIdentity = Factory.createNewIdentity();
   private static final VoteTag VOTE_TAG = new VoteTag(1);
 
   private final static String CONTENT = Factory.lorumIpsum(EventReqMessageIT.class);
@@ -46,6 +48,7 @@ class EventReqMessageIT {
 
     List<BaseTag> tags = new ArrayList<>();
     tags.add(VOTE_TAG);
+    tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     textNoteEvent = Factory.createTextNoteEvent(IDENTITY, tags, CONTENT);
     textNoteEvent.setKind(KIND);
@@ -60,13 +63,14 @@ class EventReqMessageIT {
   }
 
   @Test
-  void testReqFilteredByVoteTag() throws JsonProcessingException {
+  void testReqFilteredByRequiredTags() throws JsonProcessingException {
     final String subscriberId = Factory.generateRandomHex64String();
 
     List<GenericEvent> returnedEvents = afterImageRelayStandardClient.sendRequestReturnEvents(
         new ReqMessage(
             subscriberId,
             new Filters(
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(VOTE_TAG))));
 
     log.debug("okMessage:");
@@ -74,21 +78,5 @@ class EventReqMessageIT {
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getId().equals(textNoteEvent.getId())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
     assertTrue(returnedEvents.stream().anyMatch(e -> e.getKind().equals(KIND)));
-  }
-
-  @Test
-  void testReqFilteredByAuthor() throws JsonProcessingException {
-    final String subscriberId = Factory.generateRandomHex64String();
-
-    List<GenericEvent> returnedEvents = afterImageRelayStandardClient.sendRequestReturnEvents(
-        new ReqMessage(
-            subscriberId,
-            new Filters(
-                new AuthorFilter<>(IDENTITY.getPublicKey()))));
-
-    log.debug("okMessage:");
-    log.debug("  " + returnedEvents);
-
-    assertTrue(returnedEvents.stream().anyMatch(e -> e.getPubKey().equals(textNoteEvent.getPubKey())));
   }
 }

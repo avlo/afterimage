@@ -11,13 +11,14 @@ import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
-import nostr.event.filter.AuthorFilter;
 import nostr.event.filter.Filters;
+import nostr.event.filter.ReferencedPublicKeyFilter;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
+import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 
   @Test
   void testAfterimageReqThenSuperconductorTwoEvents() throws IOException {
+    final Identity authorIdentity = Factory.createNewIdentity();
 //    // # --------------------- Aimg EVENT -------------------
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
@@ -69,13 +71,14 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         new ReqMessage(
             subscriberId,
             new Filters(
-                new AuthorFilter<>(identity.getPublicKey()),
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))), afterImageEventsSubscriber);
-    
+
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
     List<BaseTag> tags = new ArrayList<>();
     tags.add(voteTag);
+    tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
     GenericEvent textNoteEvent_1 = Factory.createTextNoteEvent(
         identity, tags,
@@ -117,7 +120,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         new ReqMessage(
             subscriberId,
             new Filters(
-                new AuthorFilter<>(identity.getPublicKey()),
+                new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))), superConductorEventsSubscriber);
 
     List<GenericEvent> superCondutorEvents = superConductorEventsSubscriber.getItems();

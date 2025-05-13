@@ -1,0 +1,70 @@
+package com.prosilion.afterimage.service;
+
+import com.prosilion.afterimage.exception.InvalidReputationReqJsonException;
+import com.prosilion.subdivisions.client.standard.StandardRequestConsolidator;
+import com.prosilion.superconductor.service.clientresponse.ClientResponseService;
+import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
+import com.prosilion.superconductor.service.request.ReqService;
+import com.prosilion.superconductor.util.EmptyFiltersException;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import nostr.event.filter.Filters;
+import nostr.event.filter.ReferencedPublicKeyFilter;
+import nostr.event.filter.VoteTagFilter;
+import nostr.event.impl.GenericEvent;
+import nostr.event.message.ReqMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class ReputationReqMessageService<T extends ReqMessage> implements ReqMessageServiceIF<T> {
+  private final ReqService<GenericEvent> reqService;
+  private final ClientResponseService clientResponseService;
+
+  private final StandardRequestConsolidator requestConsolidator;
+
+  @Autowired
+  public ReputationReqMessageService(
+      @NonNull StandardRequestConsolidator requestConsolidator,
+//      TODO: since below two classes are already present in SC ReqMessageService @Bean, re-visit making this
+//            class a decorator and passing ReqMessageService @Bean into this ctor()
+      @NonNull ReqService<GenericEvent> reqService,
+      @NonNull ClientResponseService clientResponseService) {
+    log.debug("loaded ReputationReqMessageService bean");
+    this.reqService = reqService;
+    this.clientResponseService = clientResponseService;
+    this.requestConsolidator = requestConsolidator;
+  }
+
+  @Override
+  public void processIncoming(@NonNull T reqMessage, @NonNull String sessionId) {
+//    TODO: note, below try/catch already handled in ReqMessageService @Bean as per decorator TODO, above
+    try {
+      ReqMessage validReqMessage = new ReqMessage(reqMessage.getSubscriptionId(), validateRequiredFilters(reqMessage));
+      reqService.processIncoming(validReqMessage, sessionId);
+    } catch (InvalidReputationReqJsonException | EmptyFiltersException e) {
+      processNoticeClientResponse(reqMessage, sessionId, e.getMessage());
+    }
+  }
+
+  public void processNoticeClientResponse(@NonNull T reqMessage, @NonNull String sessionId, @NonNull String errorMessage) {
+    clientResponseService.processNoticeClientResponse(reqMessage, sessionId, errorMessage, false);
+  }
+
+  private List<Filters> validateRequiredFilters(T reqMessage) throws InvalidReputationReqJsonException {
+    List<Filters> list = reqMessage.getFiltersList().stream()
+        .filter(filters ->
+            filters.getFilterByTypeOptional(ReferencedPublicKeyFilter.FILTER_KEY).isPresent() &&
+                filters.getFilterByTypeOptional(VoteTagFilter.FILTER_KEY).isPresent())
+        .collect(Collectors.toList());
+
+    if (list.isEmpty()) {
+      throw new InvalidReputationReqJsonException(reqMessage);
+    }
+
+    return list;
+  }
+}

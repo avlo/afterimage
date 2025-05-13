@@ -1,7 +1,8 @@
 package com.prosilion.afterimage.service.standard;
 
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
+import com.prosilion.afterimage.util.Factory;
+import java.io.IOException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.message.OkMessage;
@@ -10,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
