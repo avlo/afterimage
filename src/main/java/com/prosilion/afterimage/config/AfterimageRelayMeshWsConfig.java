@@ -1,8 +1,6 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
-import com.prosilion.afterimage.util.AfterimageRelayStandardClient;
-import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -21,13 +19,6 @@ import org.springframework.context.annotation.Scope;
 //@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
 //@EnableJpaRepositories("com.prosilion.superconductor.repository")
 public class AfterimageRelayMeshWsConfig {
-
-  @Bean
-  @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  public AfterimageRelayStandardClient afterimageRelayClient(@NonNull @Value("${afterimage.relay.url}") String relayUri) throws ExecutionException, InterruptedException {
-    return new AfterimageRelayStandardClient(relayUri);
-  }
-
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageRelayReactiveClient afterimageReactiveRelayClient(@NonNull @Value("${afterimage.relay.url}") String relayUri) {

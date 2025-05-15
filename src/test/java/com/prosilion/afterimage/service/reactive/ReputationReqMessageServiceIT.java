@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -7,14 +8,18 @@ import com.prosilion.superconductor.service.event.EventService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import nostr.event.BaseMessage;
 import nostr.event.BaseTag;
 import nostr.event.filter.Filters;
 import nostr.event.filter.ReferencedPublicKeyFilter;
 import nostr.event.filter.VoteTagFilter;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
+import nostr.event.message.NoticeMessage;
 import nostr.event.message.ReqMessage;
 import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
@@ -25,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import static com.prosilion.afterimage.service.reactive.SuperconductorEventThenAfterimageReqIT.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,14 +59,15 @@ public class ReputationReqMessageServiceIT {
     final VoteTag voteTag = new VoteTag(1);
     final String subscriberId = Factory.generateRandomHex64String();
 
-    TestSubscriber<GenericEvent> subscriber = new TestSubscriber<>(TestSubscriber.Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING);
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageRelayReactiveClient.send(
         new ReqMessage(subscriberId,
             new Filters(
                 new VoteTagFilter<>(voteTag))),
         subscriber);
 
-    assertTrue(subscriber.getItems().isEmpty());
+    NoticeMessage noticeMessage = getNoticeMessage(subscriber.getItems()).orElseThrow(AssertionError::new);
+    assertTrue(noticeMessage.getMessage().contains("does not contain required Author Tag and Vote tag"));
   }
 
   @Test
@@ -68,14 +75,15 @@ public class ReputationReqMessageServiceIT {
     final Identity authorIdentity = Factory.createNewIdentity();
     final String subscriberId = Factory.generateRandomHex64String();
 
-    TestSubscriber<GenericEvent> subscriber = new TestSubscriber<>(TestSubscriber.Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING);
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageRelayReactiveClient.send(
         new ReqMessage(subscriberId,
             new Filters(
                 new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())))),
         subscriber);
 
-    assertTrue(subscriber.getItems().isEmpty());
+    NoticeMessage noticeMessage = getNoticeMessage(subscriber.getItems()).orElseThrow(AssertionError::new);
+    assertTrue(noticeMessage.getMessage().contains("does not contain required Author Tag and Vote tag"));
   }
 
   @Test
@@ -97,7 +105,7 @@ public class ReputationReqMessageServiceIT {
     final String subscriberId = Factory.generateRandomHex64String();
 //    submit Req for above event to superconductor
 
-    TestSubscriber<GenericEvent> subscriber = new TestSubscriber<>();
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageRelayReactiveClient.send(
         new ReqMessage(subscriberId,
             new Filters(
@@ -106,15 +114,18 @@ public class ReputationReqMessageServiceIT {
         subscriber);
 
     log.debug("retrieved afterimage events:");
-    List<GenericEvent> items = subscriber.getItems();
+    List<BaseMessage> items = subscriber.getItems();
+    List<GenericEvent> afterimageEvents = getGenericEvents(items);
     log.debug("  {}", items);
-    assertEquals(items.getFirst().getId(), event.getId());
-    assertEquals(items.getFirst().getPubKey(), event.getPubKey());
-    assertEquals(KIND, (int) items.getFirst().getKind());
+    assertEquals(afterimageEvents.getFirst().getId(), event.getId());
+    assertEquals(afterimageEvents.getFirst().getPubKey(), event.getPubKey());
+    assertEquals(KIND, (int) afterimageEvents.getFirst().getKind());
   }
 
-  @Test
-  void testValidAfterImageReputationRequestThenExistingEvent() throws IOException {
-
+  public static <T extends BaseMessage> Optional<NoticeMessage> getNoticeMessage(List<T> returnedBaseMessages) {
+    return returnedBaseMessages.stream()
+        .filter(NoticeMessage.class::isInstance)
+        .map(NoticeMessage.class::cast)
+        .reduce((noticeMessage, noticeMessage2) -> noticeMessage);
   }
 }

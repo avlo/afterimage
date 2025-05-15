@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import nostr.event.BaseMessage;
 import nostr.event.BaseTag;
 import nostr.event.filter.Filters;
 import nostr.event.filter.ReferencedPublicKeyFilter;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
 
+import static com.prosilion.afterimage.service.reactive.SuperconductorEventThenAfterimageReqIT.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,7 +68,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 //    // # --------------------- Aimg EVENT -------------------
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
-    TestSubscriber<GenericEvent> afterImageEventsSubscriber = new TestSubscriber<>();
+    TestSubscriber<BaseMessage> afterImageEventsSubscriber = new TestSubscriber<>();
     afterimageRelayReactiveClient.send(
         new ReqMessage(
             subscriberId,
@@ -115,7 +117,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     // # --------------------- SC REQ -------------------
     //    submit matching author & vote tag Req to superconductor
 
-    TestSubscriber<GenericEvent> superConductorEventsSubscriber = new TestSubscriber<>();
+    TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
         new ReqMessage(
             subscriberId,
@@ -123,19 +125,24 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
                 new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),
                 new VoteTagFilter<>(voteTag))), superConductorEventsSubscriber);
 
-    List<GenericEvent> superCondutorEvents = superConductorEventsSubscriber.getItems();
-    superCondutorEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
+    List<BaseMessage> returnedSuperconductorBaseMessages = superConductorEventsSubscriber.getItems();
+    List<GenericEvent> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
 
-    assertTrue(superCondutorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
-    assertTrue(superCondutorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_2.getContent())));
+    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
+    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
+    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_2.getContent())));
+    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getPubKey().toHexString().equals(textNoteEvent_1.getPubKey().toHexString())));
+    assertEquals(returnedSuperconductorEvents.getFirst().getKind(), textNoteEvent_1.getKind());
+    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
 
     //    save SC result to Aimg
     //    should trigger Aimg afterImageEventsSubscriber
-    superCondutorEvents.forEach(event ->
+    returnedSuperconductorEvents.forEach(event ->
         eventService.processIncomingEvent(new EventMessage(event)));
 
     // # --------------------- Aimg EVENTS returned -------------------
-    List<GenericEvent> afterImageEvents = afterImageEventsSubscriber.getItems();
+    List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber.getItems();
+    List<GenericEvent> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
     log.debug("afterimage returned events:");
     afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
     assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));

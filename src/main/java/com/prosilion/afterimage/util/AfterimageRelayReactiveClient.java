@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.impl.GenericEvent;
+import nostr.event.BaseMessage;
 import nostr.event.message.EventMessage;
 import nostr.event.message.OkMessage;
 import nostr.event.message.ReqMessage;
@@ -38,7 +38,7 @@ public class AfterimageRelayReactiveClient {
     nostrRelayClient.send(eventMessage, subscriber);
   }
 
-  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<GenericEvent> subscriber) throws JsonProcessingException {
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException {
     nostrRelayClient.send(reqMessage, subscriber);
   }
 }

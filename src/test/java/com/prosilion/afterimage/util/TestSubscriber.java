@@ -6,57 +6,91 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.SignalType;
+import reactor.util.context.Context;
 
+@Slf4j
 public class TestSubscriber<T> extends BaseSubscriber<T> {
-  public enum Mode {
-    WAIT_FOR_COMPLETE_ATOMIC_BOOL__CANONICAL_MODE,
-    DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING
-  }
-
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
-  private final AtomicBoolean completed;
+  private final AtomicBoolean completed = new AtomicBoolean(false);
   private Subscription subscription;
-
-  public TestSubscriber() {
-    this(Mode.WAIT_FOR_COMPLETE_ATOMIC_BOOL__CANONICAL_MODE);
-  }
-
-  public TestSubscriber(Mode mode) {
-    super();
-    this.completed = mode.equals(
-        Mode.DO_NOT_WAIT_FOR_COMPLETE_ATOMIC_BOOL__FLUX_KNOWN_TO_HAVE_NO_RETURNED_ITEMS__NEEDS_FIXING) ? 
-        new AtomicBoolean(true) : 
-        new AtomicBoolean(false);
-  }
 
   @Override
   public void hookOnSubscribe(@NonNull Subscription subscription) {
+//    log.debug("in TestSubscriber.hookOnSubscribe()");
     this.subscription = subscription;
     subscription.request(1);
   }
 
   @Override
   public void hookOnNext(@NonNull T value) {
-    completed.set(false);
+//    log.debug("in TestSubscriber.hookOnNext()");
     subscription.request(1);
     completed.set(true);
     items.add(value);
   }
 
   public List<T> getItems() {
+//    log.debug("in TestSubscriber.getItems()");
     Awaitility.await()
-        .timeout(5, TimeUnit.SECONDS)
+        .timeout(3, TimeUnit.MINUTES)
         .untilTrue(completed);
-    List<T> eventList = List.copyOf(items);
-    items.clear();
-    return eventList;
+//    List<T> eventList = List.copyOf(items);
+//    items.clear();
+    return items;
+  }
+
+  //    below included only informatively / as reminder of their existence
+  @Override
+  protected void hookOnCancel() {
+//    log.debug("in TestSubscriber.hookOnCancel()");
+    super.hookOnCancel();
   }
 
   @Override
   protected void hookOnComplete() {
-    completed.set(true);
+//    log.debug("in TestSubscriber.hookOnComplete()");
+    completed.setRelease(true);
+    super.hookOnComplete();
+  }
+
+  @Override
+  protected void hookOnError(@NonNull Throwable throwable) {
+//    log.debug("in TestSubscriber.hookOnError()");
+    super.hookOnError(throwable);
+  }
+
+  @Override
+  protected void hookFinally(@NonNull SignalType type) {
+//    log.debug("in TestSubscriber.hookFinally()");
+    super.hookFinally(type);
+  }
+
+  @Override
+  public void dispose() {
+//    log.debug("in TestSubscriber.dispose()");
+    super.dispose();
+  }
+
+  @Override
+  public boolean isDisposed() {
+//    log.debug("in TestSubscriber.isDisposed()");    
+    return super.isDisposed();
+  }
+
+  @Override
+  protected @NonNull Subscription upstream() {
+//    log.debug("in TestSubscriber.upstream()");    
+    return super.upstream();
+  }
+
+  @Override
+  public @NonNull Context currentContext() {
+//    log.debug("in TestSubscriber.currentContext()");    
+    return super.currentContext();
   }
 }

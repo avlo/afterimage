@@ -7,6 +7,7 @@ import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import com.prosilion.superconductor.service.request.ReqService;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
   public ReputationReqMessageService(
       @NonNull StandardRequestConsolidator requestConsolidator,
 //      TODO: since below two classes are already present in SC ReqMessageService @Bean, re-visit making this
-//            class a decorator and passing ReqMessageService @Bean into this ctor()
+//            class a decorator and passing ReqMessageService @Bean into this ctor()}}
       @NonNull ReqService<GenericEvent> reqService,
       @NonNull ClientResponseService clientResponseService) {
     log.debug("loaded ReputationReqMessageService bean");
@@ -45,8 +46,10 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
     try {
       ReqMessage validReqMessage = new ReqMessage(reqMessage.getSubscriptionId(), validateRequiredFilters(reqMessage));
       reqService.processIncoming(validReqMessage, sessionId);
+      System.out.println("AAAAAAAAAA");
     } catch (InvalidReputationReqJsonException | EmptyFiltersException e) {
       processNoticeClientResponse(reqMessage, sessionId, e.getMessage());
+      System.out.println("BBBBBBBBBBdf");
     }
   }
 
@@ -57,8 +60,8 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
   private List<Filters> validateRequiredFilters(T reqMessage) throws InvalidReputationReqJsonException {
     List<Filters> list = reqMessage.getFiltersList().stream()
         .filter(filters ->
-            filters.getFilterByTypeOptional(ReferencedPublicKeyFilter.FILTER_KEY).isPresent() &&
-                filters.getFilterByTypeOptional(VoteTagFilter.FILTER_KEY).isPresent())
+            Optional.ofNullable(filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY)).isPresent() &&
+                Optional.ofNullable(filters.getFilterByType(VoteTagFilter.FILTER_KEY)).isPresent())
         .collect(Collectors.toList());
 
     if (list.isEmpty()) {
