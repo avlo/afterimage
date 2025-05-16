@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service;
 
 import com.prosilion.afterimage.exception.InvalidReputationReqJsonException;
-import com.prosilion.subdivisions.client.standard.StandardRequestConsolidator;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.service.clientresponse.ClientResponseService;
 import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import com.prosilion.superconductor.service.request.ReqService;
@@ -23,11 +23,11 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
   private final ReqService<GenericEvent> reqService;
   private final ClientResponseService clientResponseService;
 
-  private final StandardRequestConsolidator requestConsolidator;
+  private final ReactiveRequestConsolidator reactiveRequestConsolidator;
 
   @Autowired
   public ReputationReqMessageService(
-      @NonNull StandardRequestConsolidator requestConsolidator,
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator,
 //      TODO: since below two classes are already present in SC ReqMessageService @Bean, re-visit making this
 //            class a decorator and passing ReqMessageService @Bean into this ctor()}}
       @NonNull ReqService<GenericEvent> reqService,
@@ -35,7 +35,7 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
     log.debug("loaded ReputationReqMessageService bean");
     this.reqService = reqService;
     this.clientResponseService = clientResponseService;
-    this.requestConsolidator = requestConsolidator;
+    this.reactiveRequestConsolidator = reactiveRequestConsolidator;
   }
 
   @Override

@@ -24,7 +24,6 @@ import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -45,10 +44,8 @@ public class ReputationReqMessageServiceIT {
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService<GenericEvent> eventService,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) {
-    log.debug("afterimageRelayUri: {}", afterimageRelayUri);
-
-    this.afterimageRelayReactiveClient = new AfterimageRelayReactiveClient(afterimageRelayUri);
+      @NonNull AfterimageRelayReactiveClient afterimageRelayReactiveClient) {
+    this.afterimageRelayReactiveClient = afterimageRelayReactiveClient;
     this.eventService = eventService;
   }
 

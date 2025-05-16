@@ -51,14 +51,13 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
   AfterimageReqThenSuperconductorEventIT(
       @NonNull EventService<GenericEvent> eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri
+      @NonNull AfterimageRelayReactiveClient afterimageRelayReactiveClient
   ) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
 //    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
     log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
-    log.debug("afterimageRelayUri: {}", afterimageRelayUri);
     this.superconductorRelayReactiveClient = new AfterimageRelayReactiveClient(superconductorRelayUri);
-    this.afterimageRelayReactiveClient = new AfterimageRelayReactiveClient(afterimageRelayUri);
+    this.afterimageRelayReactiveClient = afterimageRelayReactiveClient;
     this.eventService = eventService;
   }
 
