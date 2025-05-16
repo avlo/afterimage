@@ -7,8 +7,6 @@ import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import com.prosilion.superconductor.service.request.ReqService;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.filter.Filters;
@@ -44,12 +42,12 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
   public void processIncoming(@NonNull T reqMessage, @NonNull String sessionId) {
 //    TODO: note, below try/catch already handled in ReqMessageService @Bean as per decorator TODO, above
     try {
-      ReqMessage validReqMessage = new ReqMessage(reqMessage.getSubscriptionId(), validateRequiredFilters(reqMessage));
+      ReqMessage validReqMessage = new ReqMessage(
+          reqMessage.getSubscriptionId(),
+          getValidatedFilters(reqMessage));
       reqService.processIncoming(validReqMessage, sessionId);
-      System.out.println("AAAAAAAAAA");
     } catch (InvalidReputationReqJsonException | EmptyFiltersException e) {
       processNoticeClientResponse(reqMessage, sessionId, e.getMessage());
-      System.out.println("BBBBBBBBBBdf");
     }
   }
 
@@ -57,17 +55,15 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
     clientResponseService.processNoticeClientResponse(reqMessage, sessionId, errorMessage, false);
   }
 
-  private List<Filters> validateRequiredFilters(T reqMessage) throws InvalidReputationReqJsonException {
-    List<Filters> list = reqMessage.getFiltersList().stream()
-        .filter(filters ->
-            Optional.ofNullable(filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY)).isPresent() &&
-                Optional.ofNullable(filters.getFilterByType(VoteTagFilter.FILTER_KEY)).isPresent())
-        .collect(Collectors.toList());
+  private List<Filters> getValidatedFilters(T reqMessage) throws InvalidReputationReqJsonException {
+    validateRequiredFilter(reqMessage, ReferencedPublicKeyFilter.FILTER_KEY);
+    validateRequiredFilter(reqMessage, VoteTagFilter.FILTER_KEY);
+    return reqMessage.getFiltersList();
+  }
 
-    if (list.isEmpty()) {
-      throw new InvalidReputationReqJsonException(reqMessage);
-    }
-
-    return list;
+  private void validateRequiredFilter(T reqMessage, String filterType) throws InvalidReputationReqJsonException {
+    reqMessage.getFiltersList().stream()
+        .flatMap(filters -> filters.getFilterByType(filterType).stream())
+        .findFirst().orElseThrow(() -> new InvalidReputationReqJsonException(reqMessage, filterType));
   }
 }

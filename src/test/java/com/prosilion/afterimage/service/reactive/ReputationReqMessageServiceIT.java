@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -9,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
@@ -67,7 +65,7 @@ public class ReputationReqMessageServiceIT {
         subscriber);
 
     NoticeMessage noticeMessage = getNoticeMessage(subscriber.getItems()).orElseThrow(AssertionError::new);
-    assertTrue(noticeMessage.getMessage().contains("does not contain required Author Tag and Vote tag"));
+    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", ReferencedPublicKeyFilter.FILTER_KEY)));
   }
 
   @Test
@@ -83,7 +81,7 @@ public class ReputationReqMessageServiceIT {
         subscriber);
 
     NoticeMessage noticeMessage = getNoticeMessage(subscriber.getItems()).orElseThrow(AssertionError::new);
-    assertTrue(noticeMessage.getMessage().contains("does not contain required Author Tag and Vote tag"));
+    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", VoteTagFilter.FILTER_KEY)));
   }
 
   @Test
