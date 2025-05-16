@@ -1,9 +1,11 @@
 package com.prosilion.afterimage.config;
 
+import com.prosilion.afterimage.client.SuperconductorRequestConsolidator;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -22,6 +24,12 @@ public class SuperconductorRelaysConfig {
   @Bean
   public ReactiveRequestConsolidator reactiveRequestConsolidator(Map<String, String> superconductorRelays) {
     return new ReactiveRequestConsolidator(superconductorRelays);
+  }
+
+  @Bean
+  public SuperconductorRequestConsolidator superconductorRequestConsolidator(
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+    return new SuperconductorRequestConsolidator(reactiveRequestConsolidator);
   }
 }
 

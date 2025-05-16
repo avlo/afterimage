@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
+import com.prosilion.afterimage.client.AfterimageMeshRelayClient;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,10 +22,10 @@ import org.springframework.context.annotation.Scope;
 public class AfterimageRelayMeshWssConfig {
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  public AfterimageRelayReactiveClient afterimageReactiveRelayClient(
+  public AfterimageMeshRelayClient afterimageReactiveRelayClient(
       @NonNull @Value("${afterimage.relay.url}") String relayUri,
       @NonNull SslBundles sslBundles
   ) throws ExecutionException, InterruptedException {
-    return new AfterimageRelayReactiveClient(relayUri, sslBundles);
+    return new AfterimageMeshRelayClient(relayUri, sslBundles);
   }
 }

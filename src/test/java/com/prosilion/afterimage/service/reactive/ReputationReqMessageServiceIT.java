@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
+import com.prosilion.afterimage.client.AfterimageMeshRelayClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.superconductor.service.event.EventService;
@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 public class ReputationReqMessageServiceIT {
-  private final AfterimageRelayReactiveClient afterimageRelayReactiveClient;
+  private final AfterimageMeshRelayClient afterimageMeshRelayClient;
   private final EventService<GenericEvent> eventService;
 
   final static int KIND = 2112;
@@ -44,8 +44,8 @@ public class ReputationReqMessageServiceIT {
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService<GenericEvent> eventService,
-      @NonNull AfterimageRelayReactiveClient afterimageRelayReactiveClient) {
-    this.afterimageRelayReactiveClient = afterimageRelayReactiveClient;
+      @NonNull AfterimageMeshRelayClient afterimageMeshRelayClient) {
+    this.afterimageMeshRelayClient = afterimageMeshRelayClient;
     this.eventService = eventService;
   }
 
@@ -55,7 +55,7 @@ public class ReputationReqMessageServiceIT {
     final String subscriberId = Factory.generateRandomHex64String();
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-    afterimageRelayReactiveClient.send(
+    afterimageMeshRelayClient.send(
         new ReqMessage(subscriberId,
             new Filters(
                 new VoteTagFilter<>(voteTag))),
@@ -71,7 +71,7 @@ public class ReputationReqMessageServiceIT {
     final String subscriberId = Factory.generateRandomHex64String();
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-    afterimageRelayReactiveClient.send(
+    afterimageMeshRelayClient.send(
         new ReqMessage(subscriberId,
             new Filters(
                 new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())))),
@@ -101,7 +101,7 @@ public class ReputationReqMessageServiceIT {
 //    submit Req for above event to superconductor
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-    afterimageRelayReactiveClient.send(
+    afterimageMeshRelayClient.send(
         new ReqMessage(subscriberId,
             new Filters(
                 new ReferencedPublicKeyFilter<>(new PubKeyTag(authorIdentity.getPublicKey())),

@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.util.AfterimageRelayReactiveClient;
+import com.prosilion.afterimage.client.AfterimageMeshRelayClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import java.io.IOException;
@@ -24,11 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class EventNoOpMessageReactiveIT {
-  private final AfterimageRelayReactiveClient afterImageRelayClient;
+  private final AfterimageMeshRelayClient afterImageRelayClient;
 
   @Autowired
-  EventNoOpMessageReactiveIT(@NonNull AfterimageRelayReactiveClient afterimageRelayReactiveClient) {
-    this.afterImageRelayClient = afterimageRelayReactiveClient;
+  EventNoOpMessageReactiveIT(@NonNull AfterimageMeshRelayClient afterimageMeshRelayClient) {
+    this.afterImageRelayClient = afterimageMeshRelayClient;
   }
 
   @Test
