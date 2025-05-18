@@ -5,11 +5,11 @@ $(function () {
 
 function cullEmptyKeyValuePairs() {
     return {
-        'ids': (($("#idcontent").val() !== "") ? [$("#idcontent").val()] : undefined),
-        'authors': (($("#authors1").val() !== "") ? [$("#authors1").val()] : undefined)
+        // 'ids': (($("#idcontent").val() !== "") ? [$("#idcontent").val()] : undefined),
+        // 'authors': (($("#authors1").val() !== "") ? [$("#authors1").val()] : undefined)
         // 'kinds': [1,23,3],
         // '#e': [$("#referencedEvents").val(), "494001ac0c8af2a10f60f23538e5b35d3cdacb8e1cc956fe7a16dfa5cbfc1234"],
-        // '#p': [$("#referencePubKeys").val()],
+        '#p': [$("#referencePubKeys").val()]
         // 'since': clickNow-1000,
         // 'until': clickNow,
         // 'limit': '1'

@@ -31,6 +31,5 @@ public class AfterimageApplication extends SpringBootServletInitializer {
 //        .with(SuperconductorRelaysConfig.class)
 //        .run(args);
         .run(AfterimageApplication.class, args);
-
   }
 }

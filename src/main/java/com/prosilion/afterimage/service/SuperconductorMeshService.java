@@ -21,12 +21,10 @@ import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Lazy
-@Component
+@Service
 public class SuperconductorMeshService<T extends BaseMessage> {
   public static final String CONTENT = "TEMP LOCATION OF AIMG REPUTATION SCORE";
 
@@ -45,7 +43,7 @@ public class SuperconductorMeshService<T extends BaseMessage> {
     this.eventMessageService = eventMessageService;
     this.requestConsolidator = new ReactiveRequestConsolidator(superconductorRelays);
     this.afterImageIdentity = Factory.createNewIdentity();
-//    setUpReputationReqFlux();
+    setUpReputationReqFlux();
   }
 
   public void setUpReputationReqFlux() throws JsonProcessingException {
