@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.client;
+package com.prosilion.afterimage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
@@ -15,16 +15,17 @@ import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 
 @Slf4j
-public class AfterimageMeshRelayClient {
+// TODO: below class currently only used by IT's, consider replace w/ relevant alt
+public class AfterimageMeshRelayService {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
-  public AfterimageMeshRelayClient(@NonNull String relayUri) {
+  public AfterimageMeshRelayService(@NonNull String relayUri) {
     log.debug("relayUri: \n{}", relayUri);
     this.nostrRelayClient = new ReactiveNostrRelayClient(relayUri);
     System.out.println("relayUri: " + relayUri);
   }
 
-  public AfterimageMeshRelayClient(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public AfterimageMeshRelayService(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");

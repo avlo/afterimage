@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.client.SuperconductorRequestConsolidator;
+import com.prosilion.afterimage.client.SuperconductorMeshService;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -15,21 +15,16 @@ import org.springframework.context.annotation.PropertySource;
 public class SuperconductorRelaysConfig {
 
   @Bean
-  public Map<String, String> superconductorRelays() {
+  public @NonNull Map<String, String> superconductorRelays() {
     ResourceBundle relaysBundle = ResourceBundle.getBundle("superconductor-relays");
     return relaysBundle.keySet().stream()
         .collect(Collectors.toMap(key -> key, relaysBundle::getString));
   }
 
   @Bean
-  public ReactiveRequestConsolidator reactiveRequestConsolidator(Map<String, String> superconductorRelays) {
-    return new ReactiveRequestConsolidator(superconductorRelays);
-  }
-
-  @Bean
-  public SuperconductorRequestConsolidator superconductorRequestConsolidator(
-      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
-    return new SuperconductorRequestConsolidator(reactiveRequestConsolidator);
+  public SuperconductorMeshService superconductorRequestConsolidator(@NonNull Map<String, String> superconductorRelays) {
+    return new SuperconductorMeshService(
+        new ReactiveRequestConsolidator(superconductorRelays));
   }
 }
 

@@ -9,10 +9,10 @@ import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 
 @Slf4j
-public class SuperconductorRequestConsolidator {
+public class SuperconductorMeshService {
   private final ReactiveRequestConsolidator reactiveRequestConsolidator;
 
-  public SuperconductorRequestConsolidator(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+  public SuperconductorMeshService(@NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     this.reactiveRequestConsolidator = reactiveRequestConsolidator;
   }
 

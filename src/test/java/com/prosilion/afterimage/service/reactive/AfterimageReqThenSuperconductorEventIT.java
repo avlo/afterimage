@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.service.CommonContainer;
-import com.prosilion.afterimage.client.AfterimageMeshRelayClient;
+import com.prosilion.afterimage.service.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.superconductor.service.event.EventService;
@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
-  private final AfterimageMeshRelayClient superconductorRelayReactiveClient;
-  private final AfterimageMeshRelayClient afterimageMeshRelayClient;
+  private final AfterimageMeshRelayService superconductorRelayReactiveClient;
+  private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventService<GenericEvent> eventService;
 
   private final Identity identity = Factory.createNewIdentity();
@@ -51,13 +51,13 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
   AfterimageReqThenSuperconductorEventIT(
       @NonNull EventService<GenericEvent> eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull AfterimageMeshRelayClient afterimageMeshRelayClient
+      @NonNull AfterimageMeshRelayService afterimageMeshRelayService
   ) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
 //    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
     log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
-    this.superconductorRelayReactiveClient = new AfterimageMeshRelayClient(superconductorRelayUri);
-    this.afterimageMeshRelayClient = afterimageMeshRelayClient;
+    this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
+    this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.eventService = eventService;
   }
 
@@ -68,7 +68,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
     TestSubscriber<BaseMessage> afterImageEventsSubscriber = new TestSubscriber<>();
-    afterimageMeshRelayClient.send(
+    afterimageMeshRelayService.send(
         new ReqMessage(
             subscriberId,
             new Filters(
