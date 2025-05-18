@@ -51,7 +51,7 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
 
   private List<Filters> validate(T reqMessage) throws InvalidReputationReqJsonException {
     validateRequiredFilter(reqMessage, ReferencedPublicKeyFilter.FILTER_KEY);
-    validateRequiredFilter(reqMessage, VoteTagFilter.FILTER_KEY);
+//    validateRequiredFilter(reqMessage, VoteTagFilter.FILTER_KEY);
     return reqMessage.getFiltersList();
   }
 

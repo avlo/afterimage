@@ -1,7 +1,5 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.client.SuperconductorMeshService;
-import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -19,12 +17,6 @@ public class SuperconductorRelaysConfig {
     ResourceBundle relaysBundle = ResourceBundle.getBundle("superconductor-relays");
     return relaysBundle.keySet().stream()
         .collect(Collectors.toMap(key -> key, relaysBundle::getString));
-  }
-
-  @Bean
-  public SuperconductorMeshService superconductorRequestConsolidator(@NonNull Map<String, String> superconductorRelays) {
-    return new SuperconductorMeshService(
-        new ReactiveRequestConsolidator(superconductorRelays));
   }
 }
 
