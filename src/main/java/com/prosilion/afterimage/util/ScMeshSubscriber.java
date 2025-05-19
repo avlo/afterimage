@@ -23,24 +23,25 @@ public class ScMeshSubscriber<T> extends BaseSubscriber<T> {
   public void hookOnSubscribe(@NonNull Subscription subscription) {
 //    log.debug("in TestSubscriber.hookOnSubscribe()");
     this.subscription = subscription;
-    subscription.request(1);
+    subscription.request(Long.MAX_VALUE);
   }
 
   @Override
   public void hookOnNext(@NonNull T value) {
 //    log.debug("in TestSubscriber.hookOnNext()");
-    subscription.request(1);
+    subscription.request(Long.MAX_VALUE);
     completed.set(true);
+    log.debug("\n\n000000000000000000000000000000");
+    log.debug("000000000000000000000000000000");
+    log.debug(value.getClass().getSimpleName()+"\n\n");
     items.add(value);
   }
 
   public List<T> getItems() {
 //    log.debug("in TestSubscriber.getItems()");
     Awaitility.await()
-        .timeout(3, TimeUnit.MINUTES)
+        .timeout(3, TimeUnit.SECONDS)
         .untilTrue(completed);
-//    List<T> eventList = List.copyOf(items);
-//    items.clear();
     return items;
   }
 

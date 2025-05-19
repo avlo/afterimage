@@ -55,11 +55,11 @@ public class SuperconductorMeshService<T extends BaseMessage> {
 
   private void send(@NonNull ReqMessage reqMessage, @NonNull ScMeshSubscriber<T> subscriber) throws JsonProcessingException {
     requestConsolidator.send(reqMessage, subscriber);
-    List<T> scReturnedBaseMessages = subscriber.getItems();
-    log.debug("SuperconductorMeshService items count {}", scReturnedBaseMessages.size());
-    List<EventMessage> eventMessages = filterEventMessages(scReturnedBaseMessages);
-    log.debug("SuperconductorMeshService EventMessages count {}", eventMessages.size());
-    eventMessages.forEach(this::createReputationEventWithScore);
+//    List<T> scReturnedBaseMessages = subscriber.getItems();
+//    log.debug("SuperconductorMeshService items count {}", scReturnedBaseMessages.size());
+//    List<EventMessage> eventMessages = filterEventMessages(scReturnedBaseMessages);
+//    log.debug("SuperconductorMeshService EventMessages count {}", eventMessages.size());
+//    eventMessages.forEach(this::createReputationEventWithScore);
   }
 
   private void createReputationEventWithScore(EventMessage eventMessage) {
