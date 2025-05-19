@@ -2,11 +2,11 @@ package com.prosilion.afterimage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.util.Factory;
-import com.prosilion.afterimage.util.ScMeshSubscriber;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.base.PublicKey;
@@ -20,17 +20,20 @@ import nostr.event.message.ReqMessage;
 import nostr.event.tag.PubKeyTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
+import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
 @Service
-public class SuperconductorMeshService<T extends BaseMessage> {
+public class SuperconductorMeshService<T extends BaseMessage> extends BaseSubscriber<T> {
   public static final String CONTENT = "TEMP LOCATION OF AIMG REPUTATION SCORE";
 
   private final ReactiveRequestConsolidator requestConsolidator;
-  private final ScMeshSubscriber<T> scMeshSubscriber = new ScMeshSubscriber<>();
   private final SuperconductorEventMessageService<EventMessage> eventMessageService;
+
+  private Subscription subscription;
 
   private final Identity afterImageIdentity;
   private final String subscriptionId = Factory.generateRandomHex64String();
@@ -50,16 +53,17 @@ public class SuperconductorMeshService<T extends BaseMessage> {
     ReqMessage validReqMsg = new ReqMessage(subscriptionId,
         new Filters(
             new VoteTagFilter<>(voteTag)));
-    send(validReqMsg, scMeshSubscriber);
+    requestConsolidator.send(validReqMsg, this);
   }
 
-  private void send(@NonNull ReqMessage reqMessage, @NonNull ScMeshSubscriber<T> subscriber) throws JsonProcessingException {
-    requestConsolidator.send(reqMessage, subscriber);
-//    List<T> scReturnedBaseMessages = subscriber.getItems();
-//    log.debug("SuperconductorMeshService items count {}", scReturnedBaseMessages.size());
-//    List<EventMessage> eventMessages = filterEventMessages(scReturnedBaseMessages);
-//    log.debug("SuperconductorMeshService EventMessages count {}", eventMessages.size());
-//    eventMessages.forEach(this::createReputationEventWithScore);
+  @Override
+  public void hookOnNext(@NonNull T value) {
+//    log.debug("in TestSubscriber.hookOnNext()");
+    subscription.request(Long.MAX_VALUE);
+//    log.debug("\n\n000000000000000000000000000000");
+//    log.debug("000000000000000000000000000000");
+//    log.debug(value.getClass().getSimpleName() + "\n\n");
+    filterEventMessage(value).ifPresent(this::createReputationEventWithScore);
   }
 
   private void createReputationEventWithScore(EventMessage eventMessage) {
@@ -74,8 +78,16 @@ public class SuperconductorMeshService<T extends BaseMessage> {
     textNoteEvent.setKind(2112);
     afterImageIdentity.sign(textNoteEvent);
 
-    EventMessage eventMessage1 = new EventMessage(textNoteEvent);
-    eventMessageService.processIncoming(eventMessage1, subscriptionId);
+    eventMessageService.processIncoming(
+        new EventMessage(textNoteEvent),
+        subscriptionId);
+  }
+
+  @Override
+  public void hookOnSubscribe(@NonNull Subscription subscription) {
+//    log.debug("in TestSubscriber.hookOnSubscribe()");
+    this.subscription = subscription;
+    subscription.request(Long.MAX_VALUE);
   }
 
   public void addRelay(String name, String uri) {
@@ -86,16 +98,13 @@ public class SuperconductorMeshService<T extends BaseMessage> {
     requestConsolidator.removeRelay(name);
   }
 
-  private List<EventMessage> filterEventMessages(List<T> returnedBaseMessages) {
-    return returnedBaseMessages.stream()
+  private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
+    return Optional.of(returnedBaseMessage)
         .filter(EventMessage.class::isInstance)
-        .map(EventMessage.class::cast)
-        .toList();
+        .map(EventMessage.class::cast);
   }
 
   private PublicKey getPublicKey(EventMessage eventMessage) {
-    GenericEvent event = (GenericEvent) eventMessage.getEvent();
-    PublicKey pubKey = event.getPubKey();
-    return pubKey;
+    return ((GenericEvent) eventMessage.getEvent()).getPubKey();
   }
 }
