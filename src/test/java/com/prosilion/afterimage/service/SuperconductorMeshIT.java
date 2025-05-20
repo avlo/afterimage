@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service;
 
+import com.prosilion.afterimage.service.event.type.ReputationEventTypePlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.subdivisions.client.reactive.ReactiveEventPublisher;
@@ -42,7 +43,7 @@ class SuperconductorMeshIT extends CommonContainer {
   private final static int KIND = 2112;
 
 
-  SuperconductorMeshService<BaseMessage> superconductorMeshService;
+  SuperconductorMeshProxy<BaseMessage> superconductorMeshProxy;
 
 
   @Autowired
@@ -50,7 +51,7 @@ class SuperconductorMeshIT extends CommonContainer {
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
       @NonNull @Value("${superconductor.lone.relay.url}") String superconductorRelayUri,
 
-      SuperconductorMeshService<BaseMessage> superconductorMeshService
+      SuperconductorMeshProxy<BaseMessage> superconductorMeshProxy
 
 
   ) {
@@ -60,7 +61,7 @@ class SuperconductorMeshIT extends CommonContainer {
     this.loneAimgRequestSubmitterEventReceiver = new ReactiveRelaySubscriptionsManager(afterimageRelayUrl);
 
 
-    this.superconductorMeshService = superconductorMeshService;
+    this.superconductorMeshProxy = superconductorMeshProxy;
   }
 
   @Test
@@ -83,7 +84,6 @@ class SuperconductorMeshIT extends CommonContainer {
     List<OkMessage> irrelevantLoneScVoteReturnedMessages = loneScVotePublisher.getItems();
     assertEquals(true, irrelevantLoneScVoteReturnedMessages.getFirst().getFlag());
 
-    this.superconductorMeshService.setUpReputationReqFlux();
     /*
      *  window when Aimg discovers and processes above vote event
      */
@@ -103,7 +103,7 @@ class SuperconductorMeshIT extends CommonContainer {
     List<BaseMessage> returnedBaseMessages = loneAimgReputationSubscriberReturnedMessages.getItems();
     List<GenericEvent> returnedAfterImageEvents = getGenericEvents(returnedBaseMessages);
 
-    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(SuperconductorMeshService.CONTENT)));
+    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(ReputationEventTypePlugin.CONTENT)));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> getPubKeyTag(genericEvent).stream().map(PublicKey::toHexString).anyMatch(stringStream -> stringStream.equals(publicKey.toHexString()))));
     assertEquals(KIND, returnedAfterImageEvents.getFirst().getKind());
   }

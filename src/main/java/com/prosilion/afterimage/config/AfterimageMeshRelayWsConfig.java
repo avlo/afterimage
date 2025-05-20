@@ -1,7 +1,9 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.service.AfterimageMeshRelayService;
+import com.prosilion.afterimage.util.Factory;
 import lombok.NonNull;
+import nostr.id.Identity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,6 +21,12 @@ import org.springframework.context.annotation.Scope;
 //@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
 //@EnableJpaRepositories("com.prosilion.superconductor.repository")
 public class AfterimageMeshRelayWsConfig {
+
+  @Bean
+  Identity afterimageInstanceIdentity() {
+    return Factory.createNewIdentity();
+  }
+
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageReactiveRelayClient(@NonNull @Value("${afterimage.relay.url}") String relayUri) {
