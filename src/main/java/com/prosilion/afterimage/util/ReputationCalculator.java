@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReputationCalculator {
 
-  public VoteTag calculateReputation(@NonNull List<VoteTag> voteTags) {
-    Optional<VoteTag> reduce = voteTags.stream().reduce((voteTag, voteTag2) ->
-        new VoteTag(
-            voteTag.getVote() + voteTag2.getVote()));
-    return reduce.orElseThrow();
+  public Integer calculateReputation(@NonNull List<VoteTag> voteTags) {
+    Integer reduce = voteTags.stream()
+        .map(VoteTag::getVote)
+        .reduce(Integer::sum).orElse(0);
+    return reduce;
   }
 }

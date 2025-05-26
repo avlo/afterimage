@@ -22,8 +22,8 @@ import reactor.core.publisher.BaseSubscriber;
 @Slf4j
 @Component
 public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscriber<T> {
-  private final ReactiveRequestConsolidator requestConsolidator;
-  private final EventMessageServiceIF<EventMessage> eventMessageService;
+  private final ReactiveRequestConsolidator superconductorRequestConsolidator;
+  private final EventMessageServiceIF<EventMessage> afterimageEventMessageService;
 
   private Subscription subscription;
 
@@ -34,16 +34,16 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   public SuperconductorMeshProxy(
       @NonNull EventMessageServiceIF<EventMessage> eventMessageService,
       @NonNull Map<String, String> superconductorRelays) throws JsonProcessingException {
-    this.eventMessageService = eventMessageService;
-    this.requestConsolidator = new ReactiveRequestConsolidator(superconductorRelays);
+    this.afterimageEventMessageService = eventMessageService;
+    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator(superconductorRelays);
     setUpReputationReqFlux();
   }
 
   private void setUpReputationReqFlux() throws JsonProcessingException {
-    ReqMessage validReqMsg = new ReqMessage(subscriptionId,
+    ReqMessage voteReqMsg = new ReqMessage(subscriptionId,
         new Filters(
             new VoteTagFilter<>(voteTag)));
-    requestConsolidator.send(validReqMsg, this);
+    superconductorRequestConsolidator.send(voteReqMsg, this);
   }
 
   @Override
@@ -58,8 +58,8 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
 
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
-    requestConsolidator.getRelayNames().forEach(relayNameAsSessionId ->
-        eventMessageService.processIncoming(eventMessage, relayNameAsSessionId));
+    superconductorRequestConsolidator.getRelayNames().forEach(relayNameAsSessionId ->
+        afterimageEventMessageService.processIncoming(eventMessage, relayNameAsSessionId));
   }
 
   private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
@@ -76,10 +76,10 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   }
 
   public void addRelay(@NonNull String name, @NonNull String uri) {
-    requestConsolidator.addRelay(name, uri);
+    superconductorRequestConsolidator.addRelay(name, uri);
   }
 
   public void removeRelay(@NonNull String name) {
-    requestConsolidator.removeRelay(name);
+    superconductorRequestConsolidator.removeRelay(name);
   }
 }

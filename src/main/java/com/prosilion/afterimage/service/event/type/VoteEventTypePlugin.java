@@ -3,8 +3,6 @@ package com.prosilion.afterimage.service.event.type;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.ReputationCalculator;
 import com.prosilion.superconductor.service.event.type.AbstractEventTypePlugin;
-import com.prosilion.superconductor.service.event.type.EventTypePlugin;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -18,44 +16,43 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ReputationEventTypePlugin<T extends GenericEvent> extends AbstractEventTypePlugin<T> implements EventTypePlugin<T> {
-  public static final String CONTENT = "TEMP LOCATION OF AIMG REPUTATION SCORE";
+public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractEventTypePlugin<T> {
+  public static final String CONTENT = "AIMG REPUTATION SCORE EVENT";
   private final Identity afterimageInstanceIdentity;
   private final ReputationCalculator reputationCalculator;
-  private final ReputationRedisCache<T> reputationRedisCache;
+  private final VoteRedisCache<T> voteRedisCache;
 
   @Autowired
-  public ReputationEventTypePlugin(
+  public VoteEventTypePlugin(
       @NonNull ReputationCalculator reputationCalculator,
-      @NonNull ReputationRedisCache<T> reputationRedisCache,
+      @NonNull VoteRedisCache<T> voteRedisCache,
       @NonNull Identity afterimageInstanceIdentity) {
-    super(reputationRedisCache.getRedisCache());
-    this.reputationRedisCache = reputationRedisCache;
+    super(voteRedisCache.getRedisCache());
+    this.voteRedisCache = voteRedisCache;
     this.reputationCalculator = reputationCalculator;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
   }
 
   @Override
   public void processIncomingEvent(@NonNull T event) {
-    log.debug("processing incoming CANONICAL EVENT: [{}]", event);
+    log.debug("processing incoming REPUTATION EVENT: [{}]", event);
 
-    List<T> byReferencePublicKey = reputationRedisCache.getByReferencePublicKey
-        (event.getPubKey());
+    List<T> eventsByPublicKey = voteRedisCache.getEventsByPublicKey(event.getPubKey());
 
-    List<VoteTag> voteTags = byReferencePublicKey.stream()
+    List<T> eventsByPublicKeyByVoteKind = eventsByPublicKey.stream().filter(e -> e.getKind().equals(Kind.VOTE.getValue())).toList();
+
+    List<VoteTag> publicKeyVoteTags = eventsByPublicKeyByVoteKind.stream()
         .map(this::voteTagFilter)
         .toList();
 
-    VoteTag reputationScore = reputationCalculator.calculateReputation(voteTags);
+    Integer reputationScore = reputationCalculator.calculateReputation(publicKeyVoteTags);
 
-    List<BaseTag> tags = new ArrayList<>();
-    tags.add(reputationScore);
+    List<BaseTag> voteTags = List.of(new VoteTag(reputationScore));
 
-    GenericEvent textNoteEvent = Factory.createTextNoteEvent(afterimageInstanceIdentity, tags, CONTENT);
-    textNoteEvent.setKind(getKind().getValue());
-    afterimageInstanceIdentity.sign(textNoteEvent);
+    T reputationEvent = Factory.createReputationEvent(afterimageInstanceIdentity, voteTags, CONTENT);
+    afterimageInstanceIdentity.sign(reputationEvent);
 
-    save(event);
+    save(reputationEvent);
   }
 
   private VoteTag voteTagFilter(T event) {

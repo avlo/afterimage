@@ -68,7 +68,7 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     tags.add(voteTag);
     tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
-    GenericEvent textNoteEvent = Factory.createTextNoteEvent(identity, tags, CONTENT);
+    GenericEvent textNoteEvent = Factory.createVoteEvent(identity, tags, CONTENT);
     textNoteEvent.setKind(KIND);
     identity.sign(textNoteEvent);
 
@@ -134,7 +134,7 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     tags.add(voteTag);
     tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
-    GenericEvent textNoteEvent_1 = Factory.createTextNoteEvent(identity, tags, Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class));
+    GenericEvent textNoteEvent_1 = Factory.createVoteEvent(identity, tags, Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class));
     textNoteEvent_1.setKind(KIND);
     identity.sign(textNoteEvent_1);
 
@@ -145,7 +145,7 @@ class SuperconductorEventThenAfterimageReqIT extends CommonContainer {
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
 
-    GenericEvent textNoteEvent_2 = Factory.createTextNoteEvent(identity, tags, Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class));
+    GenericEvent textNoteEvent_2 = Factory.createVoteEvent(identity, tags, Factory.lorumIpsum(SuperconductorEventThenAfterimageReqIT.class));
     textNoteEvent_2.setKind(KIND);
     identity.sign(textNoteEvent_2);
 

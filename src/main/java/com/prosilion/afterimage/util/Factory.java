@@ -1,20 +1,27 @@
 package com.prosilion.afterimage.util;
 
-import lombok.Getter;
-import nostr.api.factory.impl.NIP01Impl;
-import nostr.api.factory.impl.NIP99Impl;
-import nostr.event.BaseTag;
-import nostr.event.impl.ClassifiedListing;
-import nostr.event.impl.GenericEvent;
-import nostr.event.impl.TextNoteEvent;
-import nostr.event.tag.*;
-import nostr.id.Identity;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import lombok.Getter;
+import nostr.api.factory.impl.NIP01Impl;
+import nostr.api.factory.impl.NIP99Impl;
+import nostr.base.PublicKey;
+import nostr.event.BaseTag;
+import nostr.event.Kind;
+import nostr.event.NIP01Event;
+import nostr.event.impl.ClassifiedListing;
+import nostr.event.impl.GenericEvent;
+import nostr.event.impl.TextNoteEvent;
+import nostr.event.tag.EventTag;
+import nostr.event.tag.GeohashTag;
+import nostr.event.tag.HashtagTag;
+import nostr.event.tag.PriceTag;
+import nostr.event.tag.PubKeyTag;
+import nostr.event.tag.SubjectTag;
+import nostr.id.Identity;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class Factory {
 
@@ -22,12 +29,16 @@ public class Factory {
     return Identity.generateRandomIdentity();
   }
 
-  public static <T extends GenericEvent> T createTextNoteEvent(Identity identity, List<BaseTag> tags, String content) {
+  public static <T extends GenericEvent> T createVoteEvent(Identity identity, List<BaseTag> tags, String content) {
     TextNoteEvent textNoteEvent = new NIP01Impl.TextNoteEventFactory(identity, tags, content).create();
 //    NIP01<NIP01Event> nip01_1 = new NIP01<>(identity);
 //    EventNostr sign = nip01_1.createTextNoteEvent(tags, content).sign();
 //    return sign;
     return (T) textNoteEvent;
+  }
+
+  public static <T extends GenericEvent> T createReputationEvent(Identity identity, List<BaseTag> tags, String content) {
+    return (T) new ReputationEvent(identity.getPublicKey(), tags, content);
   }
 
   public static <T extends GenericEvent> T createClassifiedListingEvent(
@@ -144,5 +155,11 @@ public class Factory {
               priceTag)
           .build();
     }
+  }
+}
+
+class ReputationEvent extends NIP01Event {
+  public ReputationEvent(PublicKey pubKey, List<BaseTag> tags, String content) {
+    super(pubKey, Kind.REPUTATION, tags, content);
   }
 }

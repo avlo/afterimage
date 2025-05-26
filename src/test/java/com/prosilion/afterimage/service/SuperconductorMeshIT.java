@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.afterimage.service.event.type.ReputationEventTypePlugin;
+import com.prosilion.afterimage.service.event.type.VoteEventTypePlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.subdivisions.client.reactive.ReactiveEventPublisher;
@@ -74,7 +74,7 @@ class SuperconductorMeshIT extends CommonContainer {
     tags.add(voteTag);
 //    tags.add(authorReputationPubKeyTag);
 
-    GenericEvent irrelevantTextNoteEvent = Factory.createTextNoteEvent(loneScEventPublisherIdentity, tags, IRRELEVANT_CONTENT);
+    GenericEvent irrelevantTextNoteEvent = Factory.createVoteEvent(loneScEventPublisherIdentity, tags, IRRELEVANT_CONTENT);
     irrelevantTextNoteEvent.setKind(KIND);
     loneScEventPublisherIdentity.sign(irrelevantTextNoteEvent);
 
@@ -103,7 +103,7 @@ class SuperconductorMeshIT extends CommonContainer {
     List<BaseMessage> returnedBaseMessages = loneAimgReputationSubscriberReturnedMessages.getItems();
     List<GenericEvent> returnedAfterImageEvents = getGenericEvents(returnedBaseMessages);
 
-    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(ReputationEventTypePlugin.CONTENT)));
+    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(VoteEventTypePlugin.CONTENT)));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> getPubKeyTag(genericEvent).stream().map(PublicKey::toHexString).anyMatch(stringStream -> stringStream.equals(publicKey.toHexString()))));
     assertEquals(KIND, returnedAfterImageEvents.getFirst().getKind());
   }

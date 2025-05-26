@@ -50,7 +50,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
   @Autowired
   AfterimageReqThenSuperconductorEventIT(
       @NonNull EventService<GenericEvent> eventService,
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
+      @NonNull @Value("${superconductor.lone.relay.url}") String superconductorRelayUri,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService
   ) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
@@ -81,7 +81,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     tags.add(voteTag);
     tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
-    GenericEvent textNoteEvent_1 = Factory.createTextNoteEvent(
+    GenericEvent textNoteEvent_1 = Factory.createVoteEvent(
         identity, tags,
         Factory.lorumIpsum(AfterimageReqThenSuperconductorEventIT.class));
     textNoteEvent_1.setKind(KIND);
@@ -96,7 +96,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         .getFlag());
     log.debug("received 1of2 OkMessage...");
 
-    GenericEvent textNoteEvent_2 = Factory.createTextNoteEvent(
+    GenericEvent textNoteEvent_2 = Factory.createVoteEvent(
         identity, tags,
         Factory.lorumIpsum(AfterimageReqThenSuperconductorEventIT.class));
     textNoteEvent_2.setKind(KIND);

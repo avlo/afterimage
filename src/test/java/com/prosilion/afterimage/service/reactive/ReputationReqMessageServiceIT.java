@@ -91,7 +91,7 @@ public class ReputationReqMessageServiceIT {
     tags.add(voteTag);
     tags.add(new PubKeyTag(authorIdentity.getPublicKey()));
 
-    GenericEvent event = Factory.createTextNoteEvent(identity, tags, CONTENT);
+    GenericEvent event = Factory.createVoteEvent(identity, tags, CONTENT);
     event.setKind(KIND);
     identity.sign(event);
 
