@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import lombok.Getter;
+import lombok.NonNull;
 import nostr.api.factory.impl.NIP01Impl;
 import nostr.api.factory.impl.NIP99Impl;
 import nostr.base.PublicKey;
@@ -12,6 +13,7 @@ import nostr.event.BaseTag;
 import nostr.event.Kind;
 import nostr.event.NIP01Event;
 import nostr.event.impl.ClassifiedListing;
+import nostr.event.impl.DeletionEvent;
 import nostr.event.impl.GenericEvent;
 import nostr.event.impl.TextNoteEvent;
 import nostr.event.tag.EventTag;
@@ -37,10 +39,29 @@ public class Factory {
     return (T) textNoteEvent;
   }
 
-  public static <T extends GenericEvent> T createReputationEvent(Identity identity, List<BaseTag> tags, String content) {
-    return (T) new ReputationEvent(identity.getPublicKey(), tags, content);
+  public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag... tag) {
+    return createReputationEvent(identity, score, List.of(tag));
+  }
+  
+  public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull List<BaseTag> tags) {
+    T t = (T) new ReputationEvent(
+        identity.getPublicKey(),
+        tags,
+        String.format("REPUTATION SCORE: %s", score));
+    identity.sign(t);
+    return t;
   }
 
+  public static <T extends GenericEvent> T createDeletionEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag tag) {
+    T deletionEvent = (T) new DeletionEvent(
+        identity.getPublicKey(),
+        List.of(tag),
+        String.format("REPUTATION SCORE: %s", score)  
+    );
+    identity.sign(deletionEvent);
+    return deletionEvent; 
+  }
+  
   public static <T extends GenericEvent> T createClassifiedListingEvent(
       Identity identity,
       List<BaseTag> tags,

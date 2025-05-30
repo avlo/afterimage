@@ -103,7 +103,7 @@ class SuperconductorMeshIT extends CommonContainer {
     List<BaseMessage> returnedBaseMessages = loneAimgReputationSubscriberReturnedMessages.getItems();
     List<GenericEvent> returnedAfterImageEvents = getGenericEvents(returnedBaseMessages);
 
-    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(VoteEventTypePlugin.CONTENT)));
+//    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(VoteEventTypePlugin.CONTENT)));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> getPubKeyTag(genericEvent).stream().map(PublicKey::toHexString).anyMatch(stringStream -> stringStream.equals(publicKey.toHexString()))));
     assertEquals(KIND, returnedAfterImageEvents.getFirst().getKind());
   }

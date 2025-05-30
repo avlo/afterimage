@@ -40,10 +40,11 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   }
 
   private void setUpReputationReqFlux() throws JsonProcessingException {
-    ReqMessage voteReqMsg = new ReqMessage(subscriptionId,
-        new Filters(
-            new VoteTagFilter<>(voteTag)));
-    superconductorRequestConsolidator.send(voteReqMsg, this);
+    superconductorRequestConsolidator.send(
+        new ReqMessage(subscriptionId,
+            new Filters(
+                new VoteTagFilter<>(voteTag))), 
+        this);
   }
 
   @Override

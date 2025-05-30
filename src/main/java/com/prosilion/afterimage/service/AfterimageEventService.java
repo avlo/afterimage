@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AfterimageEventService<T extends GenericEvent> implements EventServiceIF<T> {
-  private final EventTypeServiceIF<T> eventTypeService;
   private final NotifierService<T> notifierService;
+  private final EventTypeServiceIF<T> eventTypeService;
   private final EventEntityService<T> eventEntityService;
 
   @Autowired
