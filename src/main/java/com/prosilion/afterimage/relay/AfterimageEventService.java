@@ -1,12 +1,15 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.relay;
 
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.ReputationCalculator;
 import com.prosilion.superconductor.service.event.EventServiceIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import java.util.Collection;
+import java.util.List;
 import lombok.NonNull;
+import nostr.base.PublicKey;
+import nostr.event.BaseTag;
 import nostr.event.Kind;
+import nostr.event.NIP01Event;
 import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.tag.AddressTag;
@@ -51,7 +54,7 @@ public class AfterimageEventService<T extends GenericEvent> implements EventServ
 
     eventService.processIncomingEvent(
         new EventMessage(
-            Factory.createReputationEvent(
+            createReputationEvent(
                 identity,
                 ReputationCalculator.calculateReputation(
                     eventEntityService
@@ -66,5 +69,24 @@ public class AfterimageEventService<T extends GenericEvent> implements EventServ
                     event.getPubKey()
 //        , new IdentifierTag(String.format("REPUTATION_UUID-%s", reputationScore))
                 ))));
+  }
+
+  private T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag tag) {
+    return createReputationEvent(identity, score, List.of(tag));
+  }
+
+  private T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull List<BaseTag> tags) {
+    T t = (T) new ReputationEvent(
+        identity.getPublicKey(),
+        tags,
+        score.toString());
+    identity.sign(t);
+    return t;
+  }
+
+  private static class ReputationEvent extends NIP01Event {
+    public ReputationEvent(PublicKey pubKey, List<BaseTag> tags, String content) {
+      super(pubKey, Kind.REPUTATION, tags, content);
+    }
   }
 }

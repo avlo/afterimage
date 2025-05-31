@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.service.AfterimageMeshRelayService;
+import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Scope;
     havingValue = "true")
 //@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
 //@EnableJpaRepositories("com.prosilion.superconductor.repository")
-public class AfterimageRelayMeshWssConfig {
+public class AfterimageMeshRelayWssConfig {
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageReactiveRelayClient(

@@ -1,8 +1,7 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.service.AfterimageMeshRelayService;
-import com.prosilion.afterimage.service.ReputationReqMessageService;
-import com.prosilion.afterimage.util.Factory;
+import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
+import com.prosilion.afterimage.relay.ReputationReqMessageService;
 import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import lombok.NonNull;
 import nostr.event.message.ReqMessage;
@@ -26,7 +25,7 @@ public class AfterimageMeshRelayWsConfig {
 
   @Bean
   Identity afterimageInstanceIdentity() {
-    return Factory.createNewIdentity();
+    return Identity.generateRandomIdentity();
   }
 
   @Bean

@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.service.CommonContainer;
-import com.prosilion.afterimage.service.AfterimageMeshRelayService;
+import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.superconductor.service.event.EventService;

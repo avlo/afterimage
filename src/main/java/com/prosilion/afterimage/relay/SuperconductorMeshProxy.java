@@ -1,11 +1,11 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.service.message.event.AutoConfigEventMessageServiceIF;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
@@ -27,7 +27,7 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
 
   private Subscription subscription;
 
-  private final String subscriptionId = Factory.generateRandomHex64String();
+  private final String subscriptionId = generateRandomHex64String();
   private final Kind voteKind = Kind.VOTE;
 
   @Autowired
@@ -82,5 +82,9 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
 
   public void removeRelay(@NonNull String name) {
     superconductorRequestConsolidator.removeRelay(name);
+  }
+
+  public static String generateRandomHex64String() {
+    return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
   }
 }

@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.relay;
 
 import com.prosilion.superconductor.service.event.type.AbstractEventTypePlugin;
 import com.prosilion.superconductor.service.event.type.RedisCache;

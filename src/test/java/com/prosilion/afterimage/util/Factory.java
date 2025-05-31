@@ -42,7 +42,7 @@ public class Factory {
   public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag... tag) {
     return createReputationEvent(identity, score, List.of(tag));
   }
-  
+
   public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull List<BaseTag> tags) {
     T t = (T) new ReputationEvent(
         identity.getPublicKey(),
@@ -56,12 +56,12 @@ public class Factory {
     T deletionEvent = (T) new DeletionEvent(
         identity.getPublicKey(),
         List.of(tag),
-        String.format("REPUTATION SCORE: %s", score)  
+        String.format("REPUTATION SCORE: %s", score)
     );
     identity.sign(deletionEvent);
-    return deletionEvent; 
+    return deletionEvent;
   }
-  
+
   public static <T extends GenericEvent> T createClassifiedListingEvent(
       Identity identity,
       List<BaseTag> tags,

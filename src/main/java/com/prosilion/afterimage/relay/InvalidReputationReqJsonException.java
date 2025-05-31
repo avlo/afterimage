@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.exception;
+package com.prosilion.afterimage.relay;
 
 import nostr.event.message.ReqMessage;
 

@@ -1,6 +1,5 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.relay;
 
-import com.prosilion.afterimage.exception.InvalidReputationReqJsonException;
 import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import java.util.List;
 import java.util.Optional;
