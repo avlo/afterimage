@@ -47,7 +47,7 @@ public class Factory {
     T t = (T) new ReputationEvent(
         identity.getPublicKey(),
         tags,
-        String.format("REPUTATION SCORE: %s", score));
+        score.toString());
     identity.sign(t);
     return t;
   }

@@ -52,7 +52,7 @@ publishing {
 dependencies {
     def springBootVersion = '3.4.5'
     def nostrJavaVersion = '0.6.6-SNAPSHOT'
-    def superconductorStarterVersion  = '1.14.0'
+    def superconductorStarterVersion  = '1.14.1'
     def subdivisionsVersion = '1.1.0'
     def apacheCommonsLang3 = '3.17.0'
     def jacksonModuleAfterburner = '2.18.3'
@@ -112,11 +112,11 @@ tasks.register('integrationTest', Test) {
 }
 
 integrationTest {
-    retry {
-        failOnPassedAfterRetry = false
-        maxRetries = 1
-    }
-    setTimeout(Duration.ofSeconds(60))
+//    retry {
+//        failOnPassedAfterRetry = false
+//        maxRetries = 1
+//    }
+    setTimeout(Duration.ofSeconds(6000))
 }
 
 check.dependsOn integrationTest

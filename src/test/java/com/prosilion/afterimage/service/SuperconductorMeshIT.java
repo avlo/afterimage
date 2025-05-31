@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.afterimage.service.event.type.VoteEventTypePlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.subdivisions.client.reactive.ReactiveEventPublisher;

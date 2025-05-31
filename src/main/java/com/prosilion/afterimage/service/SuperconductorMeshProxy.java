@@ -3,17 +3,17 @@ package com.prosilion.afterimage.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.service.message.event.EventMessageServiceIF;
+import com.prosilion.superconductor.service.message.event.AutoConfigEventMessageServiceIF;
 import java.util.Map;
 import java.util.Optional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
+import nostr.event.Kind;
 import nostr.event.filter.Filters;
-import nostr.event.filter.VoteTagFilter;
+import nostr.event.filter.KindFilter;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
-import nostr.event.tag.VoteTag;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,18 +23,18 @@ import reactor.core.publisher.BaseSubscriber;
 @Component
 public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscriber<T> {
   private final ReactiveRequestConsolidator superconductorRequestConsolidator;
-  private final EventMessageServiceIF<EventMessage> afterimageEventMessageService;
+  private final AutoConfigEventMessageServiceIF<EventMessage> eventMessageService;
 
   private Subscription subscription;
 
   private final String subscriptionId = Factory.generateRandomHex64String();
-  private final VoteTag voteTag = new VoteTag(1);
+  private final Kind voteKind = Kind.VOTE;
 
   @Autowired
   public SuperconductorMeshProxy(
-      @NonNull EventMessageServiceIF<EventMessage> eventMessageService,
+      @NonNull AutoConfigEventMessageServiceIF<EventMessage> eventMessageService,
       @NonNull Map<String, String> superconductorRelays) throws JsonProcessingException {
-    this.afterimageEventMessageService = eventMessageService;
+    this.eventMessageService = eventMessageService;
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator(superconductorRelays);
     setUpReputationReqFlux();
   }
@@ -43,7 +43,7 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
     superconductorRequestConsolidator.send(
         new ReqMessage(subscriptionId,
             new Filters(
-                new VoteTagFilter<>(voteTag))), 
+                new KindFilter<>(voteKind))),
         this);
   }
 
@@ -60,7 +60,7 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
     superconductorRequestConsolidator.getRelayNames().forEach(relayNameAsSessionId ->
-        afterimageEventMessageService.processIncoming(eventMessage, relayNameAsSessionId));
+        eventMessageService.processIncoming(eventMessage, relayNameAsSessionId));
   }
 
   private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
