@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.relay;
 
+import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
 import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +27,6 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
 
   @Override
   public void processIncoming(@NonNull T reqMessage, @NonNull String sessionId) {
-//    TODO: note, below try/catch already handled in ReqMessageService @Bean as per decorator TODO, above
     try {
       reqMessageService.processIncoming(
           (T) new ReqMessage(sessionId,
@@ -49,6 +49,7 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
                     Kind.REPUTATION.getValue(),
                     publicKey
 //            , potentially afterimage UUID inserted here
+//        , new IdentifierTag(String.format("REPUTATION_UUID-%s", someValue))                    
                 )))
             .map(Filterable.class::cast)
             .toList());

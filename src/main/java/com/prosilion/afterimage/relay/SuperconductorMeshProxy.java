@@ -72,8 +72,8 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   @Override
   public void hookOnSubscribe(@NonNull Subscription subscription) {
 //    log.debug("in TestSubscriber.hookOnSubscribe()");
-    this.subscription = subscription;
     subscription.request(Long.MAX_VALUE);
+    this.subscription = subscription;
   }
 
   public void addRelay(@NonNull String name, @NonNull String uri) {
