@@ -35,7 +35,12 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
       @NonNull AutoConfigEventMessageServiceIF<EventMessage> eventMessageService,
       @NonNull Map<String, String> superconductorRelays) throws JsonProcessingException {
     this.eventMessageService = eventMessageService;
-    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator(superconductorRelays);
+    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
+    addRelay(superconductorRelays);
+  }
+
+  public void addRelay(@NonNull Map<String, String> relays) throws JsonProcessingException {
+    relays.forEach(superconductorRequestConsolidator::addRelay);
     setUpReputationReqFlux();
   }
 

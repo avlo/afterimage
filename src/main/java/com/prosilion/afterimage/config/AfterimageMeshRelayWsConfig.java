@@ -24,8 +24,8 @@ import org.springframework.context.annotation.Scope;
 public class AfterimageMeshRelayWsConfig {
 
   @Bean
-  Identity afterimageInstanceIdentity() {
-    return Identity.generateRandomIdentity();
+  Identity afterimageInstanceIdentity(@NonNull @Value("${afterimage.key.private}") String privateKey) {
+    return Identity.create(privateKey);
   }
 
   @Bean

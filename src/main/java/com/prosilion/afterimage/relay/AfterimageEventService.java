@@ -23,16 +23,16 @@ import org.springframework.stereotype.Service;
 public class AfterimageEventService<T extends GenericEvent> implements EventServiceIF<T> {
   private final EventServiceIF<T> eventService;
   private final EventEntityService<T> eventEntityService;
-  private final Identity identity;
+  private final Identity aImgIdentity;
 
   @Autowired
   public AfterimageEventService(
       @NonNull EventServiceIF<T> eventService,
       @NonNull EventEntityService<T> eventEntityService,
-      @NonNull Identity identity) {
+      @NonNull Identity aImgIdentity) {
     this.eventService = eventService;
     this.eventEntityService = eventEntityService;
-    this.identity = identity;
+    this.aImgIdentity = aImgIdentity;
   }
 
   public <U extends EventMessage> void processIncomingEvent(@NonNull U eventMessage) {
@@ -50,7 +50,7 @@ public class AfterimageEventService<T extends GenericEvent> implements EventServ
     eventService.processIncomingEvent(
         new EventMessage(
             createReputationEvent(
-                identity,
+                aImgIdentity,
                 ReputationCalculator.calculateReputation(
                     eventEntityService
                         .getEventsByPublicKey(event.getPubKey()).stream().filter(e ->
