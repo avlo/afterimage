@@ -1,17 +1,17 @@
 $(function () {
-    $("#send2112").click(() => createEvent(generate2112TypeScriptEvent()));
+    $("#send02").click(() => createEvent(generate02TypeScriptEvent()));
 });
 
-function generate2112TypeScriptEvent() {
+function generate02TypeScriptEvent() {
     const tags = [
-        ['v', $("#2112-v_tag").val()]
+        ['p', $("#00-pubkey").val(), $("#superconductor_url").val()]
     ];
 
     let event = {
         id: '',
-        kind: Number($("#2112-kind").val()),
+        kind: Number($("#03-kind").val()),
         created_at: Math.floor(Date.now() / 1000),
-        content: $("#2112-content").val(),
+        content: 'SuperConductor Follows List Event',
         tags: tags,
         pubkey: '',
         sig: ''

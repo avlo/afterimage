@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <link rel="shortcut icon" href="/favicon.ico">
 <head>
-  <title>Nostr Events WebClient</title>
+  <title>AfterImage Nip-02 SuperConductor Relay Follow List</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
         integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <link href="/main.css" rel="stylesheet">
@@ -14,7 +14,7 @@
 <body>
 <noscript><h2 style="color: #ff0000">Enable Javascript to view this page</h2></noscript>
 <main>
-  <h1>Event WebSocket</h1>
+  <h1>Nip-02 Follow-List Event</h1>
   <form class="form-inline center">
     <div class="form-group">
       <button tabindex="1" id="connect" class="btn btn-default" type="submit">Connect</button>
@@ -24,27 +24,29 @@
   <hr>
 
   <div th:if="!${authActive}" class="tabs">
-    <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabthree" checked="checked">
-    <label class="label" for="tabthree">NIP-2112</label>
+    <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabone" checked="checked">
+    <label class="label" for="tabone">NIP-02</label>
     <div class="panel">
       <div class="col-md-6">
         <form class="form-inline">
           <div class="form-group">
-            <label for="2112-content">Send message:</label>
-            <input tabindex="1" type="text" value="1111111111" id="2112-content" class="form-control"
-                   placeholder="message...">
+            <label for="00-pubkey">Pubkey: </label>
+            <input tabindex="1" type="text" value="8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e"
+                   id="00-pubkey"
+                   class="form-control" placeholder="00-pubkey">
           </div>
           <div class="form-group">
-            <label for="2112-v_tag">VoteTag: </label>
-            <input tabindex="1" type="text" value="1" id="2112-v_tag" class="form-control"
-                   placeholder="vote-tag">
+            <label for="superconductor_url">SuperConducor URL:</label>
+            <select name="superconductor_url" id="superconductor_url">
+              <option value="ws://localhost:5557">ws localhost 5557</option>
+            </select>
           </div>
-          <input type="hidden" id="2112-kind" name="2112-kind" value=2112>
+          <input type="hidden" id="03-kind" name="03-kind" value=3>
           <div class="row">
             <div class="col-md-6">
               <div class="form-inline">
                 <div class="center gap">
-                  <button id="send2112" class="btn btn-default" type="submit" disabled="disabled">Send Nip-2112 Event
+                  <button id="send02" class="btn btn-default" type="submit" disabled="disabled">Send Nip-02 Follow List Event
                   </button>
                 </div>
               </div>

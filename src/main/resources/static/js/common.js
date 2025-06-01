@@ -15,6 +15,7 @@ function setConnected(connected) {
 
     $("#sendregister").prop("disabled", !connected);
     $("#send2112").prop("disabled", !connected);
+    $("#send02").prop("disabled", !connected);
     $("#sendrequest").prop("disabled", !connected);
 
     if (connected) {

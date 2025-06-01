@@ -2,7 +2,7 @@ package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.service.message.event.AutoConfigEventMessageServiceIF;
+import com.prosilion.superconductor.service.event.type.EventTypePlugin;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,39 +12,35 @@ import nostr.event.BaseMessage;
 import nostr.event.Kind;
 import nostr.event.filter.Filters;
 import nostr.event.filter.KindFilter;
+import nostr.event.impl.GenericEvent;
 import nostr.event.message.EventMessage;
 import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscription;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
-@Component
-public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscriber<T> {
+public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEvent> extends BaseSubscriber<T> {
   private final ReactiveRequestConsolidator superconductorRequestConsolidator;
-  private final AutoConfigEventMessageServiceIF<EventMessage> eventMessageService;
+  private final EventTypePlugin<U> eventTypePlugin;
 
   private Subscription subscription;
 
   private final String subscriptionId = generateRandomHex64String();
   private final Kind voteKind = Kind.VOTE;
 
-  @Autowired
   public SuperconductorMeshProxy(
-      @NonNull AutoConfigEventMessageServiceIF<EventMessage> eventMessageService,
-      @NonNull Map<String, String> superconductorRelays) throws JsonProcessingException {
-    this.eventMessageService = eventMessageService;
+      @NonNull Map<String, String> superconductorRelays,
+      @NonNull EventTypePlugin<U> eventTypePlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
+    this.eventTypePlugin = eventTypePlugin;
     addRelay(superconductorRelays);
   }
 
-  public void addRelay(@NonNull Map<String, String> relays) throws JsonProcessingException {
+  public void addRelay(@NonNull Map<String, String> relays) {
     relays.forEach(superconductorRequestConsolidator::addRelay);
-    setUpReputationReqFlux();
   }
 
-  private void setUpReputationReqFlux() throws JsonProcessingException {
+  public void setUpReputationReqFlux() throws JsonProcessingException {
     superconductorRequestConsolidator.send(
         new ReqMessage(subscriptionId,
             new Filters(
@@ -65,7 +61,8 @@ public class SuperconductorMeshProxy<T extends BaseMessage> extends BaseSubscrib
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
     superconductorRequestConsolidator.getRelayNames().forEach(relayNameAsSessionId ->
-        eventMessageService.processIncoming(eventMessage, relayNameAsSessionId));
+        eventTypePlugin.processIncomingEvent(
+            (U) eventMessage.getEvent()));
   }
 
   private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
