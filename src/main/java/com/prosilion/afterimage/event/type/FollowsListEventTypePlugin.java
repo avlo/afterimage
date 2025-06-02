@@ -47,34 +47,39 @@ public class FollowsListEventTypePlugin<T extends GenericEvent> extends Abstract
   public void processIncomingNonPublishingEventType(@NonNull T followsListEvent) {
     log.debug("processing incoming FOLLOWS LIST event: [{}]", followsListEvent);
 
-    List<String> savedUrls = eventEntityService.getEventsByKind(getKind()).stream()
-        .map(savedEvent ->
-            Streams.failableStream(
-                    Filterable.getTypeSpecificTags(PubKeyTag.class, savedEvent)).stream()
-                .map(PubKeyTag::getMainRelayUrl))
-        .flatMap(BaseStream::parallel).toList();
+    List<BaseTag> uniqueNewRelays =
+        Streams.failableStream(
+                Filterable.getTypeSpecificTags(PubKeyTag.class, followsListEvent))
+            .filter(pubKeyTag ->
+                !eventEntityService
+                    .getEventsByKind(getKind())
+                    .stream()
+                    .map(savedEvent ->
+                        Streams.failableStream(
+                                Filterable.getTypeSpecificTags(PubKeyTag.class, savedEvent))
+                            .stream()
+                            .map(
+                                PubKeyTag::getMainRelayUrl))
+                    .flatMap(BaseStream::parallel).toList()
+                    .contains(
+                        pubKeyTag.getMainRelayUrl()))
+            .stream()
+            .map(BaseTag.class::cast)
+            .toList();
 
-
-    List<BaseTag> list = Streams.failableStream(
-            Filterable.getTypeSpecificTags(PubKeyTag.class, followsListEvent))
-        .filter(pkt -> !savedUrls.contains(pkt.getMainRelayUrl()))
-        .stream()
-        .map(BaseTag.class::cast)
-        .toList();
-
-    if (list.isEmpty())
+    if (uniqueNewRelays.isEmpty())
       return;
 
-    T event = createContactListEvent(aImgIdentity, list);
-    save(event);
+    T newContactListEvent = createContactListEvent(aImgIdentity, uniqueNewRelays);
+    save(newContactListEvent);
 
     Streams
         .failableStream(
-            Filterable.getTypeSpecificTags(PubKeyTag.class, event))
+            Filterable.getTypeSpecificTags(PubKeyTag.class, newContactListEvent))
         .map(pubKeyTag -> Map.of(
             pubKeyTag.getPublicKey().toHexString(), pubKeyTag.getMainRelayUrl()))
-        .forEach(p ->
-            new SuperconductorMeshProxy<>(p, voteEventTypePlugin).setUpReputationReqFlux());
+        .forEach(relayNameUriMap ->
+            new SuperconductorMeshProxy<>(relayNameUriMap, voteEventTypePlugin).setUpReputationReqFlux());
   }
 
   private T createContactListEvent(@NonNull Identity identity, @NonNull List<BaseTag> tags) {
