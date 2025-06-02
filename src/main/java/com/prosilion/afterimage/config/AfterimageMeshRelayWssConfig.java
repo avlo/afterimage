@@ -17,8 +17,6 @@ import org.springframework.context.annotation.Scope;
 @ConditionalOnProperty(
     name = "server.ssl.enabled",
     havingValue = "true")
-//@ComponentScan(basePackages = {"com.prosilion.superconductor.*"})
-//@EnableJpaRepositories("com.prosilion.superconductor.repository")
 public class AfterimageMeshRelayWssConfig {
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)

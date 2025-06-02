@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.event.type;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
+import com.prosilion.afterimage.util.SuperconductorMeshProxy;
 import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventTypePlugin;
 import com.prosilion.superconductor.service.event.type.RedisCache;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.relay;
+package com.prosilion.afterimage.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
