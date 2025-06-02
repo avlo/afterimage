@@ -5,8 +5,6 @@ import com.prosilion.afterimage.util.ReputationCalculator;
 import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventTypePlugin;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.RedisCache;
-import com.prosilion.superconductor.service.request.NotifierService;
-import com.prosilion.superconductor.service.request.pubsub.AddNostrEvent;
 import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
@@ -25,17 +23,17 @@ import org.springframework.stereotype.Component;
 public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
   private final Identity aImgIdentity;
   private final EventEntityService<T> eventEntityService;
-  private final NotifierService<T> notifierService;
+  private final ReputationEventTypePlugin<T> reputationEventTypePlugin;
 
   @Autowired
   public VoteEventTypePlugin(
       @NonNull RedisCache<T> redisCache,
       @NonNull EventEntityService<T> eventEntityService,
-      @NonNull NotifierService<T> notifierService,
+      @NonNull ReputationEventTypePlugin<T> reputationEventTypePlugin,
       @NonNull Identity aImgIdentity) {
     super(redisCache);
     this.eventEntityService = eventEntityService;
-    this.notifierService = notifierService;
+    this.reputationEventTypePlugin = reputationEventTypePlugin;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -48,7 +46,7 @@ public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPubl
     T reputationEvent = calculateReputationEvent(voteEvent);
     save(reputationEvent);
 
-    notifierService.nostrEventHandler(new AddNostrEvent<>(reputationEvent));
+    reputationEventTypePlugin.processIncomingEvent(reputationEvent);
   }
 
   private T calculateReputationEvent(T event) {
