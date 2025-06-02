@@ -36,6 +36,15 @@ public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEve
     addRelay(superconductorRelays);
   }
 
+  public SuperconductorMeshProxy(
+      @NonNull String relayName,
+      @NonNull String relayUrl,
+      @NonNull EventTypePlugin<U> eventTypePlugin) {
+    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
+    this.eventTypePlugin = eventTypePlugin;
+    addRelay(relayName, relayUrl);
+  }
+
   public void addRelay(@NonNull Map<String, String> relays) {
     relays.forEach(superconductorRequestConsolidator::addRelay);
   }
