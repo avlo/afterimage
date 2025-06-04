@@ -30,8 +30,8 @@ public class AfterimageMeshRelayWsConfig {
 
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  public AfterimageMeshRelayService afterimageReactiveRelayClient(@NonNull @Value("${afterimage.relay.url}") String relayUri) {
-    return new AfterimageMeshRelayService(relayUri);
+  public AfterimageMeshRelayService afterimageReactiveRelayClient(@NonNull String afterimageRelayUrl) {
+    return new AfterimageMeshRelayService(afterimageRelayUrl);
   }
 
   @Bean
