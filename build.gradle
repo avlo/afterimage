@@ -144,8 +144,22 @@ tasks.register("bootRunLocalWs") {
         tasks.bootRun.configure {
             systemProperty("spring.profiles.active", "local_ws")
         }
+        getServerPort()
     }
     finalizedBy("bootRun")
+}
+
+void getServerPort() {
+    if (!project.hasProperty("server.port"))
+        throw new GradleException('missing server.port')
+
+    if (!project.hasProperty("afterimage.relay.url"))
+        throw new GradleException('missing afterimage.relay.url')
+}
+
+bootRun {
+    args += ["--server.port=${project.properties["server.port"]}"]
+    args += ["--afterimage.relay.url=${project.properties["afterimage.relay.url"]}"]
 }
 
 tasks.register("bootRunLocalWss") {
