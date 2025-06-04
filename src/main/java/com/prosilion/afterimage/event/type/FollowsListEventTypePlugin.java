@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+// TODO: swap FollowsList (Nip-02, kind 3) for Relay Discovery (Nip-66):
+//  30166 - Relay Discovery - addressable event that is published by a monitor when a relay is online
+//  10166 - Relay Monitor Announcement - RE that stores data that signals the intent of a pubkey to monitor relays and publish 30166 events at a regular frequency
 public class FollowsListEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
   private final EventEntityService<T> eventEntityService;
   private final VoteEventTypePlugin<VoteEvent> voteEventTypePlugin;

@@ -13,16 +13,22 @@ import nostr.event.filter.Filterable;
 import nostr.event.filter.Filters;
 import nostr.event.message.ReqMessage;
 import nostr.event.tag.AddressTag;
+import nostr.event.tag.IdentifierTag;
+import nostr.id.Identity;
 
 @Slf4j
 public class ReputationReqMessageService<T extends ReqMessage> implements ReqMessageServiceIF<T> {
   public static final String ADDRESS_TAG_FILTER = AddressTagFilter.FILTER_KEY;
+  private final Identity aImgIdentity;
 
   private final ReqMessageServiceIF<T> reqMessageService;
 
-  public ReputationReqMessageService(@NonNull ReqMessageServiceIF<T> reqMessageService) {
+  public ReputationReqMessageService(
+      @NonNull ReqMessageServiceIF<T> reqMessageService,
+      @NonNull Identity aImgIdentity) {
     log.debug("loaded ReputationReqMessageService bean");
     this.reqMessageService = reqMessageService;
+    this.aImgIdentity = aImgIdentity;
   }
 
   @Override
@@ -47,9 +53,10 @@ public class ReputationReqMessageService<T extends ReqMessage> implements ReqMes
         validateRequiredFilterByAddressTag(reqMessage).stream().map(publicKey ->
                 new AddressTagFilter<>(new AddressTag(
                     Kind.REPUTATION.getValue(),
-                    publicKey
-//            , potentially afterimage UUID inserted here
-//        , new IdentifierTag(String.format("REPUTATION_UUID-%s", someValue))                    
+                    publicKey,
+                    new IdentifierTag(
+//                       TODO: below identiy needs design/thought
+                        aImgIdentity.getPublicKey().toHexString())
                 )))
             .map(Filterable.class::cast)
             .toList());

@@ -13,6 +13,7 @@ import nostr.event.BaseTag;
 import nostr.event.Kind;
 import nostr.event.impl.GenericEvent;
 import nostr.event.tag.AddressTag;
+import nostr.event.tag.IdentifierTag;
 import nostr.event.tag.VoteTag;
 import nostr.id.Identity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,14 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+// TODO: potentially option/alternative for ReputationEvent (extends NIP01Event, Nip-2113):
+//  Event Count (Nip-45)
+//  REQ format:
+//    ["COUNT", <subscription_id>, {"kinds": [3], "#p": [<pubkey>]}]
+//  RESPONSE (is non-event)
+//    ["COUNT", <subscription_id>, {"count": 238}]
+//  note, however: COUNT does not carry event data, which is/might be contextual shortcoming
+
 public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
   private final Identity aImgIdentity;
   private final EventEntityService<T> eventEntityService;
@@ -60,15 +69,14 @@ public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPubl
                     .filter(VoteTag.class::isInstance)
                     .map(VoteTag.class::cast).toList())
                 .flatMap(Collection::stream).toList()),
-//    non-parameterized replaceable variant:
-//      ["a", <kind integer>:<32-bytes lowercase hex of a pubkey>:]
         new AddressTag(
             Kind.REPUTATION.getValue(),
-            event.getPubKey()
-//    or potentially/optionally parameterized replaceable:
-//      ["a", <kind integer>:<32-bytes lowercase hex of a pubkey>:<d tag value>]
-//    by uncommenting below line
-//        , new IdentifierTag(String.format("REPUTATION_UUID-%s", reputationScore))
+            event.getPubKey(), 
+            new IdentifierTag(
+//  TODO:  temp working POC below using identity pubkey, proper sol'n needs arch/design revisit                
+                aImgIdentity.getPublicKey().toHexString()
+//                String.valueOf(System.currentTimeMillis())
+            ) // UUID
         ));
   }
 

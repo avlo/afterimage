@@ -36,7 +36,9 @@ public class AfterimageMeshRelayWsConfig {
 
   @Bean
   @Primary
-  public ReqMessageServiceIF<ReqMessage> reputationReqMessageService(ReqMessageServiceIF<ReqMessage> reqMessageService) {
-    return new ReputationReqMessageService<>(reqMessageService);
+  public ReqMessageServiceIF<ReqMessage> reputationReqMessageService(
+      @NonNull ReqMessageServiceIF<ReqMessage> reqMessageService,
+      @NonNull Identity aImgIdentity) {
+    return new ReputationReqMessageService<>(reqMessageService, aImgIdentity);
   }
 }

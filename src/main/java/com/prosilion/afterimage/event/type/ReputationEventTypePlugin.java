@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.event.type;
 
-import com.prosilion.afterimage.event.ReputationEvent;
 import com.prosilion.superconductor.service.event.type.AbstractPublishingEventTypePlugin;
 import com.prosilion.superconductor.service.event.type.RedisCache;
 import com.prosilion.superconductor.service.request.NotifierService;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+// TODO: this class is necessary solely for its getKind() REPUTATION  
 public class ReputationEventTypePlugin<T extends GenericEvent> extends AbstractPublishingEventTypePlugin<T> {
 
   @Autowired
