@@ -3,6 +3,7 @@ package com.prosilion.afterimage.event.type;
 import com.prosilion.afterimage.util.SuperconductorMeshProxy;
 import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventTypePlugin;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
+import com.prosilion.superconductor.service.event.type.EventTypePlugin;
 import com.prosilion.superconductor.service.event.type.RedisCache;
 import java.util.List;
 import java.util.Map;
@@ -15,37 +16,29 @@ import nostr.event.BaseTag;
 import nostr.event.Kind;
 import nostr.event.filter.Filterable;
 import nostr.event.impl.GenericEvent;
-import nostr.event.impl.GroupAdminsEvent;
-import nostr.event.impl.RelayDiscoveryEvent;
 import nostr.event.tag.PubKeyTag;
 import nostr.id.Identity;
 import org.apache.commons.lang3.stream.Streams;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-public class AfterImageRelayAssimilationEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
+public abstract class AfterImageEventTypePluginIF<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
+
   private final EventEntityService<T> eventEntityService;
-  private final RelayDiscoveryEventTypePlugin<RelayDiscoveryEvent> relayDiscoveryEventTypePlugin;
   private final Identity aImgIdentity;
 
-  @Autowired
-  public AfterImageRelayAssimilationEventTypePlugin(
+  public AfterImageEventTypePluginIF(
       @NonNull RedisCache<T> redisCache,
-      @NonNull EventEntityService<T> eventEntityService,
-      @NonNull RelayDiscoveryEventTypePlugin<RelayDiscoveryEvent> relayDiscoveryEventTypePlugin,
-      @NonNull Identity aImgIdentity) {
+      @NonNull Identity aImgIdentity,
+      @NonNull EventEntityService<T> eventEntityService) {
     super(redisCache);
-    this.eventEntityService = eventEntityService;
-    this.relayDiscoveryEventTypePlugin = relayDiscoveryEventTypePlugin;
     this.aImgIdentity = aImgIdentity;
+    this.eventEntityService = eventEntityService;
   }
 
   @SneakyThrows
   @Override
   public void processIncomingNonPublishingEventType(@NonNull T afterimageRelaysEvent) {
-    log.debug("processing incoming AFTERIMAGE FOLLOWS LIST event: [{}]", afterimageRelaysEvent);
+    log.debug("processing incoming AFTERIMAGE event: [{}]", afterimageRelaysEvent);
 
     List<BaseTag> uniqueNewAfterimageRelays =
         Streams.failableStream(
@@ -70,7 +63,7 @@ public class AfterImageRelayAssimilationEventTypePlugin<T extends GenericEvent> 
     if (uniqueNewAfterimageRelays.isEmpty())
       return;
 
-    T newGroupAdminsEvent = createGroupAdminsEvent(aImgIdentity, uniqueNewAfterimageRelays);
+    T newGroupAdminsEvent = createEvent(aImgIdentity, uniqueNewAfterimageRelays);
     save(newGroupAdminsEvent);
 
     Map<String, String> mapped =
@@ -80,7 +73,7 @@ public class AfterImageRelayAssimilationEventTypePlugin<T extends GenericEvent> 
                     pubKeyTag.getPublicKey().toHexString(),
                 PubKeyTag::getMainRelayUrl));
 
-    new SuperconductorMeshProxy<>(mapped, relayDiscoveryEventTypePlugin).setUpReputationReqFlux();
+    new SuperconductorMeshProxy<>(mapped, getAbstractEventTypePlugin()).setUpReputationReqFlux();
 
 //    Streams
 //        .failableStream(
@@ -91,17 +84,9 @@ public class AfterImageRelayAssimilationEventTypePlugin<T extends GenericEvent> 
 //            new SuperconductorMeshProxy<>(relayNameUriMap, relayDiscoveryEventTypePlugin).setUpReputationReqFlux());
   }
 
-  private T createGroupAdminsEvent(@NonNull Identity identity, @NonNull List<BaseTag> tags) {
-    T t = (T) new GroupAdminsEvent(
-        identity.getPublicKey(),
-        tags,
-        "");
-    identity.sign(t);
-    return t;
-  }
+  abstract T createEvent(@NonNull Identity aImgIdentity, @NonNull List<BaseTag> tags);
 
-  @Override
-  public Kind getKind() {
-    return Kind.GROUP_ADMINS;
-  }
+  abstract public Kind getKind();
+
+  abstract EventTypePlugin<T> getAbstractEventTypePlugin();
 }

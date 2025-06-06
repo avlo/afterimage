@@ -25,7 +25,10 @@ public abstract class ReqKindTypePlugin<T extends Kind> {
   <V extends ReqMessage> Filters processIncomingRequest(@NonNull V reqMessage) {
     Filters filters = new Filters(
         validateRequiredFilterByAddressTag(reqMessage).stream().map(publicKey ->
-                new AddressTagFilter<>(getAddressTag(publicKey, aImgIdentity)))
+                new AddressTagFilter<>(
+                    getAddressTag(
+                        publicKey, 
+                        aImgIdentity)))
             .map(Filterable.class::cast)
             .toList());
     return filters;
@@ -59,5 +62,5 @@ public abstract class ReqKindTypePlugin<T extends Kind> {
     );
   }
 
-  abstract T getKind();
+  public abstract T getKind();
 }
