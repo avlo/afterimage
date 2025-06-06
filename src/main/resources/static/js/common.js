@@ -14,8 +14,8 @@ function setConnected(connected) {
     $("#reqclose").prop("disabled", !connected);
 
     $("#sendregister").prop("disabled", !connected);
-    $("#send2112").prop("disabled", !connected);
-    $("#send02").prop("disabled", !connected);
+    $("#send39002").prop("disabled", !connected);
+    $("#send39001").prop("disabled", !connected);
     $("#sendrequest").prop("disabled", !connected);
 
     if (connected) {

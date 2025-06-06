@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <link rel="shortcut icon" href="/favicon.ico">
 <head>
   <title>AfterImage Nip-02 SuperConductor Relay Follow List</title>
@@ -8,46 +8,88 @@
   <link href="/main.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="/js/register.js"></script>
-  <script src="/js/nip-2112.js"></script>
+  <script src="/js/nip-29.js"></script>
   <script src="/js/common.js"></script>
 </head>
 <body>
 <noscript><h2 style="color: #ff0000">Enable Javascript to view this page</h2></noscript>
 <main>
-  <h1>Nip-02 Follow-List Event</h1>
+  <h1>SuperConductor Attention Event</h1>
   <form class="form-inline center">
     <div class="form-group">
       <button tabindex="1" id="connect" class="btn btn-default" type="submit">Connect</button>
-      <button tabindex="1" id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect</button>
+      <button tabindex="1" id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect
+      </button>
     </div>
   </form>
   <hr>
 
-  <div th:if="!${authActive}" class="tabs">
+  <!--  <div th:if="!${authActive}" class="tabs">-->
+  <div class="tabs">
     <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabone" checked="checked">
-    <label class="label" for="tabone">NIP-02</label>
+    <label class="label" for="tabone">SC NIP-29 Kind 39002</label>
     <div class="panel">
       <div class="col-md-6">
         <form class="form-inline">
           <div class="form-group">
-            <label for="00-pubkey">Pubkey: </label>
-            <input tabindex="1" type="text" value="8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e"
-                   id="00-pubkey"
-                   class="form-control" placeholder="00-pubkey">
+            <label for="39002-pubkey">Pubkey: </label>
+            <input tabindex="1" type="text"
+                   value="8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e"
+                   id="39002-pubkey"
+                   class="form-control" placeholder="39002-pubkey">
           </div>
           <div class="form-group">
-            <label for="superconductor_url">SuperConducor URL:</label>
+            <label for="superconductor_url">SuperConductor URL:</label>
             <select name="superconductor_url" id="superconductor_url">
+              <option value="ws://localhost:5555">5555</option>
               <option value="ws://localhost:5554">5554</option>
               <option value="ws://localhost:5553">5553</option>
             </select>
           </div>
-          <input type="hidden" id="03-kind" name="03-kind" value=3>
+          <input type="hidden" id="39002-kind" name="39002-kind" value=39002>
           <div class="row">
             <div class="col-md-6">
               <div class="form-inline">
                 <div class="center gap">
-                  <button id="send02" class="btn btn-default" type="submit" disabled="disabled">Send Nip-02 Follow List Event
+                  <button id="send39002" class="btn btn-default" type="submit" disabled="disabled">
+                    Send SC Nip-29 Kind 39002 Event
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabtwo">
+    <label class="label" for="tabtwo">AImg NIP-29 Kind 39001</label>
+    <div class="panel">
+      <div class="col-md-6">
+        <form class="form-inline">
+          <div class="form-group">
+            <label for="39001-pubkey">Pubkey: </label>
+            <input tabindex="1" type="text"
+                   value="8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e"
+                   id="39001-pubkey"
+                   class="form-control" placeholder="39001-pubkey">
+          </div>
+          <div class="form-group">
+            <label for="afterimage_url">AfterImage URL:</label>
+            <select name="afterimage_url" id="afterimage_url">
+              <option value="ws://localhost:5556">5556</option>
+              <option value="ws://localhost:5557">5557</option>
+              <option value="ws://localhost:5558">5558</option>
+            </select>
+          </div>
+          <input type="hidden" id="39001-kind" name="39001-kind" value=39001>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-inline">
+                <div class="center gap">
+                  <button id="send39001" class="btn btn-default" type="submit" disabled="disabled">
+                    Send
+                    AImg Nip-29 Kind 39001 Event
                   </button>
                 </div>
               </div>
@@ -57,7 +99,6 @@
       </div>
     </div>
   </div>
-
 
   <h4>Response</h4>
   <div class="row">

@@ -21,14 +21,6 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-// TODO: potentially option/alternative for ReputationEvent (extends NIP01Event, Nip-2113):
-//  Event Count (Nip-45)
-//  REQ format:
-//    ["COUNT", <subscription_id>, {"kinds": [3], "#p": [<pubkey>]}]
-//  RESPONSE (is non-event)
-//    ["COUNT", <subscription_id>, {"count": 238}]
-//  note, however: COUNT does not carry event data, which is/might be contextual shortcoming
-
 public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
   private final Identity aImgIdentity;
   private final EventEntityService<T> eventEntityService;
@@ -71,7 +63,7 @@ public class VoteEventTypePlugin<T extends GenericEvent> extends AbstractNonPubl
                 .flatMap(Collection::stream).toList()),
         new AddressTag(
             Kind.REPUTATION.getValue(),
-            event.getPubKey(), 
+            event.getPubKey(),
             new IdentifierTag(
 //  TODO:  temp working POC below using identity pubkey, proper sol'n needs arch/design revisit                
                 aImgIdentity.getPublicKey().toHexString()

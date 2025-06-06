@@ -8,13 +8,15 @@ import com.prosilion.superconductor.service.event.type.RedisCache;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.BaseStream;
+import java.util.stream.Collectors;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseTag;
 import nostr.event.Kind;
 import nostr.event.filter.Filterable;
-import nostr.event.impl.ContactListEvent;
 import nostr.event.impl.GenericEvent;
+import nostr.event.impl.GroupMembersEvent;
 import nostr.event.impl.VoteEvent;
 import nostr.event.tag.PubKeyTag;
 import nostr.id.Identity;
@@ -24,16 +26,13 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-// TODO: swap FollowsList (Nip-02, kind 3) for Relay Discovery (Nip-66):
-//  30166 - Relay Discovery - addressable event that is published by a monitor when a relay is online
-//  10166 - Relay Monitor Announcement - RE that stores data that signals the intent of a pubkey to monitor relays and publish 30166 events at a regular frequency
-public class FollowsListEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
+public class SuperConductorRelayEnlistmentEventTypePlugin<T extends GenericEvent> extends AbstractNonPublishingEventTypePlugin<T> {
   private final EventEntityService<T> eventEntityService;
   private final VoteEventTypePlugin<VoteEvent> voteEventTypePlugin;
   private final Identity aImgIdentity;
 
   @Autowired
-  public FollowsListEventTypePlugin(
+  public SuperConductorRelayEnlistmentEventTypePlugin(
       @NonNull RedisCache<T> redisCache,
       @NonNull EventEntityService<T> eventEntityService,
       @NonNull VoteEventTypePlugin<VoteEvent> voteEventTypePlugin,
@@ -46,13 +45,14 @@ public class FollowsListEventTypePlugin<T extends GenericEvent> extends Abstract
     new SuperconductorMeshProxy<>(superconductorRelays, this.voteEventTypePlugin).setUpReputationReqFlux();
   }
 
+  @SneakyThrows
   @Override
-  public void processIncomingNonPublishingEventType(@NonNull T followsListEvent) {
-    log.debug("processing incoming FOLLOWS LIST event: [{}]", followsListEvent);
+  public void processIncomingNonPublishingEventType(@NonNull T superconductorEnlistmentEvent) {
+    log.debug("processing incoming SUPERCONDUCTOR Group Members event: [{}]", superconductorEnlistmentEvent);
 
-    List<BaseTag> uniqueNewRelays =
+    List<BaseTag> uniqueNewSuperConductorRelays =
         Streams.failableStream(
-                Filterable.getTypeSpecificTags(PubKeyTag.class, followsListEvent))
+                Filterable.getTypeSpecificTags(PubKeyTag.class, superconductorEnlistmentEvent))
             .filter(pubKeyTag ->
                 !eventEntityService
                     .getEventsByKind(getKind())
@@ -70,31 +70,41 @@ public class FollowsListEventTypePlugin<T extends GenericEvent> extends Abstract
             .map(BaseTag.class::cast)
             .toList();
 
-    if (uniqueNewRelays.isEmpty())
+    if (uniqueNewSuperConductorRelays.isEmpty())
       return;
 
-    T newContactListEvent = createContactListEvent(aImgIdentity, uniqueNewRelays);
-    save(newContactListEvent);
+    T newSuperconductorRelays = createGroupMembersEvent(aImgIdentity, uniqueNewSuperConductorRelays);
+    save(newSuperconductorRelays);
 
-    Streams
-        .failableStream(
-            Filterable.getTypeSpecificTags(PubKeyTag.class, newContactListEvent))
-        .map(pubKeyTag -> Map.of(
-            pubKeyTag.getPublicKey().toHexString(), pubKeyTag.getMainRelayUrl()))
-        .forEach(relayNameUriMap ->
-            new SuperconductorMeshProxy<>(relayNameUriMap, voteEventTypePlugin).setUpReputationReqFlux());
+    Map<String, String> mapped =
+        Filterable.getTypeSpecificTags(
+                PubKeyTag.class, newSuperconductorRelays).stream()
+            .collect(Collectors.toMap(pubKeyTag ->
+                    pubKeyTag.getPublicKey().toHexString(),
+                PubKeyTag::getMainRelayUrl));
+
+    new SuperconductorMeshProxy<>(mapped, voteEventTypePlugin).setUpReputationReqFlux();
+
+//    Streams
+//        .failableStream(
+//            Filterable.getTypeSpecificTags(PubKeyTag.class, newSuperconductorRelays))
+//        .map(pubKeyTag -> Map.of(
+//            pubKeyTag.getPublicKey().toHexString(), pubKeyTag.getMainRelayUrl()))
+//        .forEach(relayNameUriMap ->
+//            new SuperconductorMeshProxy<>(relayNameUriMap, voteEventTypePlugin).setUpReputationReqFlux());
   }
 
-  private T createContactListEvent(@NonNull Identity identity, @NonNull List<BaseTag> tags) {
-    T t = (T) new ContactListEvent(
+  private T createGroupMembersEvent(@NonNull Identity identity, @NonNull List<BaseTag> tags) {
+    T t = (T) new GroupMembersEvent(
         identity.getPublicKey(),
-        tags);
+        tags,
+        "");
     identity.sign(t);
     return t;
   }
 
   @Override
   public Kind getKind() {
-    return Kind.CONTACT_LIST;
+    return Kind.GROUP_MEMBERS;
   }
 }

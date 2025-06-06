@@ -90,8 +90,8 @@ p {
     padding: 10px 10px;
     background: #e5e5e5;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 20px;
+    /*font-weight: bold;*/
+    font-size: 15px;
     color: #7f7f7f;
     transition: background .3s, color .3s;
     border: none;

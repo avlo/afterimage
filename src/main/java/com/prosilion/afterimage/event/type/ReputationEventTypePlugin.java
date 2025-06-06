@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-// TODO: this class is necessary solely for its getKind() REPUTATION  
+// TODO: this class is necessary solely for its getKind() REPUTATION.  potential refactor
 public class ReputationEventTypePlugin<T extends GenericEvent> extends AbstractPublishingEventTypePlugin<T> {
 
   @Autowired
@@ -23,7 +23,6 @@ public class ReputationEventTypePlugin<T extends GenericEvent> extends AbstractP
   @Override
   public void processIncomingPublishingEventType(@NonNull T event) {
     log.debug("processing incoming REPUTATION event: [{}]", event);
-    save(event);
   }
 
   @Override

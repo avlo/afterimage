@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import nostr.event.BaseMessage;
 import nostr.event.Kind;
@@ -67,11 +68,13 @@ public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEve
     filterEventMessage(value).ifPresent(this::processIncoming);
   }
 
+  @SneakyThrows
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
-    superconductorRequestConsolidator.getRelayNames().forEach(relayNameAsSessionId ->
-        eventTypePlugin.processIncomingEvent(
-            (U) eventMessage.getEvent()));
+    for (String unused : superconductorRequestConsolidator.getRelayNames()) {
+      eventTypePlugin.processIncomingEvent(
+          (U) eventMessage.getEvent());
+    }
   }
 
   private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
