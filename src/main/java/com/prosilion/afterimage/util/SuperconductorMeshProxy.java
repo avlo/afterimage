@@ -1,48 +1,46 @@
 package com.prosilion.afterimage.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.event.GenericEventKindIF;
+import com.prosilion.nostr.event.GenericEventKindTypeIF;
+import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.EventMessage;
+import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.service.event.type.EventTypePlugin;
+import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.BaseMessage;
-import nostr.event.Kind;
-import nostr.event.filter.Filters;
-import nostr.event.filter.KindFilter;
-import nostr.event.impl.GenericEvent;
-import nostr.event.message.EventMessage;
-import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscription;
+import org.springframework.lang.NonNull;
 import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
-public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEvent> extends BaseSubscriber<T> {
+public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator superconductorRequestConsolidator;
-  private final EventTypePlugin<U> eventTypePlugin;
+  private final EventKindPluginIF eventKindPlugin;
 
   private Subscription subscription;
-
   private final String subscriptionId = generateRandomHex64String();
-  private final Kind voteKind = Kind.VOTE;
 
   public SuperconductorMeshProxy(
       @NonNull Map<String, String> superconductorRelays,
-      @NonNull EventTypePlugin<U> eventTypePlugin) {
+      @NonNull EventKindPluginIF eventKindPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventTypePlugin = eventTypePlugin;
+    this.eventKindPlugin = eventKindPlugin;
     addRelay(superconductorRelays);
   }
 
   public SuperconductorMeshProxy(
       @NonNull String relayName,
       @NonNull String relayUrl,
-      @NonNull EventTypePlugin<U> eventTypePlugin) {
+      @NonNull EventKindPluginIF eventKindPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventTypePlugin = eventTypePlugin;
+    this.eventKindPlugin = eventKindPlugin;
     addRelay(relayName, relayUrl);
   }
 
@@ -50,16 +48,14 @@ public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEve
     relays.forEach(superconductorRequestConsolidator::addRelay);
   }
 
-  public void setUpReputationReqFlux() throws JsonProcessingException {
+  public void setUpReputationReqFlux(Filters filters) throws JsonProcessingException, NostrException {
     superconductorRequestConsolidator.send(
-        new ReqMessage(subscriptionId,
-            new Filters(
-                new KindFilter<>(voteKind))),
+        new ReqMessage(subscriptionId, filters),
         this);
   }
 
   @Override
-  public void hookOnNext(@NonNull T value) {
+  public void hookOnNext(@NonNull BaseMessage value) {
 //    log.debug("in TestSubscriber.hookOnNext()");
     subscription.request(Long.MAX_VALUE);
 //    log.debug("\n\n000000000000000000000000000000");
@@ -72,12 +68,14 @@ public class SuperconductorMeshProxy<T extends BaseMessage, U extends GenericEve
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
     for (String unused : superconductorRequestConsolidator.getRelayNames()) {
-      eventTypePlugin.processIncomingEvent(
-          (U) eventMessage.getEvent());
+      GenericEventKindIF event1 = eventMessage.getEvent();
+      GenericEventKindTypeIF event = (GenericEventKindTypeIF) event1;
+      eventKindPlugin.processIncomingEvent(
+          event);
     }
   }
 
-  private Optional<EventMessage> filterEventMessage(T returnedBaseMessage) {
+  private Optional<EventMessage> filterEventMessage(BaseMessage returnedBaseMessage) {
     return Optional.of(returnedBaseMessage)
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast);

@@ -134,3 +134,10 @@ run with docker logging displayed to console:
 <hr style="border:2px solid grey">
 
 #### [Development Mode Instructions](DEVELOPMENT.md)
+
+must supply aimg params from command line
+
+./gradlew bootRunLocalWs -P server.port=5556 -P afterimage.relay.url=ws://localhost:5556
+
+additional aimg server to test aimg mesh 
+./gradlew bootRunLocalWs -P server.port=5557 -P afterimage.relay.url=ws://localhost:5557

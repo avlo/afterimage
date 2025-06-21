@@ -1,27 +1,11 @@
 package com.prosilion.afterimage.util;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
-import lombok.Getter;
-import lombok.NonNull;
 import nostr.api.factory.impl.NIP01Impl;
-import nostr.api.factory.impl.NIP99Impl;
-import nostr.base.PublicKey;
 import nostr.event.BaseTag;
-import nostr.event.Kind;
-import nostr.event.NIP01Event;
-import nostr.event.impl.ClassifiedListing;
-import nostr.event.impl.DeletionEvent;
 import nostr.event.impl.GenericEvent;
 import nostr.event.impl.TextNoteEvent;
-import nostr.event.tag.EventTag;
-import nostr.event.tag.GeohashTag;
-import nostr.event.tag.HashtagTag;
-import nostr.event.tag.PriceTag;
-import nostr.event.tag.PubKeyTag;
-import nostr.event.tag.SubjectTag;
 import nostr.id.Identity;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -37,79 +21,6 @@ public class Factory {
 //    EventNostr sign = nip01_1.createTextNoteEvent(tags, content).sign();
 //    return sign;
     return (T) textNoteEvent;
-  }
-
-  public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag... tag) {
-    return createReputationEvent(identity, score, List.of(tag));
-  }
-
-  public static <T extends GenericEvent> T createReputationEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull List<BaseTag> tags) {
-    T t = (T) new ReputationEvent(
-        identity.getPublicKey(),
-        tags,
-        score.toString());
-    identity.sign(t);
-    return t;
-  }
-
-  public static <T extends GenericEvent> T createDeletionEvent(@NonNull Identity identity, @NonNull Integer score, @NonNull BaseTag tag) {
-    T deletionEvent = (T) new DeletionEvent(
-        identity.getPublicKey(),
-        List.of(tag),
-        String.format("REPUTATION SCORE: %s", score)
-    );
-    identity.sign(deletionEvent);
-    return deletionEvent;
-  }
-
-  public static <T extends GenericEvent> T createClassifiedListingEvent(
-      Identity identity,
-      List<BaseTag> tags,
-      String content,
-      ClassifiedListing cl) {
-
-    return (T) new NIP99Impl.ClassifiedListingEventFactory(identity, tags, content, cl).create();
-  }
-
-  public static GenericEvent createGenericEvent() {
-    String concat = generateRandomHex64String();
-    return new GenericEvent(concat.substring(0, 64));
-  }
-
-  public static <T> SubjectTag createSubjectTag(Class<T> clazz) {
-    return new SubjectTag(clazz.getName() + " Subject Tag");
-  }
-
-  public static PubKeyTag createPubKeyTag(Identity identity) {
-    return new PubKeyTag(identity.getPublicKey());
-  }
-
-  public static <T> GeohashTag createGeohashTag(Class<T> clazz) {
-    return new GeohashTag(clazz.getName() + " Geohash Tag");
-  }
-
-  public static <T> HashtagTag createHashtagTag(Class<T> clazz) {
-    return new HashtagTag(clazz.getName() + " Hashtag Tag");
-  }
-
-  public static <T> EventTag createEventTag(Class<T> clazz) {
-    return new EventTag(createGenericEvent().getId());
-  }
-
-  public static PriceTag createPriceTag() {
-    Factory.PriceComposite pc = new Factory.PriceComposite();
-    BigDecimal NUMBER = pc.getPrice();
-    String CURRENCY = pc.getCurrency();
-    String FREQUENCY = pc.getFrequency();
-    return new PriceTag(NUMBER, CURRENCY, FREQUENCY);
-  }
-
-  public static ClassifiedListing createClassifiedListing(String title, String summary) {
-    return new Factory.ClassifiedListingComposite(title, summary, createPriceTag()).getClassifiedListing();
-  }
-
-  public static <T> String lorumIpsum() {
-    return lorumIpsum(Factory.class);
   }
 
   public static <T> String lorumIpsum(Class<T> clazz) {
@@ -144,43 +55,5 @@ public class Factory {
 
   public static String generateRandomHex64String() {
     return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
-  }
-
-  public static BigDecimal createRandomBigDecimal() {
-    Random rand = new Random();
-    int max = 100, min = 50;
-    int i = rand.nextInt(max - min + 1) + min;
-    int j = (rand.nextInt(max - min + 1) + min);
-    return new BigDecimal(String.valueOf(i) + '.' + j);
-  }
-
-  @Getter
-  public static class PriceComposite {
-    private final String currency = "BTC";
-    private final String frequency = "nanosecond";
-    private final BigDecimal price;
-
-    private PriceComposite() {
-      price = createRandomBigDecimal();
-    }
-  }
-
-  @Getter
-  public static class ClassifiedListingComposite {
-    private final ClassifiedListing classifiedListing;
-
-    private ClassifiedListingComposite(String title, String summary, PriceTag priceTag) {
-      this.classifiedListing = ClassifiedListing.builder(
-              title,
-              summary,
-              priceTag)
-          .build();
-    }
-  }
-}
-
-class ReputationEvent extends NIP01Event {
-  public ReputationEvent(PublicKey pubKey, List<BaseTag> tags, String content) {
-    super(pubKey, Kind.REPUTATION, tags, content);
   }
 }

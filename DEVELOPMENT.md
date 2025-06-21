@@ -22,7 +22,7 @@
   - Java 21
   - Spring [Boot](https://spring.io/projects/spring-boot) 3.3.4
   - Spring [WebSocketSession](https://docs.spring.io/spring-session/reference/guides/boot-websocket.html)  3.3.4
-  - Event/Message [nostr-java](https://github.com/avlo/nostr-java-avlo-fork/tree/develop)   (symmetric fork of tcheeric's [nostr-java](https://github.com/tcheeric/nostr-java/tree/develop)) API/library
+  - [nostr-java-core](https://github.com/avlo/nostr-java-core) (nostr events & tags, event messages, request messages & filters)
 
 
 - Containerized deployment:
@@ -46,11 +46,11 @@
 ----
 
 ### Build Superconductor
-#### Build and install nostr-java dependency library
+#### Build and install nostr-java-core dependency library
 
     $ cd <your_git_home_dir>
-    $ git clone git@github.com:avlo/nostr-java-avlo-fork.git
-    $ cd nostr-java-avlo-fork
+    $ git clone git@github.com:avlo/nostr-java-core.git
+    $ cd nostr-java-core
     $ git checkout develop
     $ mvn clean install
 

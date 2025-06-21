@@ -51,9 +51,9 @@ publishing {
 
 dependencies {
     def springBootVersion = '3.4.5'
-    def nostrJavaVersion = '0.6.6-SNAPSHOT'
+    def nostrJavaCoreVersion = '0.0.1'
     def superconductorStarterVersion  = '1.14.1'
-    def subdivisionsVersion = '1.1.0'
+    def subdivisionsVersion = '1.2.0'
     def apacheCommonsLang3 = '3.17.0'
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
@@ -70,7 +70,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-    implementation 'xyz.tcheeric:nostr-java-api:' + nostrJavaVersion
+    implementation 'com.prosilion:nostr-java-core:' + nostrJavaCoreVersion
     implementation 'com.prosilion.superconductor:starter:' + superconductorStarterVersion
     implementation 'com.prosilion:subdivisions:' + subdivisionsVersion
 

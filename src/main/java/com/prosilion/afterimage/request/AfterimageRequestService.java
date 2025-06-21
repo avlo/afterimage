@@ -1,28 +1,27 @@
 package com.prosilion.afterimage.request;
 
 import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
+import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.filter.Filterable;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.message.ReqMessage;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.NonNull;
-import nostr.event.Kind;
-import nostr.event.filter.AddressTagFilter;
-import nostr.event.filter.Filterable;
-import nostr.event.impl.GenericEvent;
-import nostr.event.message.ReqMessage;
-import nostr.event.tag.AddressTag;
+import org.springframework.lang.NonNull;
 
-public class AfterimageRequestService<T extends GenericEvent, U extends Kind> implements ReqServiceIF<T> {
+public class AfterimageRequestService implements ReqServiceIF {
   public static final String ADDRESS_TAG_FILTER = AddressTagFilter.FILTER_KEY;
-  private final Map<Kind, ReqKindTypePlugin<U>> reqKindTypePluginMap;
-  private final ReqServiceIF<T> reqService;
+  private final Map<Kind, ReqKindTypePlugin> reqKindTypePluginMap;
+  private final ReqServiceIF reqService;
 
   public AfterimageRequestService(
-      @NonNull List<ReqKindTypePlugin<U>> eventTypePlugins,
-      @NonNull ReqServiceIF<T> reqService) {
+      @NonNull List<ReqKindTypePlugin> eventTypePlugins,
+      @NonNull ReqServiceIF reqService) {
     this.reqService = reqService;
     this.reqKindTypePluginMap = eventTypePlugins.stream()
         .collect(
@@ -32,7 +31,7 @@ public class AfterimageRequestService<T extends GenericEvent, U extends Kind> im
   }
 
   @Override
-  public <V extends ReqMessage> void processIncoming(@NonNull V reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
+  public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
     reqService.processIncoming(
         new ReqMessage(
             sessionId,
@@ -49,7 +48,7 @@ public class AfterimageRequestService<T extends GenericEvent, U extends Kind> im
         .map(Filterable::getFilterable)
         .map(AddressTag.class::cast)
         .map(AddressTag::getKind)
-        .map(Kind::valueOf).toList();
+        .toList();
 
     if (addressKinds.size() != 1) throw new InvalidReputationReqJsonException(reqMessage, ADDRESS_TAG_FILTER);
 

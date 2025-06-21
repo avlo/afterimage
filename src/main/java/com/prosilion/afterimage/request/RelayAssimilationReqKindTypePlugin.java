@@ -1,15 +1,15 @@
 package com.prosilion.afterimage.request;
 
-import lombok.NonNull;
+import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.user.Identity;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.Kind;
-import nostr.id.Identity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class RelayAssimilationReqKindTypePlugin<T extends Kind> extends ReqKindTypePlugin<T> {
+public class RelayAssimilationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Autowired
   public RelayAssimilationReqKindTypePlugin(@NonNull Identity aImgIdentity) {
@@ -18,7 +18,7 @@ public class RelayAssimilationReqKindTypePlugin<T extends Kind> extends ReqKindT
   }
 
   @Override
-  public T getKind() {
-    return (T) Kind.GROUP_ADMINS;
+  public Kind getKind() {
+    return Kind.GROUP_ADMINS; 
   }
 }

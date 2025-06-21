@@ -1,18 +1,19 @@
 package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.EventMessage;
+import com.prosilion.nostr.message.OkMessage;
+import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import nostr.event.BaseMessage;
-import nostr.event.message.EventMessage;
-import nostr.event.message.OkMessage;
-import nostr.event.message.ReqMessage;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.lang.NonNull;
 
 @Slf4j
 // TODO: below class currently only used by IT's, consider replace w/ relevant alt
@@ -39,7 +40,7 @@ public class AfterimageMeshRelayService {
     nostrRelayClient.send(eventMessage, subscriber);
   }
 
-  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException {
+  public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
     nostrRelayClient.send(reqMessage, subscriber);
   }
 }

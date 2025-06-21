@@ -5,7 +5,7 @@ $(function () {
 
 function generate39002TypeScriptEvent() {
     const tags = [
-        ['p', $("#39002-pubkey").val(), $("#superconductor_url").val()]
+        ['p', $("#39002-pubkey").val(), $("#superconductor_url").val(), ws]
     ];
 
     return {
@@ -21,7 +21,7 @@ function generate39002TypeScriptEvent() {
 
 function generate39001TypeScriptEvent() {
     const tags = [
-        ['p', $("#39001-pubkey").val(), $("#afterimage_url").val()]
+        ['p', $("#39001-pubkey").val(), $("#afterimage_url").val(), ws]
     ];
 
     return {

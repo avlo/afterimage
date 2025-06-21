@@ -21,7 +21,6 @@ class EventEntityTest {
     event.setEventIdString(EVENT_ID);
     event.setPubKey(PUB_KEY);
     event.setKind(KIND);
-    event.setNip(NIP);
     event.setCreatedAt(CREATED_AT);
     event.setContent(CONTENT);
 
@@ -29,7 +28,6 @@ class EventEntityTest {
     assertEquals(EVENT_ID, event.getEventIdString());
     assertEquals(PUB_KEY, event.getPubKey());
     assertEquals(KIND, event.getKind());
-    assertEquals(NIP, event.getNip());
     assertEquals(CREATED_AT, event.getCreatedAt());
     assertEquals(CONTENT, event.getContent());
   }
@@ -37,12 +35,15 @@ class EventEntityTest {
   @Test
   void testEquals() {
   }
+
   @Test
   void canEqual() {
   }
+
   @Test
   void testHashCode() {
   }
+
   @Test
   void testToString() {
   }
