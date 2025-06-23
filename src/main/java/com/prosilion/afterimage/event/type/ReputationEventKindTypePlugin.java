@@ -19,21 +19,24 @@ public class ReputationEventKindTypePlugin extends AbstractPublishingEventKindTy
   @Autowired
   public ReputationEventKindTypePlugin(AbstractPublishingEventKindPlugin abstractPublishingEventKindPlugin) {
     super(abstractPublishingEventKindPlugin);
+    log.debug("ReputationEventKindTypePlugin loaded");
   }
 
   @Override
   public Kind getKind() {
+    log.debug("ReputationEventKindTypePlugin getKind returning Kind.BADGE_AWARD_EVENT");
     return Kind.BADGE_AWARD_EVENT;
   }
 
   @Override
   public KindTypeIF getKindType() {
+    log.debug("ReputationEventKindTypePlugin getKindType returning Kind.REPUTATION");
     return AfterimageKindType.REPUTATION;
   }
 
   @Override
   public void processIncomingPublishingEventKindType(@NonNull GenericEventKindTypeIF event) {
-    log.debug("processIncomingPublishingEventKindType REPUTATION event: [{}]", event);
+    log.debug("ReputationEventKindTypePlugin processIncomingPublishingEventKindType REPUTATION event: [{}]", event);
     super.processIncomingEvent(event);
   }
 }

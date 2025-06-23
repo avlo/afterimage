@@ -19,6 +19,7 @@ import com.prosilion.superconductor.service.event.type.RedisCache;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.BaseStream;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -61,7 +62,7 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
 
   @SneakyThrows
   public void processIncomingNonPublishingEventKind(@NonNull GenericEventKindIF afterimageRelaysEvent) {
-    log.debug("processing incoming AFTERIMAGE event: [{}]", afterimageRelaysEvent);
+    log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processing incoming event: [{}]", afterimageRelaysEvent);
 
     List<BaseTag> uniqueNewAfterimageRelays =
         Streams.failableStream(
@@ -83,8 +84,12 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
             .map(BaseTag.class::cast)
             .toList();
 
-    if (uniqueNewAfterimageRelays.isEmpty())
+    if (uniqueNewAfterimageRelays.isEmpty()) {
+      log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind did not discover any new unique relays, so just return");
       return;
+    }
+
+    log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind uniqueNewAfterimageRelays: [{}]", uniqueNewAfterimageRelays);
 
     GenericEventKindIF newGroupAdminsEvent = new GenericEventKindDto(createEvent(aImgIdentity, uniqueNewAfterimageRelays)).convertBaseEventToGenericEventKindIF();
     save(newGroupAdminsEvent);
@@ -92,21 +97,13 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
     Map<String, String> mapped =
         Filterable.getTypeSpecificTags(
                 PubKeyTag.class, newGroupAdminsEvent).stream()
-            .collect(Collectors.toMap(pubKeyTag ->
-                    pubKeyTag.getPublicKey().toHexString(),
-                PubKeyTag::getMainRelayUrl));
+            .collect(
+                Collectors.toMap(
+                    pubKeyTag -> pubKeyTag.getPublicKey().toHexString(),
+                    pubKeyTag -> Optional.ofNullable(pubKeyTag.getMainRelayUrl()).orElseThrow(() ->
+                        new IllegalArgumentException("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind() newGroupAdminsEvent's PubKeyTag must include a non-null & non-empty URL"))));
 
-//    for (AbstractEventKindTypePlugin plugin : voteEventKindTypePlugins) {
     new SuperconductorMeshProxy(mapped, this).setUpReputationReqFlux(getFilters());
-//    }
-
-//    Streams
-//        .failableStream(
-//            Filterable.getTypeSpecificTags(PubKeyTag.class, newContactListEvent))
-//        .map(pubKeyTag -> Map.of(
-//            pubKeyTag.getPublicKey().toHexString(), pubKeyTag.getMainRelayUrl()))
-//        .forEach(relayNameUriMap ->
-//            new SuperconductorMeshProxy<>(relayNameUriMap, relayDiscoveryEventTypePlugin).setUpReputationReqFlux());
   }
 
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<BaseTag> uniqueNewAfterimageRelays) throws NostrException, NoSuchAlgorithmException {
@@ -120,11 +117,13 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
   }
 
   Filters getFilters() {
+    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getFilters() of Kind.BADGE_AWARD_EVENT");
     return new Filters(new KindFilter(Kind.BADGE_AWARD_EVENT));
   }
 
   @Override
   public Kind getKind() {
+    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getKind of Kind.GROUP_MEMBERS");
     return Kind.GROUP_MEMBERS; // 39002 is list of an SC relay's known other SC relays
   }
 }

@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,15 +38,13 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
       @NonNull AbstractNonPublishingEventKindPlugin abstractNonPublishingEventKindPlugin,
       @NonNull EventEntityService eventEntityService,
       @NonNull ReputationEventKindTypePlugin reputationEventKindTypePlugin,
-      @NonNull Identity aImgIdentity
-//      , @NonNull String afterimageRelayUrl
-  ) {
+      @NonNull Identity aImgIdentity,
+      @NonNull String afterimageRelayUrl) {
     super(abstractNonPublishingEventKindPlugin);
     this.eventEntityService = eventEntityService;
     this.reputationEventKindTypePlugin = reputationEventKindTypePlugin;
     this.aImgIdentity = aImgIdentity;
-//    this.afterimageRelayUrl = afterimageRelayUrl;
-    this.afterimageRelayUrl = "ws://localhost:5556";
+    this.afterimageRelayUrl = afterimageRelayUrl;
   }
 
   @SneakyThrows
@@ -75,7 +74,7 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
                 List.of(AfterimageKindType.values()))).filter(t ->
             Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
                 .filter(addressTag ->
-                    !addressTag.getIdentifierTag().getUuid().equals(
+                    !Optional.ofNullable(addressTag.getIdentifierTag()).orElseThrow().getUuid().equals(
                         AfterimageKindType.REPUTATION.getName())).isParallel()).toList();
 
     List<GenericEventKindType> pubKeyesVoteHistory = eventsByKindAndUpvoteOrDownvote.stream().collect(

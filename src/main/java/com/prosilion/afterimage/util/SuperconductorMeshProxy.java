@@ -33,6 +33,7 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
     this.eventKindPlugin = eventKindPlugin;
     addRelay(superconductorRelays);
+    log.debug("SuperconductorMeshProxy ctor() connecting to relays: [{}]", superconductorRelays);
   }
 
   public SuperconductorMeshProxy(
@@ -67,6 +68,7 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   @SneakyThrows
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
+//    TODO: resolve unused
     for (String unused : superconductorRequestConsolidator.getRelayNames()) {
       GenericEventKindIF event1 = eventMessage.getEvent();
       GenericEventKindTypeIF event = (GenericEventKindTypeIF) event1;
