@@ -53,7 +53,7 @@ class EventKindTypeServiceIT {
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, "1");
     GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
-    eventKindTypeService.processIncomingEvent(genericEventKindIF);
+    eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
   }
 
   @Test

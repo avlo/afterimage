@@ -63,8 +63,16 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
 
   private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
     List<GenericEventKindType> eventsByKindAndUpvoteOrDownvote = eventEntityService
-        .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(genericEventKindIF -> 
-            new GenericEventKindType(genericEventKindIF, List.of(AfterimageKindType.values()))).filter(t ->
+        .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(genericEventKindIF ->
+            new GenericEventKindType(
+                event.getId(),
+                event.getPublicKey(),
+                event.getCreatedAt(),
+                event.getKind(),
+                event.getTags(),
+                event.getContent(),
+                event.getSignature(),
+                List.of(AfterimageKindType.values()))).filter(t ->
             Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
                 .filter(addressTag ->
                     !addressTag.getIdentifierTag().getUuid().equals(
