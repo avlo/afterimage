@@ -7,11 +7,14 @@ import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.EventDto;
+import com.prosilion.superconductor.dto.GenericEventKindDto;
+import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.service.event.service.EventKindTypeServiceIF;
 import java.security.NoSuchAlgorithmException;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
+  private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
   private final EventKindServiceIF eventKindService;
   private final EventKindTypeServiceIF eventKindTypeService;
 
@@ -26,8 +30,10 @@ class EventKindTypeServiceIT {
   public EventKindTypeServiceIT(
       EventKindServiceIF eventKindService,
       EventKindTypeServiceIF eventKindTypeService) {
-    this.eventKindTypeService = eventKindTypeService;
     this.eventKindService = eventKindService;
+    this.eventKindTypeService = eventKindTypeService;
+    log.info("EventKindTypeServiceIT initialized, EventKindServiceIF services: {}", this.eventKindService.getClass().getName());
+    log.info("EventKindTypeServiceIT initialized, EventKindTypeServiceIF services: {}", this.eventKindTypeService.getClass().getName());
   }
 
   @Test
@@ -35,9 +41,9 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
     PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
-    BadgeAwardUpvoteEvent typeBadgeAwardUpvoteEvent = new BadgeAwardUpvoteEvent(identity, upvotedUser, "UPVOTE event text content");
-    GenericEventKindTypeIF genericEventKindIF = (GenericEventKindTypeIF) new EventDto(typeBadgeAwardUpvoteEvent).convertBaseEventToDto();
-    eventKindTypeService.processIncomingEvent(genericEventKindIF);
+    BadgeAwardUpvoteEvent upvoteEvent = new BadgeAwardUpvoteEvent(identity, upvotedUser, "1");
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(upvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
+    eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
   }
 
   @Test
@@ -45,8 +51,8 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
     Identity downvotedUser = Identity.generateRandomIdentity();
 
-    BadgeAwardDownvoteEvent typeBadgeAwardDownvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, "DOWN vote event text content");
-    GenericEventKindTypeIF genericEventKindIF = (GenericEventKindTypeIF) new EventDto(typeBadgeAwardDownvoteEvent).convertBaseEventToDto();
+    BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, "1");
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
   }
 
@@ -55,7 +61,7 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
 
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
-    eventKindService.processIncomingEvent(new EventDto(textNoteEvent).convertBaseEventToDto());
+    eventKindService.processIncomingEvent(new GenericEventKindDto(textNoteEvent).convertBaseEventToGenericEventKindIF());
   }
 
 //  @Test

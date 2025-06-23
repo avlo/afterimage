@@ -41,7 +41,9 @@ public class EventMessageSerializerTest {
                     new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
                     new IdentifierTag(AfterimageKindType.UPVOTE.getName()))),
                 "matching kind, author, identity-tag filter test",
-                Signature.fromString("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"))));
+                Signature.fromString("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546")),
+            List.of(
+                AfterimageKindType.values())));
 
     getEqualToJson(eventMessage);
   }

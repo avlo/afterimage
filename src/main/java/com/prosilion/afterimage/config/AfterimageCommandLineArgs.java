@@ -5,9 +5,12 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+// TODO: remove below 
+@Profile("!test")
 public class AfterimageCommandLineArgs {
   private final ApplicationArguments args;
 

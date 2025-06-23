@@ -1,6 +1,8 @@
 package com.prosilion.afterimage.request;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,5 +22,10 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
   @Override
   public Kind getKind() {
     return Kind.BADGE_AWARD_EVENT;  // 2113 REQ is an incoming reputation req from a person   
+  }
+
+  @Override
+  public KindTypeIF getKindType() {
+    return AfterimageKindType.REPUTATION;
   }
 }

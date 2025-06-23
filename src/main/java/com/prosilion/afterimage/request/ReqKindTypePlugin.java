@@ -2,6 +2,7 @@ package com.prosilion.afterimage.request;
 
 import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
@@ -62,4 +63,5 @@ public abstract class ReqKindTypePlugin {
   }
 
   public abstract Kind getKind();
+  public abstract KindTypeIF getKindType();
 }

@@ -1,27 +1,9 @@
 package com.prosilion.afterimage.util;
 
-import java.util.List;
 import java.util.UUID;
-import nostr.api.factory.impl.NIP01Impl;
-import nostr.event.BaseTag;
-import nostr.event.impl.GenericEvent;
-import nostr.event.impl.TextNoteEvent;
-import nostr.id.Identity;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public class Factory {
-
-  public static Identity createNewIdentity() {
-    return Identity.generateRandomIdentity();
-  }
-
-  public static <T extends GenericEvent> T createVoteEvent(Identity identity, List<BaseTag> tags, String content) {
-    TextNoteEvent textNoteEvent = new NIP01Impl.TextNoteEventFactory(identity, tags, content).create();
-//    NIP01<NIP01Event> nip01_1 = new NIP01<>(identity);
-//    EventNostr sign = nip01_1.createTextNoteEvent(tags, content).sign();
-//    return sign;
-    return (T) textNoteEvent;
-  }
 
   public static <T> String lorumIpsum(Class<T> clazz) {
     return lorumIpsum(clazz, 64);

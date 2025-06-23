@@ -12,7 +12,7 @@ import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.dto.EventDto;
+import com.prosilion.superconductor.dto.GenericEventKindDto;
 import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventKindPlugin;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.RedisCache;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends AbstractNonPublishingEventKindPlugin {
-  private final VoteEventKindTypePlugin voteEventKindTypePlugin;
+  //  private final List<VoteEventKindTypePlugin> voteEventKindTypePlugins;
   private final EventEntityService eventEntityService;
   private final Identity aImgIdentity;
 
@@ -39,10 +39,10 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
   public SuperConductorRelayEnlistmentNonPublishingEventTypePlugin(
       @NonNull RedisCache redisCache,
       @NonNull EventEntityService eventEntityService,
-      @NonNull VoteEventKindTypePlugin voteEventKindTypePlugin,
+//      @NonNull List<VoteEventKindTypePlugin> voteEventKindTypePlugins,
       @NonNull Identity aImgIdentity) {
     super(redisCache);
-    this.voteEventKindTypePlugin = voteEventKindTypePlugin;
+//    this.voteEventKindTypePlugins = voteEventKindTypePlugins;
     this.aImgIdentity = aImgIdentity;
     this.eventEntityService = eventEntityService;
   }
@@ -86,7 +86,7 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
     if (uniqueNewAfterimageRelays.isEmpty())
       return;
 
-    GenericEventKindIF newGroupAdminsEvent = new EventDto(createEvent(aImgIdentity, uniqueNewAfterimageRelays)).convertBaseEventToDto();
+    GenericEventKindIF newGroupAdminsEvent = new GenericEventKindDto(createEvent(aImgIdentity, uniqueNewAfterimageRelays)).convertBaseEventToGenericEventKindIF();
     save(newGroupAdminsEvent);
 
     Map<String, String> mapped =
@@ -96,7 +96,9 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
                     pubKeyTag.getPublicKey().toHexString(),
                 PubKeyTag::getMainRelayUrl));
 
-    new SuperconductorMeshProxy(mapped, voteEventKindTypePlugin).setUpReputationReqFlux(getFilters());
+//    for (AbstractEventKindTypePlugin plugin : voteEventKindTypePlugins) {
+    new SuperconductorMeshProxy(mapped, this).setUpReputationReqFlux(getFilters());
+//    }
 
 //    Streams
 //        .failableStream(

@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 // TODO: this class is necessary solely for its getKind() REPUTATION.  potential refactor
-public class ReputationEventTypePlugin extends AbstractPublishingEventKindTypePlugin {
+public class ReputationEventKindTypePlugin extends AbstractPublishingEventKindTypePlugin {
 
   @Autowired
-  public ReputationEventTypePlugin(AbstractPublishingEventKindPlugin abstractPublishingEventKindPlugin) {
+  public ReputationEventKindTypePlugin(AbstractPublishingEventKindPlugin abstractPublishingEventKindPlugin) {
     super(abstractPublishingEventKindPlugin);
   }
 
@@ -34,5 +34,6 @@ public class ReputationEventTypePlugin extends AbstractPublishingEventKindTypePl
   @Override
   public void processIncomingPublishingEventKindType(@NonNull GenericEventKindTypeIF event) {
     log.debug("processIncomingPublishingEventKindType REPUTATION event: [{}]", event);
+    super.processIncomingEvent(event);
   }
 }

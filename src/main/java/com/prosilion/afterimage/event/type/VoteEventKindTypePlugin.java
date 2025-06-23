@@ -3,6 +3,7 @@ package com.prosilion.afterimage.event.type;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.ReputationEvent;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindType;
@@ -11,10 +12,10 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.EventDto;
+import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventKindPlugin;
+import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventKindTypePlugin;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
-import com.prosilion.superconductor.service.event.type.RedisCache;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,48 +24,47 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-public class VoteEventKindTypePlugin extends AbstractNonPublishingEventKindPlugin {
+public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEventKindTypePlugin {
   private final Identity aImgIdentity;
   private final EventEntityService eventEntityService;
-  private final ReputationEventTypePlugin reputationEventTypePlugin;
+  private final ReputationEventKindTypePlugin reputationEventKindTypePlugin;
   private final String afterimageRelayUrl;
 
-  @Autowired
   public VoteEventKindTypePlugin(
-      @NonNull RedisCache redisCache,
+      @NonNull AbstractNonPublishingEventKindPlugin abstractNonPublishingEventKindPlugin,
       @NonNull EventEntityService eventEntityService,
-      @NonNull ReputationEventTypePlugin reputationEventTypePlugin,
-      @NonNull Identity aImgIdentity,
-      @NonNull String afterimageRelayUrl) {
-    super(redisCache);
+      @NonNull ReputationEventKindTypePlugin reputationEventKindTypePlugin,
+      @NonNull Identity aImgIdentity
+//      , @NonNull String afterimageRelayUrl
+  ) {
+    super(abstractNonPublishingEventKindPlugin);
     this.eventEntityService = eventEntityService;
-    this.reputationEventTypePlugin = reputationEventTypePlugin;
+    this.reputationEventKindTypePlugin = reputationEventKindTypePlugin;
     this.aImgIdentity = aImgIdentity;
-    this.afterimageRelayUrl = afterimageRelayUrl;
+//    this.afterimageRelayUrl = afterimageRelayUrl;
+    this.afterimageRelayUrl = "ws://localhost:5556";
   }
 
   @SneakyThrows
   @Override
-  public void processIncomingNonPublishingEventKind(@NonNull GenericEventKindIF voteEvent) {
+  public void processIncomingNonPublishingEventKindType(@NonNull GenericEventKindTypeIF voteEvent) {
     log.debug("processing incoming VOTE EVENT: [{}]", voteEvent);
 //    saves VOTE event without triggering subscriber listener
     save(voteEvent);
 
-    GenericEventKindType reputationEvent = calculateReputationEvent(voteEvent);
+    GenericEventKindTypeIF reputationEvent = calculateReputationEvent(voteEvent);
     save(reputationEvent);
 
-    reputationEventTypePlugin.processIncomingPublishingEventKindType(reputationEvent);
+    reputationEventKindTypePlugin.processIncomingPublishingEventKindType(reputationEvent);
   }
 
-  private GenericEventKindType calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
+  private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
     List<GenericEventKindType> eventsByKindAndUpvoteOrDownvote = eventEntityService
-        .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(GenericEventKindType::new).filter(t ->
+        .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(genericEventKindIF -> 
+            new GenericEventKindType(genericEventKindIF, List.of(AfterimageKindType.values()))).filter(t ->
             Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
                 .filter(addressTag ->
                     !addressTag.getIdentifierTag().getUuid().equals(
@@ -84,18 +84,20 @@ public class VoteEventKindTypePlugin extends AbstractNonPublishingEventKindPlugi
     BigDecimal reputationCalculation = pubKeyesVoteHistory.stream()
         .map(GenericEventKindTypeIF::getContent)
         .map(BigDecimal::new)
-        .reduce(BigDecimal::add).orElseThrow();
+        .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).add(new BigDecimal(event.getContent()));
 
     return createReputationEvent(event.getPublicKey(), reputationCalculation, new URI(afterimageRelayUrl));
   }
 
-  private GenericEventKindType createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score, @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {
-    GenericEventKindType reputationEvent = new GenericEventKindType(new EventDto(
-        new ReputationEvent(
-            aImgIdentity,
-            badgeReceiverPubkey,
-            score,
-            uri)).convertBaseEventToDto());
+  private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score, @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {
+    GenericEventKindTypeIF reputationEvent =
+        new GenericEventKindTypeDto(
+            new ReputationEvent(
+                aImgIdentity,
+                badgeReceiverPubkey,
+                score,
+                uri),
+            List.of(AfterimageKindType.values())).convertBaseEventToGenericEventKindTypeIF();
     return reputationEvent;
   }
 
@@ -103,4 +105,6 @@ public class VoteEventKindTypePlugin extends AbstractNonPublishingEventKindPlugi
   public Kind getKind() {
     return Kind.BADGE_AWARD_EVENT;  // 2112 EVENT is an incoming vote from a person
   }
+
+  abstract public KindTypeIF getKindType();
 }

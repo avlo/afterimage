@@ -19,7 +19,7 @@ public class Reputation {
   public Reputation(@NonNull PublicKey voter, @NonNull PublicKey upvotedUser, @NonNull KindTypeIF voteKindType) {
     IdentifierTag identifierTag = new IdentifierTag(voteKindType.getName());
     AddressTag addressTag = new AddressTag(
-        Kind.BADGE_AWARD_EVENT,
+        Kind.BADGE_DEFINITION_EVENT,
         voter,
         identifierTag);
 
