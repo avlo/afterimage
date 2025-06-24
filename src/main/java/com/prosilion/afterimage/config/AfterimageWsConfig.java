@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Scope;
     name = "server.ssl.enabled",
     havingValue = "false",
     matchIfMissing = true)
-public class AfterimageMeshRelayWsConfig extends AfterimageMeshRelayBaseConfig {
+public class AfterimageWsConfig extends AfterimageBaseConfig {
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageReactiveRelayClient(@NonNull String afterimageRelayUrl) {

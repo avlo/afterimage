@@ -11,6 +11,7 @@ import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -31,7 +32,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
-import static com.prosilion.afterimage.request.AfterimageMessageReqService.ADDRESS_TAG_FILTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,7 +57,7 @@ public class ReputationReqMessageServiceIT {
   }
 
   @Test
-  void testInvalidAfterImageReputationRequestMissingAddressTagFilter() throws IOException, NostrException {
+  void testInvalidAfterImageReputationRequestMissingKindFilter() throws IOException, NostrException {
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(
         new ReqMessage(
@@ -71,8 +71,7 @@ public class ReputationReqMessageServiceIT {
     assertTrue(
         getNoticeMessage(
             subscriber.getItems())
-            .orElseThrow(AssertionError::new).getMessage().contains(
-                String.format("does not contain required\n  [%s] tag", ADDRESS_TAG_FILTER)));
+            .orElseThrow(AssertionError::new).getMessage().contains("Kind filter not specified"));
   }
 
 //  @Test

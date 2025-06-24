@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
 @ConditionalOnProperty(
     name = "server.ssl.enabled",
     havingValue = "true")
-public class AfterimageMeshRelayWssConfig extends AfterimageMeshRelayBaseConfig {
+public class AfterimageWssConfig extends AfterimageBaseConfig {
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageReactiveRelayClient(

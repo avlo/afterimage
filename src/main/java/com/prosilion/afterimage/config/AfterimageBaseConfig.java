@@ -1,12 +1,12 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.request.AfterimageMessageReqService;
+import com.prosilion.afterimage.request.AfterimageReqService;
 import com.prosilion.afterimage.request.ReqKindTypePlugin;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.service.message.req.ReqMessageServiceIF;
+import com.prosilion.superconductor.service.request.ReqServiceIF;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AfterimageMeshRelayBaseConfig {
+public abstract class AfterimageBaseConfig {
   @Bean
   Identity afterimageInstanceIdentity(@NonNull @Value("${afterimage.key.private}") String privateKey) {
     return Identity.create(privateKey);
@@ -23,10 +23,10 @@ public class AfterimageMeshRelayBaseConfig {
 
   @Bean
   @Primary
-  ReqMessageServiceIF reqMessageServiceIF(
+  ReqServiceIF afterimageReqService(
       @NonNull List<ReqKindTypePlugin> eventTypePlugins,
-      @NonNull ReqMessageServiceIF reqMessageService) {
-    return new AfterimageMessageReqService(eventTypePlugins, reqMessageService);
+      @NonNull ReqServiceIF reqService) {
+    return new AfterimageReqService(eventTypePlugins, reqService);
   }
 
   @Bean
