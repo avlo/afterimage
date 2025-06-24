@@ -20,7 +20,7 @@ public class RelayAssimilationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Override
   public Kind getKind() {
-    return Kind.GROUP_ADMINS; 
+    return Kind.RELAY_DISCOVERY; 
   }
 
   @Override

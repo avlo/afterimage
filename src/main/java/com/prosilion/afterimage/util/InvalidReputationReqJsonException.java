@@ -1,11 +1,12 @@
 package com.prosilion.afterimage.util;
 
-import com.prosilion.nostr.message.ReqMessage;
+import com.prosilion.nostr.filter.Filters;
+import java.util.List;
 
 public class InvalidReputationReqJsonException extends RuntimeException {
   public final static String INVALID_FILTERS = "Invalid ReqMessage JSON filters:\n  %s\ndoes not contain required\n  [%s] tag";
 
-  public InvalidReputationReqJsonException(ReqMessage message, String type) {
-    super(String.format(INVALID_FILTERS, message.getFiltersList().toString(), type));
+  public InvalidReputationReqJsonException(List<Filters> filtersList, String type) {
+    super(String.format(INVALID_FILTERS, filtersList.toString(), type));
   }
 }

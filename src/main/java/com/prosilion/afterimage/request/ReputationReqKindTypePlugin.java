@@ -21,7 +21,7 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Override
   public Kind getKind() {
-    return Kind.BADGE_AWARD_EVENT;  // 2113 REQ is an incoming reputation req from a person   
+    return Kind.BADGE_AWARD_EVENT;   
   }
 
   @Override

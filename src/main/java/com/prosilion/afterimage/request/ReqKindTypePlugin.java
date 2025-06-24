@@ -25,7 +25,7 @@ public abstract class ReqKindTypePlugin {
 
   Filters processIncomingRequest(@NonNull ReqMessage reqMessage) {
     Filters filters = new Filters(
-        validateRequiredFilterByAddressTag(reqMessage).stream().map(publicKey ->
+        validateRequiredFilterKindType(reqMessage.getFiltersList()).stream().map(publicKey ->
                 new AddressTagFilter(
                     getAddressTag(
                         publicKey,
@@ -35,11 +35,11 @@ public abstract class ReqKindTypePlugin {
     return filters;
   }
 
-  private List<PublicKey> validateRequiredFilterByAddressTag(ReqMessage reqMessage) throws InvalidReputationReqJsonException {
-    return reqMessage.getFiltersList().stream()
+  private List<PublicKey> validateRequiredFilterKindType(List<Filters> filtersList) throws InvalidReputationReqJsonException {
+    return filtersList.stream()
         .flatMap(filters ->
             Optional.of(filters.getFilterByType(ADDRESS_TAG_FILTER).stream())
-                .orElseThrow(() -> new InvalidReputationReqJsonException(reqMessage, ADDRESS_TAG_FILTER)))
+                .orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, ADDRESS_TAG_FILTER)))
         .map(AddressTagFilter.class::cast)
         .map(AddressTagFilter::getFilterable)
         .filter(addressTag ->
@@ -47,7 +47,7 @@ public abstract class ReqKindTypePlugin {
                     addressTag.getKind().equals(getKind()))
 //            note: below will throw exception if any filter among all filters does not contain 2113
 //              may want to change/update this, revisit later
-                .orElseThrow(() -> new InvalidReputationReqJsonException(reqMessage, getKind().getName())))
+                .orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, getKind().getName())))
         .map(AddressTag::getPublicKey)
         .toList();
   }
@@ -63,5 +63,6 @@ public abstract class ReqKindTypePlugin {
   }
 
   public abstract Kind getKind();
+
   public abstract KindTypeIF getKindType();
 }

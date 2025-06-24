@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.lang.NonNull;
 
 public class AfterimageReqService implements ReqServiceIF {
@@ -36,7 +37,10 @@ public class AfterimageReqService implements ReqServiceIF {
                         filters.getFilterByType(KindFilter.FILTER_KEY).stream())
                     .map(Filterable::getFilterable)
                     .map(Kind.class::cast)
-                    .findFirst().orElseThrow(() -> new EmptyFiltersException("Kind filter not specified")))
+                    .findFirst().orElseThrow(() ->
+                        new EmptyFiltersException(
+                            String.format("Valid Kind filter not specified, must be one of Kind [%s]", 
+                                Strings.join(reqKindTypePluginMap.keySet(), ',')))))
             .processIncomingRequest(reqMessage)), sessionId);
   }
 }
