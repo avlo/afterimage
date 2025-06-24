@@ -41,7 +41,7 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
     PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
-    BadgeAwardUpvoteEvent upvoteEvent = new BadgeAwardUpvoteEvent(identity, upvotedUser, "1");
+    BadgeAwardUpvoteEvent upvoteEvent = new BadgeAwardUpvoteEvent(identity, upvotedUser);
     GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(upvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
   }
@@ -51,7 +51,7 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
     Identity downvotedUser = Identity.generateRandomIdentity();
 
-    BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, "1");
+    BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser);
     GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
   }

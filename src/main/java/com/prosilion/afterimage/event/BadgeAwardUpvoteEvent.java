@@ -14,31 +14,29 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.NonNull;
 
 public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
-  private static final Log log = LogFactory.getLog(BadgeAwardUpvoteEvent.class);
+  private final static String UPVOTE_CONTENT = "1";
 
   public BadgeAwardUpvoteEvent(
       @NonNull Identity identity,
-      @NonNull PublicKey upvotedUser,
-      @NonNull String content) throws NostrException, NoSuchAlgorithmException {
+      @NonNull PublicKey upvotedUser) throws NostrException, NoSuchAlgorithmException {
     super(AfterimageKindType.UPVOTE, identity,
         new Vote(
             identity.getPublicKey(),
             upvotedUser,
             AfterimageKindType.UPVOTE).getAwardEvent(),
-        content);
+        UPVOTE_CONTENT);
   }
 
   public BadgeAwardUpvoteEvent(
       @NonNull Identity identity,
       @NonNull PublicKey upvotedUser,
-      @NonNull List<BaseTag> tags,
-      @NonNull String content) throws NostrException, NoSuchAlgorithmException {
+      @NonNull List<BaseTag> tags) throws NostrException, NoSuchAlgorithmException {
     super(AfterimageKindType.UPVOTE, identity,
         new Vote(
             identity.getPublicKey(),
             upvotedUser,
             AfterimageKindType.UPVOTE).getAwardEvent(),
         tags,
-        content);
+        UPVOTE_CONTENT);
   }
 }
