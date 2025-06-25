@@ -10,9 +10,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum AfterimageKindType implements KindTypeIF {
-  UPVOTE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "upvote"),
-  DOWNVOTE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "downvote"),
-  REPUTATION(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "reputation");
+  UPVOTE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "UPVOTE"),
+  DOWNVOTE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "DOWNVOTE"),
+  REPUTATION(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "REPUTATION");
 
   private final Kind kind;
   private final Kind kindDefinition;

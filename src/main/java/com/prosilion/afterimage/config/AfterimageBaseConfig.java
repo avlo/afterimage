@@ -2,7 +2,8 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.request.AfterimageReqService;
-import com.prosilion.afterimage.request.ReqKindTypePlugin;
+import com.prosilion.afterimage.request.ReqKindServiceIF;
+import com.prosilion.afterimage.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;
@@ -24,9 +25,10 @@ public abstract class AfterimageBaseConfig {
   @Bean
   @Primary
   ReqServiceIF afterimageReqService(
-      @NonNull List<ReqKindTypePlugin> eventTypePlugins,
-      @NonNull ReqServiceIF reqService) {
-    return new AfterimageReqService(eventTypePlugins, reqService);
+      @NonNull ReqServiceIF reqService,
+      @NonNull ReqKindServiceIF reqKindService,
+      @NonNull ReqKindTypeServiceIF reqKindTypeService) {
+    return new AfterimageReqService(reqService, reqKindService, reqKindTypeService);
   }
 
   @Bean

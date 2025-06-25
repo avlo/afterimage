@@ -19,6 +19,7 @@ import com.prosilion.nostr.message.NoticeMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
 import java.io.IOException;
@@ -74,21 +75,19 @@ public class ReputationReqMessageServiceIT {
             .orElseThrow(AssertionError::new).getMessage().contains("Kind filter not specified"));
   }
 
-//  @Test
-//  void testInvalidAfterImageReputationRequestMissingAuthorTagFilter() throws IOException, NostrException {
-//    final String subscriberId = Factory.generateRandomHex64String();
-//
-//    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-//    afterimageMeshRelayService.send(
-//        new ReqMessage(subscriberId,
-//            new Filters(
-//                new KindFilter(Kind.BADGE_AWARD_EVENT))),
-//        subscriber);
-//
-//    List<BaseMessage> items = subscriber.getItems();
-//    NoticeMessage noticeMessage = getNoticeMessage(items).orElseThrow(AssertionError::new);
-//    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", ReferencedPublicKeyFilter.FILTER_KEY)));
-//  }
+  @Test
+  void testInvalidAfterImageReputationRequestMissingAuthorTagFilter() throws IOException, NostrException {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        new ReqMessage(Factory.generateRandomHex64String(),
+            new Filters(
+                new KindFilter(Kind.BADGE_AWARD_EVENT))),
+        subscriber);
+
+    List<BaseMessage> items = subscriber.getItems();
+    NoticeMessage noticeMessage = getNoticeMessage(items).orElseThrow(AssertionError::new);
+    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", ReferencedPublicKeyFilter.FILTER_KEY)));
+  }
 //
 //  @Test
 //  void testInvalidAfterImageReputationRequestMissingVoteTagFilter() throws IOException, NostrException {
@@ -106,36 +105,48 @@ public class ReputationReqMessageServiceIT {
 //    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", Kind.BADGE_AWARD_EVENT.getName())));
 //  }
 //
-//  @Test
-//  void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException, NoSuchAlgorithmException {
-//    final Identity upvotedUser = Identity.generateRandomIdentity();
-//    final Identity authorIdentity = afterimageInstanceIdentity;
-//
-//    BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey());
-//    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(event, kindTypes).convertBaseEventToGenericEventKindTypeIF();
-//
-//    eventService.processIncomingEvent(new EventMessage(genericEventKindIF));
-//
-//    final String subscriberId = Factory.generateRandomHex64String();
-////    submit Req for above event to superconductor
-//
-//    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-//    afterimageMeshRelayService.send(
-//        new ReqMessage(subscriberId,
-//            new Filters(
-//                new ReferencedPublicKeyFilter(new PubKeyTag(authorIdentity.getPublicKey())),
-//                new KindFilter(Kind.BADGE_AWARD_EVENT))),
-//        subscriber);
-//
-//    log.debug("retrieved afterimage events:");
-//    List<BaseMessage> items = subscriber.getItems();
-//    List<GenericEventKindIF> afterimageEvents = getGenericEvents(items);
-//    log.debug("  {}", items);
-//    assertEquals(afterimageEvents.getFirst().getId(), event.getId());
-//    assertEquals(afterimageEvents.getFirst().getPublicKey(), event.getPublicKey());
-//    assertEquals(Kind.BADGE_AWARD_EVENT, afterimageEvents.getFirst().getKind());
-//  }
 
+  @Test
+  void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException, NoSuchAlgorithmException {
+    final Identity authorIdentity = Identity.generateRandomIdentity();
+    final PublicKey authorPublicKey = authorIdentity.getPublicKey();
+    final PublicKey upvotedUserPubKey = Identity.generateRandomIdentity().getPublicKey();
+    log.info("authorIdentity: {}", authorPublicKey);
+    log.info("upvotedUserPubKey: {}", upvotedUserPubKey);
+
+    GenericEventKindTypeIF upvoteEvent =
+        new GenericEventKindTypeDto(
+            new BadgeAwardUpvoteEvent(
+                authorIdentity,
+                upvotedUserPubKey),
+            kindTypes)
+            .convertBaseEventToGenericEventKindTypeIF();
+
+//    simulate vote event received from SC
+    eventService.processIncomingEvent(new EventMessage(upvoteEvent));
+
+//    submit Req for above event to Aimg
+    ReqMessage reputationReqMessage = new ReqMessage(
+        Factory.generateRandomHex64String(),
+        new Filters(
+            new ReferencedPublicKeyFilter(
+                new PubKeyTag(
+                    upvotedUserPubKey)),
+            new KindFilter(
+                Kind.BADGE_AWARD_EVENT)));
+
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(reputationReqMessage, subscriber);
+
+    log.debug("retrieved afterimage events:");
+    List<BaseMessage> items = subscriber.getItems();
+    List<GenericEventKindIF> afterimageEvents = getGenericEvents(items);
+    log.debug("  {}", items);
+    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
+    assertEquals(afterimageEvents.getFirst().getPublicKey(), upvoteEvent.getPublicKey());
+    assertEquals(Kind.BADGE_AWARD_EVENT, afterimageEvents.getFirst().getKind());
+  }
+  
   public static Optional<NoticeMessage> getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(NoticeMessage.class::isInstance)

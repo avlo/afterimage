@@ -10,6 +10,7 @@ import com.prosilion.nostr.event.GenericEventKindType;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
@@ -55,22 +56,22 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
     save(voteEvent);
 
     GenericEventKindTypeIF reputationEvent = calculateReputationEvent(voteEvent);
-    save(reputationEvent);
+//    save(reputationEvent);
 
     reputationEventKindTypePlugin.processIncomingPublishingEventKindType(reputationEvent);
   }
 
-  private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
+  private GenericEventKindTypeIF calculateReputationEventOld(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
     List<GenericEventKindType> eventsByKindAndUpvoteOrDownvote = eventEntityService
         .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(genericEventKindIF ->
             new GenericEventKindType(
-                event.getId(),
-                event.getPublicKey(),
-                event.getCreatedAt(),
-                event.getKind(),
-                event.getTags(),
-                event.getContent(),
-                event.getSignature(),
+                genericEventKindIF.getId(),
+                genericEventKindIF.getPublicKey(),
+                genericEventKindIF.getCreatedAt(),
+                genericEventKindIF.getKind(),
+                genericEventKindIF.getTags(),
+                genericEventKindIF.getContent(),
+                genericEventKindIF.getSignature(),
                 List.of(AfterimageKindType.values()))).filter(t ->
             Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
                 .filter(addressTag ->
@@ -78,15 +79,20 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
                         AfterimageKindType.REPUTATION.getName())).isParallel()).toList();
 
     List<GenericEventKindType> pubKeyesVoteHistory = eventsByKindAndUpvoteOrDownvote.stream().collect(
-        Collectors.teeing(
-            Collectors.filtering(t -> t.getPublicKey().equals(
-                event.getPublicKey()), Collectors.toList()),
-            Collectors.filtering(t -> t.getPublicKey().equals(
-                    Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
-                        .map(AddressTag::getPublicKey)
-                        .filter(publicKey -> publicKey.equals(t.getPublicKey())).toList()),
-                Collectors.toList()),
-            List::of)).stream().flatMap(List::stream).toList();
+            Collectors.teeing(
+
+                Collectors.filtering(t -> t.getPublicKey().equals(
+                        event.getPublicKey()),
+                    Collectors.toList()),
+
+                Collectors.filtering(t -> t.getPublicKey().equals(
+                        Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
+                            .map(AddressTag::getPublicKey)
+                            .filter(publicKey -> publicKey.equals(t.getPublicKey())).toList()),
+                    Collectors.toList()),
+
+                List::of))
+        .stream().flatMap(List::stream).toList();
 
     BigDecimal reputationCalculation = pubKeyesVoteHistory.stream()
         .map(GenericEventKindTypeIF::getContent)
@@ -94,6 +100,39 @@ public abstract class VoteEventKindTypePlugin extends AbstractNonPublishingEvent
         .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).add(new BigDecimal(event.getContent()));
 
     return createReputationEvent(event.getPublicKey(), reputationCalculation, new URI(afterimageRelayUrl));
+  }
+
+  private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
+
+    PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
+        .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
+
+    List<GenericEventKindIF> pubKeyesVoteHistory = eventEntityService
+        .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream()
+        .filter(t -> t.getPublicKey().equals(badgeReceiverPubkey)).toList();
+
+    List<GenericEventKindType> eventsByKindAndUpvoteOrDownvote = pubKeyesVoteHistory.stream()
+        .map(genericEventKindIF ->
+            new GenericEventKindType(
+                genericEventKindIF.getId(),
+                genericEventKindIF.getPublicKey(),
+                genericEventKindIF.getCreatedAt(),
+                genericEventKindIF.getKind(),
+                genericEventKindIF.getTags(),
+                genericEventKindIF.getContent(),
+                genericEventKindIF.getSignature(),
+                List.of(AfterimageKindType.values()))).filter(t ->
+            Filterable.getTypeSpecificTags(AddressTag.class, t).stream()
+                .filter(addressTag ->
+                    !Optional.ofNullable(addressTag.getIdentifierTag()).orElseThrow().getUuid().equals(
+                        AfterimageKindType.REPUTATION.getName())).isParallel()).toList();
+
+    BigDecimal reputationCalculation = eventsByKindAndUpvoteOrDownvote.stream()
+        .map(GenericEventKindTypeIF::getContent)
+        .map(BigDecimal::new)
+        .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).add(new BigDecimal(event.getContent()));
+
+    return createReputationEvent(badgeReceiverPubkey, reputationCalculation, new URI(afterimageRelayUrl));
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score, @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {
