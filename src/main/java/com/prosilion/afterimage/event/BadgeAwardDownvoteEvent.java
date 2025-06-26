@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.event;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.afterimage.event.internal.Vote;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.AbstractBadgeAwardEvent;

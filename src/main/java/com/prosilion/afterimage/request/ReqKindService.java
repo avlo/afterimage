@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.request;
 
+import com.prosilion.afterimage.request.plugin.ReqKindPlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.superconductor.util.EmptyFiltersException;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;

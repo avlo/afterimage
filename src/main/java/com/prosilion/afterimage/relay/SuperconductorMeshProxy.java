@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.util;
+package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;

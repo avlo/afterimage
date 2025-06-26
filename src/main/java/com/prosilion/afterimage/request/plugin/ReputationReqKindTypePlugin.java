@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.request;
+package com.prosilion.afterimage.request.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
+import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;

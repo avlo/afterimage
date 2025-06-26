@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.event;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.afterimage.event.internal.Vote;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.AbstractBadgeAwardEvent;
@@ -9,8 +10,6 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.NonNull;
 
 public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {

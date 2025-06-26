@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.event.type;
 
 import com.prosilion.afterimage.event.GroupMembersEvent;
-import com.prosilion.afterimage.util.SuperconductorMeshProxy;
+import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;

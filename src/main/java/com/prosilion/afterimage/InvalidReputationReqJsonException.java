@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.util;
+package com.prosilion.afterimage;
 
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.superconductor.util.EmptyFiltersException;

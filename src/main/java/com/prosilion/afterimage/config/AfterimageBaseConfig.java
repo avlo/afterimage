@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.request.AfterimageReqService;
+import com.prosilion.afterimage.relay.AfterimageReqService;
 import com.prosilion.afterimage.request.ReqKindServiceIF;
 import com.prosilion.afterimage.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
