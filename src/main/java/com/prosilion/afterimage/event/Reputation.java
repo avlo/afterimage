@@ -6,6 +6,7 @@ import com.prosilion.nostr.event.internal.AwardEvent;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,11 +17,11 @@ import org.springframework.lang.NonNull;
 public class Reputation {
   private final AwardEvent awardEvent;
 
-  public Reputation(@NonNull PublicKey voter, @NonNull PublicKey upvotedUser, @NonNull KindTypeIF voteKindType) {
+  public Reputation(@NonNull Identity aImgIdentity, @NonNull PublicKey upvotedUser, @NonNull KindTypeIF voteKindType) {
     IdentifierTag identifierTag = new IdentifierTag(voteKindType.getName());
     AddressTag addressTag = new AddressTag(
         Kind.BADGE_DEFINITION_EVENT,
-        voter,
+        aImgIdentity.getPublicKey(),
         identifierTag);
 
     awardEvent = new AwardEvent(addressTag, new PubKeyTag(upvotedUser));

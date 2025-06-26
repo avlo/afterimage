@@ -13,13 +13,13 @@ import lombok.NonNull;
 
 public class ReputationEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
   public ReputationEvent(
-      @NonNull Identity identity,
+      @NonNull Identity aImgIdentity,
       @NonNull PublicKey badgeReceiverPubkey,
       @NonNull BigDecimal score,
       @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {
-    super(AfterimageKindType.REPUTATION, identity,
+    super(AfterimageKindType.REPUTATION, aImgIdentity,
         new Reputation(
-            identity.getPublicKey(),
+            aImgIdentity,
             badgeReceiverPubkey,
             AfterimageKindType.REPUTATION).getAwardEvent(),
         score.toString());

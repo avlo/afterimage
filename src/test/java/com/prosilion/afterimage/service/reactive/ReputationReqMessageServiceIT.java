@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
@@ -9,14 +10,17 @@ import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.enums.NostrException;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
+import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.NoticeMessage;
 import com.prosilion.nostr.message.ReqMessage;
+import com.prosilion.nostr.tag.AddressTag;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -25,7 +29,6 @@ import com.prosilion.superconductor.service.event.EventService;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -58,21 +62,59 @@ public class ReputationReqMessageServiceIT {
   }
 
   @Test
+  void testInvalidAfterImageReputationRequestEmptyFilters() {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    assertThrows(IllegalArgumentException.class, () -> afterimageMeshRelayService.send(
+        new ReqMessage(
+            Factory.generateRandomHex64String(),
+            new Filters()),
+        subscriber));
+  }
+
+  @Test
+  void testInvalidAfterImageRequestEmptyFiltersList() {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    assertThrows(IllegalArgumentException.class, () -> afterimageMeshRelayService.send(
+        new ReqMessage(
+            Factory.generateRandomHex64String(),
+            new Filters(List.of())),
+        subscriber));
+  }
+
+  @Test
   void testInvalidAfterImageReputationRequestMissingKindFilter() throws IOException, NostrException {
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(
-        new ReqMessage(
-            Factory.generateRandomHex64String(),
+        new ReqMessage(Factory.generateRandomHex64String(),
             new Filters(
                 new ReferencedPublicKeyFilter(
-                    new PubKeyTag(
-                        Identity.generateRandomIdentity().getPublicKey())))),
+                    new PubKeyTag(Identity.generateRandomIdentity().getPublicKey())))),
         subscriber);
 
     assertTrue(
         getNoticeMessage(
             subscriber.getItems())
-            .orElseThrow(AssertionError::new).getMessage().contains("Kind filter not specified"));
+            .getMessage()
+            .contains(
+                KindFilter.FILTER_KEY));
+  }
+
+  @Test
+  void testInvalidAfterImageReputationRequestOnlyIdentifierFilter() throws IOException, NostrException {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        new ReqMessage(Factory.generateRandomHex64String(),
+            new Filters(
+                new IdentifierTagFilter(
+                    new IdentifierTag(AfterimageKindType.REPUTATION.getName())))),
+        subscriber);
+
+    assertTrue(
+        getNoticeMessage(
+            subscriber.getItems())
+            .getMessage()
+            .contains(
+                KindFilter.FILTER_KEY));
   }
 
   @Test
@@ -84,27 +126,71 @@ public class ReputationReqMessageServiceIT {
                 new KindFilter(Kind.BADGE_AWARD_EVENT))),
         subscriber);
 
-    List<BaseMessage> items = subscriber.getItems();
-    NoticeMessage noticeMessage = getNoticeMessage(items).orElseThrow(AssertionError::new);
-    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", ReferencedPublicKeyFilter.FILTER_KEY)));
+    assertTrue(
+        getNoticeMessage(
+            subscriber.getItems())
+            .getMessage()
+            .contains(ReferencedPublicKeyFilter.FILTER_KEY));
   }
-//
-//  @Test
-//  void testInvalidAfterImageReputationRequestMissingVoteTagFilter() throws IOException, NostrException {
-//    final Identity authorIdentity = Identity.generateRandomIdentity();
-//    final String subscriberId = Factory.generateRandomHex64String();
-//
-//    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-//    afterimageMeshRelayService.send(
-//        new ReqMessage(subscriberId,
-//            new Filters(
-//                new ReferencedPublicKeyFilter(new PubKeyTag(authorIdentity.getPublicKey())))),
-//        subscriber);
-//
-//    NoticeMessage noticeMessage = getNoticeMessage(subscriber.getItems()).orElseThrow(AssertionError::new);
-//    assertTrue(noticeMessage.getMessage().contains(String.format("does not contain required [%s] tag", Kind.BADGE_AWARD_EVENT.getName())));
-//  }
-//
+
+  @Test
+  void testInvalidAfterImageReputationRequestMissingIdentifierTagFilter() throws IOException, NostrException {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        new ReqMessage(Factory.generateRandomHex64String(),
+            new Filters(
+                new KindFilter(Kind.BADGE_AWARD_EVENT),
+                new ReferencedPublicKeyFilter(
+                    new PubKeyTag(
+                        Identity.generateRandomIdentity().getPublicKey())))),
+        subscriber);
+
+    assertTrue(
+        getNoticeMessage(
+            subscriber.getItems())
+            .getMessage()
+            .contains(IdentifierTagFilter.FILTER_KEY));
+  }
+
+  @Test
+  void testInvalidAfterImageReputationRequestMissingReputationDTagFilter() throws IOException, NostrException {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        new ReqMessage(Factory.generateRandomHex64String(),
+            new Filters(
+                new KindFilter(Kind.BADGE_AWARD_EVENT),
+                new ReferencedPublicKeyFilter(
+                    new PubKeyTag(
+                        Identity.generateRandomIdentity().getPublicKey())),
+                new IdentifierTagFilter(
+                    new IdentifierTag("invalid-uuid")))),
+        subscriber);
+
+    assertTrue(
+        getNoticeMessage(
+            subscriber.getItems())
+            .getMessage()
+            .contains(AfterimageKindType.REPUTATION.getName()));
+  }
+
+  @Test
+  void testValidFilters() throws IOException, NostrException {
+    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        new ReqMessage(Factory.generateRandomHex64String(),
+            new Filters(
+                new KindFilter(Kind.BADGE_AWARD_EVENT),
+                new ReferencedPublicKeyFilter(
+                    new PubKeyTag(
+                        Identity.generateRandomIdentity().getPublicKey())),
+                new IdentifierTagFilter(
+                    new IdentifierTag(AfterimageKindType.REPUTATION.getName())))),
+        subscriber);
+
+    assertTrue(
+        getGenericEvents(subscriber.getItems())
+            .isEmpty());
+  }
 
   @Test
   void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException, NoSuchAlgorithmException {
@@ -129,11 +215,14 @@ public class ReputationReqMessageServiceIT {
     ReqMessage reputationReqMessage = new ReqMessage(
         Factory.generateRandomHex64String(),
         new Filters(
+            new KindFilter(
+                Kind.BADGE_AWARD_EVENT),
             new ReferencedPublicKeyFilter(
                 new PubKeyTag(
                     upvotedUserPubKey)),
-            new KindFilter(
-                Kind.BADGE_AWARD_EVENT)));
+            new IdentifierTagFilter(
+                new IdentifierTag(
+                    AfterimageKindType.REPUTATION.getName()))));
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(reputationReqMessage, subscriber);
@@ -142,19 +231,22 @@ public class ReputationReqMessageServiceIT {
     List<BaseMessage> items = subscriber.getItems();
     List<GenericEventKindIF> afterimageEvents = getGenericEvents(items);
     log.debug("  {}", items);
-    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
-    assertEquals(afterimageEvents.getFirst().getPublicKey(), upvoteEvent.getPublicKey());
-    assertEquals(Kind.BADGE_AWARD_EVENT, afterimageEvents.getFirst().getKind());
-  }
-  
-  public static Optional<NoticeMessage> getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
-    return returnedBaseMessages.stream()
-        .filter(NoticeMessage.class::isInstance)
-        .map(NoticeMessage.class::cast)
-        .reduce((noticeMessage, noticeMessage2) -> noticeMessage);
+//    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
+    assertEquals(afterimageEvents.getFirst().getPublicKey(), afterimageInstanceIdentity.getPublicKey());
+    AddressTag reputationAddressTag = Filterable.getTypeSpecificTags(AddressTag.class, afterimageEvents.getFirst()).getFirst();
+    
+    assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
+    assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
+    assertEquals(AfterimageKindType.REPUTATION.getName(), reputationAddressTag.getIdentifierTag().getUuid());
   }
 
-  public static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+  private static NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
+    return returnedBaseMessages.stream()
+        .filter(NoticeMessage.class::isInstance)
+        .map(NoticeMessage.class::cast).findFirst().orElseThrow(AssertionError::new);
+  }
+
+  private static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)
