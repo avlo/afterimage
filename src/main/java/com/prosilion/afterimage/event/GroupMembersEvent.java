@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.event;
 
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.user.Identity;

@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service;
 
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.user.Identity;

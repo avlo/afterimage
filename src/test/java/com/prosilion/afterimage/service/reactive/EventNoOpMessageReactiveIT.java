@@ -3,7 +3,7 @@ package com.prosilion.afterimage.service.reactive;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;

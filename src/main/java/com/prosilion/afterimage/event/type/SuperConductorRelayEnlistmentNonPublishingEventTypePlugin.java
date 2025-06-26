@@ -3,7 +3,7 @@ package com.prosilion.afterimage.event.type;
 import com.prosilion.afterimage.event.GroupMembersEvent;
 import com.prosilion.afterimage.util.SuperconductorMeshProxy;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.filter.Filterable;

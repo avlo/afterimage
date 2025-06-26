@@ -2,7 +2,7 @@ package com.prosilion.afterimage.event;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.AbstractBadgeAwardEvent;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;

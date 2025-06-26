@@ -7,7 +7,7 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.enums.NostrException;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
