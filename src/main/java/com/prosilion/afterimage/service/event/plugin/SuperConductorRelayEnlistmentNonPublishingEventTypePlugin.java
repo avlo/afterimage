@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.event.type;
+package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.event.GroupMembersEvent;
 import com.prosilion.afterimage.relay.SuperconductorMeshProxy;

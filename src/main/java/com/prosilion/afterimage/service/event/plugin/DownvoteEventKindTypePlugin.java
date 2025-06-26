@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.event.type;
+package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.KindTypeIF;

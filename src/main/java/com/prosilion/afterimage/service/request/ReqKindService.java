@@ -1,6 +1,6 @@
-package com.prosilion.afterimage.request;
+package com.prosilion.afterimage.service.request;
 
-import com.prosilion.afterimage.request.plugin.ReqKindPlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.superconductor.util.EmptyFiltersException;

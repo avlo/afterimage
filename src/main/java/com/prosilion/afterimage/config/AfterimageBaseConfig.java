@@ -2,8 +2,8 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
-import com.prosilion.afterimage.request.ReqKindServiceIF;
-import com.prosilion.afterimage.request.ReqKindTypeServiceIF;
+import com.prosilion.afterimage.service.request.ReqKindServiceIF;
+import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;

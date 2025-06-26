@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.request.plugin;
+package com.prosilion.afterimage.service.request.plugin;
 
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;

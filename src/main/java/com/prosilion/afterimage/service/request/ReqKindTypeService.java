@@ -1,6 +1,6 @@
-package com.prosilion.afterimage.request;
+package com.prosilion.afterimage.service.request;
 
-import com.prosilion.afterimage.request.plugin.ReqKindTypePlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindTypePlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;

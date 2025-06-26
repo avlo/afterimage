@@ -1,8 +1,8 @@
 package com.prosilion.afterimage.relay;
 
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
-import com.prosilion.afterimage.request.ReqKindServiceIF;
-import com.prosilion.afterimage.request.ReqKindTypeServiceIF;
+import com.prosilion.afterimage.service.request.ReqKindServiceIF;
+import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.filter.AbstractFilterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;

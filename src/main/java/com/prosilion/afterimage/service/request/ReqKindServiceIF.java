@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.request;
+package com.prosilion.afterimage.service.request;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filterable;

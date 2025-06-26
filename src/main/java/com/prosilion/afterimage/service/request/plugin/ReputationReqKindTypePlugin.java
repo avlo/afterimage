@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.request.plugin;
+package com.prosilion.afterimage.service.request.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
