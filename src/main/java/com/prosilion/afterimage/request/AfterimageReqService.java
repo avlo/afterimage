@@ -1,14 +1,13 @@
 package com.prosilion.afterimage.request;
 
 import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
-import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.filter.AbstractFilterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.lang.NonNull;
 
 public class AfterimageReqService implements ReqServiceIF {
@@ -29,13 +28,16 @@ public class AfterimageReqService implements ReqServiceIF {
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
     List<Filters> filtersList = reqMessage.getFiltersList();
-    List<Kind> kinds = filtersList.stream()
-        .flatMap(filters ->
-            Optional.of(filters.getFilterByType(KindFilter.FILTER_KEY).stream())
-                .orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, KindFilter.FILTER_KEY)))
+
+    List<KindFilter> list = filtersList.stream()
+        .filter(filters ->
+            !filters.getFilterByType(KindFilter.FILTER_KEY).isEmpty())
         .map(KindFilter.class::cast)
-        .map(KindFilter::getFilterable)
         .toList();
+
+    list.stream().findAny()
+        .orElseThrow(() ->
+            new InvalidReputationReqJsonException(filtersList, KindFilter.FILTER_KEY));
 
 //    reqKindService.getKinds().stream()
 //        .filter(kinds::contains)
@@ -44,11 +46,16 @@ public class AfterimageReqService implements ReqServiceIF {
 //            reqKindService.processIncoming(filtersList)),
 //        () -> reqKindTypeService.processIncoming(filtersList);
 
-    if (reqKindService.getKinds().stream().anyMatch(kinds::contains)) {
-      reqKindService.processIncoming(filtersList);
-      return;
-    }
+    boolean foundMatchInReqKindService = reqKindService.getKinds().stream()
+        .anyMatch(kind ->
+            list.stream().map(AbstractFilterable::getFilterable).anyMatch(kind::equals));
 
-    reqKindTypeService.processIncoming(filtersList);
+    Filters f =
+        foundMatchInReqKindService ?
+            reqKindService.processIncoming(filtersList) :
+            reqKindTypeService.processIncoming(filtersList);
+
+    reqService.processIncoming(
+        new ReqMessage(reqMessage.getSubscriptionId(), f), sessionId);
   }
 }

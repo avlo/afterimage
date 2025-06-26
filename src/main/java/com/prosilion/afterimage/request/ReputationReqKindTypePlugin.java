@@ -9,10 +9,8 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
-import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.user.PublicKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -128,10 +126,6 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 //        getKind(),
 //        publicKey,
 //        new IdentifierTag(
-////                       TODO: below identiy needs design/thought
-//            aImgIdentity.getPublicKey().toHexString())
-//    );
-//  }
 
   @Override
   public Kind getKind() {
