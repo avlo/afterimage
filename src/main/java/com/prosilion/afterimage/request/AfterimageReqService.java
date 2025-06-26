@@ -1,12 +1,13 @@
 package com.prosilion.afterimage.request;
 
 import com.prosilion.afterimage.util.InvalidReputationReqJsonException;
+import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.AbstractFilterable;
-import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import com.prosilion.superconductor.util.EmptyFiltersException;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
@@ -27,35 +28,23 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
-    List<Filters> filtersList = reqMessage.getFiltersList();
-
-    List<KindFilter> list = filtersList.stream()
-        .filter(filters ->
-            !filters.getFilterByType(KindFilter.FILTER_KEY).isEmpty())
+    List<Kind> kindFilterables = reqMessage.getFiltersList().stream()
+        .map(filters ->
+            filters.getFilterByType(KindFilter.FILTER_KEY))
+        .flatMap(Collection::stream)
         .map(KindFilter.class::cast)
-        .toList();
+        .map(AbstractFilterable::getFilterable).toList();
 
-    list.stream().findAny()
-        .orElseThrow(() ->
-            new InvalidReputationReqJsonException(filtersList, KindFilter.FILTER_KEY));
-
-//    reqKindService.getKinds().stream()
-//        .filter(kinds::contains)
-//        .findFirst()
-//        .ifPresentOrElse(kindType ->
-//            reqKindService.processIncoming(filtersList)),
-//        () -> reqKindTypeService.processIncoming(filtersList);
-
-    boolean foundMatchInReqKindService = reqKindService.getKinds().stream()
-        .anyMatch(kind ->
-            list.stream().map(AbstractFilterable::getFilterable).anyMatch(kind::equals));
-
-    Filters f =
-        foundMatchInReqKindService ?
-            reqKindService.processIncoming(filtersList) :
-            reqKindTypeService.processIncoming(filtersList);
+    if (kindFilterables.isEmpty()) {
+      throw new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY);
+    }
 
     reqService.processIncoming(
-        new ReqMessage(reqMessage.getSubscriptionId(), f), sessionId);
+        new ReqMessage(
+            reqMessage.getSubscriptionId(),
+            reqKindService.getKinds().stream().anyMatch(kind ->
+                kindFilterables.stream().anyMatch(kind::equals)) ?
+                reqKindService.processIncoming(reqMessage.getFiltersList()) :
+                reqKindTypeService.processIncoming(reqMessage.getFiltersList())), sessionId);
   }
 }
