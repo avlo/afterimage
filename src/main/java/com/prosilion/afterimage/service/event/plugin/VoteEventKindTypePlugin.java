@@ -54,7 +54,6 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
   }
 
   private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
-
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
@@ -72,14 +71,15 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
                 genericEventKindIF.getTags(),
                 genericEventKindIF.getContent(),
                 genericEventKindIF.getSignature(),
-                AfterimageKindType.REPUTATION)).toList();
+                getKindType())).toList();
 
     BigDecimal reputationCalculation = eventsByKindAndUpvoteOrDownvote.stream()
         .map(GenericEventKindTypeIF::getContent)
         .map(BigDecimal::new)
         .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).add(new BigDecimal(event.getContent()));
 
-    return createReputationEvent(badgeReceiverPubkey, reputationCalculation, new URI(afterimageRelayUrl));
+    GenericEventKindTypeIF reputationEvent = createReputationEvent(badgeReceiverPubkey, reputationCalculation, new URI(afterimageRelayUrl));
+    return reputationEvent;
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score, @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {

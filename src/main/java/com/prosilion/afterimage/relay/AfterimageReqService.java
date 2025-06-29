@@ -30,7 +30,6 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
-
     reqService.processIncoming(
         new ReqMessage(
             reqMessage.getSubscriptionId(),
