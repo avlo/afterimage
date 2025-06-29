@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
+import com.prosilion.afterimage.service.event.plugin.DownvoteEventKindTypePlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventKindTypePlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventKindTypePlugin;
 import com.prosilion.nostr.enums.KindTypeIF;
@@ -33,6 +34,19 @@ public class AfterimageWsConfig extends AfterimageBaseConfig {
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl) {
     return new UpvoteEventKindTypePlugin(
+        eventEntityService,
+        reputationEventKindTypePlugin,
+        afterimageInstanceIdentity,
+        afterimageRelayUrl);
+  }
+
+  @Bean
+  EventKindTypePluginIF<KindTypeIF> downvoteEventKindTypePlugin(
+      @NonNull EventEntityService eventEntityService,
+      @NonNull ReputationEventKindTypePlugin reputationEventKindTypePlugin,
+      @NonNull Identity afterimageInstanceIdentity,
+      @NonNull String afterimageRelayUrl) {
+    return new DownvoteEventKindTypePlugin(
         eventEntityService,
         reputationEventKindTypePlugin,
         afterimageInstanceIdentity,
