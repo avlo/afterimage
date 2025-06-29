@@ -3,7 +3,6 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.prosilion.afterimage.event.GroupMembersEvent;
 import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.filter.Filterable;
@@ -13,10 +12,9 @@ import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.dto.GenericEventKindDto;
-import com.prosilion.superconductor.service.event.type.AbstractNonPublishingEventKindPlugin;
+import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
-import com.prosilion.superconductor.service.event.type.RedisCache;
-import java.security.NoSuchAlgorithmException;
+import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,27 +23,23 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.stream.Streams;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends AbstractNonPublishingEventKindPlugin {
+public class SuperConductorRelayEnlistmentNonPublishingEventKindPlugin extends NonPublishingEventKindPlugin {
   //  private final List<VoteEventKindTypePlugin> voteEventKindTypePlugins;
   private final EventEntityService eventEntityService;
   private final Identity aImgIdentity;
 
-  @Autowired
-  public SuperConductorRelayEnlistmentNonPublishingEventTypePlugin(
-      @NonNull RedisCache redisCache,
-      @NonNull EventEntityService eventEntityService,
+  public SuperConductorRelayEnlistmentNonPublishingEventKindPlugin(
+      @NonNull EventKindPluginIF<Kind> eventKindPlugin,
 //      @NonNull List<VoteEventKindTypePlugin> voteEventKindTypePlugins,
+      @NonNull EventEntityService eventEntityService,
       @NonNull Identity aImgIdentity) {
-    super(redisCache);
+    super(eventKindPlugin);
+    this.eventEntityService = eventEntityService;
 //    this.voteEventKindTypePlugins = voteEventKindTypePlugins;
     this.aImgIdentity = aImgIdentity;
-    this.eventEntityService = eventEntityService;
   }
 
 //  start with pre-defined Map<String, String> superconductorRelays
@@ -60,8 +54,10 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
 //    new SuperconductorMeshProxy<>(superconductorRelays, this.voteEventTypePlugin).setUpReputationReqFlux();
 //  }
 
+
   @SneakyThrows
-  public void processIncomingNonPublishingEventKind(@NonNull GenericEventKindIF afterimageRelaysEvent) {
+  @Override
+  public void processIncomingEvent(GenericEventKindIF afterimageRelaysEvent) {
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processing incoming event: [{}]", afterimageRelaysEvent);
 
     List<BaseTag> uniqueNewAfterimageRelays =
@@ -92,7 +88,7 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind uniqueNewAfterimageRelays: [{}]", uniqueNewAfterimageRelays);
 
     GenericEventKindIF newGroupAdminsEvent = new GenericEventKindDto(createEvent(aImgIdentity, uniqueNewAfterimageRelays)).convertBaseEventToGenericEventKindIF();
-    save(newGroupAdminsEvent);
+    super.processIncomingEvent(newGroupAdminsEvent);
 
     Map<String, String> mapped =
         Filterable.getTypeSpecificTags(
@@ -106,7 +102,9 @@ public class SuperConductorRelayEnlistmentNonPublishingEventTypePlugin extends A
     new SuperconductorMeshProxy(mapped, this).setUpReputationReqFlux(getFilters());
   }
 
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<BaseTag> uniqueNewAfterimageRelays) throws NostrException, NoSuchAlgorithmException {
+  //  TODO: fix sneaky
+  @SneakyThrows
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<BaseTag> uniqueNewAfterimageRelays) {
     log.debug("SuperConductorRelayEnlistmentEventTypePlugin processing incoming Kind.GROUP_MEMBERS 39002 event");
     BaseEvent groupMembersEvent = new GroupMembersEvent(
         identity,

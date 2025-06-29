@@ -1,8 +1,11 @@
 package com.prosilion.afterimage.service;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.user.Identity;
@@ -23,13 +26,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
   private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
-  private final EventKindServiceIF eventKindService;
-  private final EventKindTypeServiceIF eventKindTypeService;
+  private final EventKindServiceIF<Kind> eventKindService;
+  private final EventKindTypeServiceIF<KindTypeIF> eventKindTypeService;
 
   @Autowired
   public EventKindTypeServiceIT(
-      EventKindServiceIF eventKindService,
-      EventKindTypeServiceIF eventKindTypeService) {
+      EventKindServiceIF<Kind> eventKindService,
+      EventKindTypeServiceIF<KindTypeIF> eventKindTypeService) {
     this.eventKindService = eventKindService;
     this.eventKindTypeService = eventKindTypeService;
     log.info("EventKindTypeServiceIT initialized, EventKindServiceIF services: {}", this.eventKindService.getClass().getName());
@@ -42,8 +45,8 @@ class EventKindTypeServiceIT {
     PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardUpvoteEvent upvoteEvent = new BadgeAwardUpvoteEvent(identity, upvotedUser);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(upvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
-    eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(upvoteEvent, AfterimageKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+    eventKindTypeService.processIncomingEvent(genericEventKindIF);
   }
 
   @Test
@@ -52,8 +55,8 @@ class EventKindTypeServiceIT {
     Identity downvotedUser = Identity.generateRandomIdentity();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, eventKindTypeService.getKindTypes()).convertBaseEventToGenericEventKindTypeIF();
-    eventKindTypeService.processIncomingKindTypeEvent(genericEventKindIF);
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, AfterimageKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    eventKindTypeService.processIncomingEvent(genericEventKindIF);
   }
 
   @Test

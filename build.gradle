@@ -2,7 +2,7 @@ import java.time.Duration
 
 plugins {
     id 'java'
-    id 'war'
+//    id 'war'
     id 'java-library'
     id 'maven-publish'
     id 'org.springframework.boot' version '3.4.5'
@@ -41,12 +41,12 @@ publishing {
             groupId 'com.prosilion.afterimage'
         }
     }
-    publications {
-        mavenWar(MavenPublication) {
-            from components.web
-            groupId 'com.prosilion.afterimage'
-        }
-    }
+//    publications {
+//        mavenWar(MavenPublication) {
+//            from components.web
+//            groupId 'com.prosilion.afterimage'
+//        }
+//    }
 }
 
 dependencies {
@@ -129,13 +129,13 @@ tasks.named("jar") {
     archiveClassifier = ''
 }
 
-tasks.bootWar {
-    enabled = false
-}
-
-tasks.named("war") {
-    archiveClassifier = ''
-}
+//tasks.bootWar {
+//    enabled = false
+//}
+//
+//tasks.named("war") {
+//    archiveClassifier = ''
+//}
 
 tasks.register("bootRunLocalWs") {
     group = "application"

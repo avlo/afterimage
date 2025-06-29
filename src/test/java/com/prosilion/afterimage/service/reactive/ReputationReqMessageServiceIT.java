@@ -5,9 +5,9 @@ import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
@@ -205,7 +205,7 @@ public class ReputationReqMessageServiceIT {
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
                 upvotedUserPubKey),
-            kindTypes)
+            AfterimageKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
 //    simulate vote event received from SC
@@ -234,7 +234,7 @@ public class ReputationReqMessageServiceIT {
 //    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
     assertEquals(afterimageEvents.getFirst().getPublicKey(), afterimageInstanceIdentity.getPublicKey());
     AddressTag reputationAddressTag = Filterable.getTypeSpecificTags(AddressTag.class, afterimageEvents.getFirst()).getFirst();
-    
+
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
     assertEquals(AfterimageKindType.REPUTATION.getName(), reputationAddressTag.getIdentifierTag().getUuid());

@@ -39,7 +39,7 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   public EventMessageDeserializer eventMessageDeserializer(List<KindTypeIF> kindTypes) {
-    EventMessageDeserializer eventMessageDeserializer = new EventMessageDeserializer(kindTypes);
+    EventMessageDeserializer eventMessageDeserializer = new EventMessageDeserializer();
     log.info("EventMessageDeserializer instance [{}]", eventMessageDeserializer);
     return eventMessageDeserializer;
   }

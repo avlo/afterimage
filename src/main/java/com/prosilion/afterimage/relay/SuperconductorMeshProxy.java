@@ -2,8 +2,8 @@ package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.GenericEventKindIF;
-import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -22,16 +22,16 @@ import reactor.core.publisher.BaseSubscriber;
 @Slf4j
 public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator superconductorRequestConsolidator;
-  private final EventKindPluginIF eventKindPlugin;
+  private final EventKindPluginIF<Kind> kindEventKindPlugin;
 
   private Subscription subscription;
   private final String subscriptionId = generateRandomHex64String();
 
   public SuperconductorMeshProxy(
       @NonNull Map<String, String> superconductorRelays,
-      @NonNull EventKindPluginIF eventKindPlugin) {
+      @NonNull EventKindPluginIF<Kind> kindEventKindPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventKindPlugin = eventKindPlugin;
+    this.kindEventKindPlugin = kindEventKindPlugin;
     addRelay(superconductorRelays);
     log.debug("SuperconductorMeshProxy ctor() connecting to relays: [{}]", superconductorRelays);
   }
@@ -39,9 +39,9 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   public SuperconductorMeshProxy(
       @NonNull String relayName,
       @NonNull String relayUrl,
-      @NonNull EventKindPluginIF eventKindPlugin) {
+      @NonNull EventKindPluginIF<Kind> kindEventKindPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventKindPlugin = eventKindPlugin;
+    this.kindEventKindPlugin = kindEventKindPlugin;
     addRelay(relayName, relayUrl);
   }
 
@@ -70,10 +70,8 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
 //    TODO: resolve unused
     for (String unused : superconductorRequestConsolidator.getRelayNames()) {
-      GenericEventKindIF event1 = eventMessage.getEvent();
-      GenericEventKindTypeIF event = (GenericEventKindTypeIF) event1;
-      eventKindPlugin.processIncomingEvent(
-          event);
+      GenericEventKindIF event = eventMessage.getEvent();
+      kindEventKindPlugin.processIncomingEvent(event);
     }
   }
 
