@@ -7,9 +7,7 @@ import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePl
 import com.prosilion.superconductor.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.service.request.NotifierService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 public class ReputationEventKindTypePlugin extends PublishingEventKindTypePlugin {
