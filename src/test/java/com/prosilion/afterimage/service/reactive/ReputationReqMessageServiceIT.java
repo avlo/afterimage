@@ -7,7 +7,6 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
@@ -47,18 +46,15 @@ public class ReputationReqMessageServiceIT {
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventService eventService;
   private final Identity afterimageInstanceIdentity;
-  private final List<KindTypeIF> kindTypes;
 
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
-      @NonNull Identity afterimageInstanceIdentity,
-      @NonNull List<KindTypeIF> kindTypes) {
+      @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
-    this.kindTypes = kindTypes;
   }
 
   @Test

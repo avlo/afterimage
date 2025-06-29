@@ -35,7 +35,6 @@ class EventNoOpMessageReactiveIT {
 
   @Test
   void testEventNoOpMessage() throws IOException, NostrException, NoSuchAlgorithmException {
-    String content = Factory.lorumIpsum(getClass());
     Identity identity = Identity.generateRandomIdentity();
 
     TextNoteEvent genericEvent = new TextNoteEvent(identity, "TEXT note event text content");

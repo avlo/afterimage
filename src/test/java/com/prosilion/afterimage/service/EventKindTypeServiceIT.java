@@ -66,21 +66,4 @@ class EventKindTypeServiceIT {
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
     eventKindService.processIncomingEvent(new GenericEventKindDto(textNoteEvent).convertBaseEventToGenericEventKindIF());
   }
-
-//  @Test
-//  void testAll() throws NostrException, NoSuchAlgorithmException {
-//    Identity identity = Identity.generateRandomIdentity();
-//    Identity upvotedUser = Identity.generateRandomIdentity();
-//
-//    BadgeAwardUpvoteEvent<KindType> typeBadgeAwardUpvoteEvent = new BadgeAwardUpvoteEvent<>(identity, upvotedUser, "UPVOTE event text content");
-//    eventKindTypeService.processIncomingEvent(typeBadgeAwardUpvoteEvent);
-//
-//    Identity downvotedUser = Identity.generateRandomIdentity();
-//
-//    BadgeAwardDownvoteEvent<KindType> typeBadgeAwardDownvoteEvent = new BadgeAwardDownvoteEvent<>(identity, downvotedUser, "DOWN vote event text content");
-//    eventKindTypeService.processIncomingEvent(typeBadgeAwardDownvoteEvent);
-//
-//    TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
-//    eventKindService.processIncomingEvent(new EventDto(textNoteEvent).convertBaseEventToDto());
-//  }
 }
