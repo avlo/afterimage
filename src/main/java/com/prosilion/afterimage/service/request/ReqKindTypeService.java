@@ -1,10 +1,13 @@
 package com.prosilion.afterimage.service.request;
 
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
+import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.Collection;
 import java.util.List;
@@ -13,20 +16,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ReqKindTypeService implements ReqKindTypeServiceIF {
-  private final Map<Kind, Map<KindTypeIF, ReqKindTypePlugin>> reqKindTypePluginMap;
+  private final Map<Kind, Map<KindTypeIF, ReqKindTypePluginIF<KindTypeIF>>> reqKindTypePluginMap;
 
   @Autowired
-  public ReqKindTypeService(@NonNull List<ReqKindTypePlugin> reqKindTypePlugins) {
+  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF<KindTypeIF>> reqKindTypePlugins) {
     reqKindTypePluginMap = reqKindTypePlugins.stream()
         .filter(Objects::nonNull)
-        .collect(Collectors.groupingBy(ReqKindTypePlugin::getKind, Collectors.toMap(
-            ReqKindTypePlugin::getKindType, Function.identity())));
+        .collect(Collectors.groupingBy(ReqKindTypePluginIF<KindTypeIF>::getKind, Collectors.toMap(
+            ReqKindTypePluginIF<KindTypeIF>::getKindType, Function.identity())));
   }
 
   @Override
@@ -34,16 +38,18 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
     List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
     Kind kind = getReqKindPlugin(filtersList, list);
 
-    Map<KindTypeIF, ReqKindTypePlugin> value = Optional.ofNullable(
+    Map<KindTypeIF, ReqKindTypePluginIF<KindTypeIF>> value = Optional.ofNullable(
         reqKindTypePluginMap.get(kind)).orElseThrow();
 
-    List<KindTypeIF> definedKindTypes = filtersList.stream()
+    Filterable filterable = filtersList.stream()
         .map(filters ->
-            filters.getFilterByType(IdentifierTagFilter.FILTER_KEY))
-        .map(KindTypeIF.class::cast).toList();
+            filters.getFilterByType(IdentifierTagFilter.FILTER_KEY).getFirst()).findFirst().orElseThrow();
+    
+    String uuid = filterable.getFilterableValue().toString();
 
-    ReqKindTypePlugin reqKindTypePlugin = definedKindTypes.stream().map(value::get).findFirst().orElseThrow();
-    Filters filters = reqKindTypePlugin.processIncomingRequest(filtersList);
+    KindTypeIF reqKindTypePlugin = getKindTypes().stream().filter(k -> k.getName().equalsIgnoreCase(uuid)).findFirst().orElseThrow();
+    
+    Filters filters = value.get(reqKindTypePlugin).processIncomingRequest(filtersList);
     return filters;
   }
 

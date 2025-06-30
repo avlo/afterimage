@@ -30,15 +30,15 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
+    List<Filters> filtersList = validateFiltersExist(reqMessage.getFiltersList());
+    
     reqService.processIncoming(
         new ReqMessage(
             reqMessage.getSubscriptionId(),
             reqKindService.getKinds().stream()
                 .anyMatch(kind ->
                     kind.equals(
-                        validateFiltersExist(
-                            reqMessage.getFiltersList()
-                        ).stream()
+                        filtersList.stream()
                             .map(filters ->
                                 filters.getFilterByType(KindFilter.FILTER_KEY))
                             .flatMap(Collection::stream)
@@ -46,8 +46,16 @@ public class AfterimageReqService implements ReqServiceIF {
                             .map(AbstractFilterable::getFilterable)
                             .findAny().orElseThrow(() ->
                                 new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
-                reqKindService.processIncoming(reqMessage.getFiltersList()) :
-                reqKindTypeService.processIncoming(reqMessage.getFiltersList())), sessionId);
+                processReqKindService(reqMessage) :
+                processReqKindTypeService(reqMessage)), sessionId);
+  }
+
+  private Filters processReqKindTypeService(ReqMessage reqMessage) {
+    return reqKindTypeService.processIncoming(reqMessage.getFiltersList());
+  }
+
+  private Filters processReqKindService(ReqMessage reqMessage) {
+    return reqKindService.processIncoming(reqMessage.getFiltersList());
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {

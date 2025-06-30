@@ -10,6 +10,7 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.service.event.type.EventPluginIF;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,16 +23,16 @@ import reactor.core.publisher.BaseSubscriber;
 @Slf4j
 public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator superconductorRequestConsolidator;
-  private final EventKindPluginIF<Kind> kindEventKindPlugin;
+  private final EventPluginIF eventPlugin;
 
   private Subscription subscription;
   private final String subscriptionId = generateRandomHex64String();
 
   public SuperconductorMeshProxy(
       @NonNull Map<String, String> superconductorRelays,
-      @NonNull EventKindPluginIF<Kind> kindEventKindPlugin) {
+      @NonNull EventPluginIF eventPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.kindEventKindPlugin = kindEventKindPlugin;
+    this.eventPlugin = eventPlugin;
     addRelay(superconductorRelays);
     log.debug("SuperconductorMeshProxy ctor() connecting to relays: [{}]", superconductorRelays);
   }
@@ -39,9 +40,9 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   public SuperconductorMeshProxy(
       @NonNull String relayName,
       @NonNull String relayUrl,
-      @NonNull EventKindPluginIF<Kind> kindEventKindPlugin) {
+      @NonNull EventPluginIF eventPlugin) {
     this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
-    this.kindEventKindPlugin = kindEventKindPlugin;
+    this.eventPlugin = eventPlugin;
     addRelay(relayName, relayUrl);
   }
 
@@ -71,7 +72,7 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
 //    TODO: resolve unused
     for (String unused : superconductorRequestConsolidator.getRelayNames()) {
       GenericEventKindIF event = eventMessage.getEvent();
-      kindEventKindPlugin.processIncomingEvent(event);
+      eventPlugin.processIncomingEvent(event);
     }
   }
 

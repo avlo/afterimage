@@ -21,7 +21,7 @@ public class DownvoteEventKindTypePlugin extends VoteEventKindTypePlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    log.debug("UpvoteEventKindTypePlugin getKindTypeIF returning AfterimageKindType.DOWNVOTE");
+    log.debug("DownvoteEventKindTypePlugin getKindTypeIF returning AfterimageKindType.DOWNVOTE");
     return AfterimageKindType.DOWNVOTE;
   }
 }

@@ -5,13 +5,14 @@ import com.prosilion.nostr.user.Identity;
 import lombok.Getter;
 import lombok.NonNull;
 
-public abstract class ReqKindTypePlugin implements ReqKindPlugin {
+public abstract class ReqKindTypePlugin implements ReqKindTypePluginIF<KindTypeIF> {
   @Getter
   private final Identity aImgIdentity;
+  @Getter
+  private final KindTypeIF kindType;
 
-  public ReqKindTypePlugin(@NonNull Identity aImgIdentity) {
+  public ReqKindTypePlugin(@NonNull KindTypeIF kindType, @NonNull Identity aImgIdentity) {
+    this.kindType = kindType;
     this.aImgIdentity = aImgIdentity;
   }
-
-  public abstract KindTypeIF getKindType();
 }

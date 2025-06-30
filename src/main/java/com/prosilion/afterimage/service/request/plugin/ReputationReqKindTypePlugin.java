@@ -27,7 +27,7 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Autowired
   public ReputationReqKindTypePlugin(@NonNull Identity aImgIdentity) {
-    super(aImgIdentity);
+    super(AfterimageKindType.REPUTATION, aImgIdentity);
     log.debug("loaded ReputationReqKindTypePlugin bean");
   }
 

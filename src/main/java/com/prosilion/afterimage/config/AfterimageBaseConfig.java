@@ -3,13 +3,18 @@ package com.prosilion.afterimage.config;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventKindTypePlugin;
+import com.prosilion.afterimage.service.event.plugin.SuperConductorRelayEnlistmentNonPublishingEventKindPlugin;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
+import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePlugin;
+import com.prosilion.superconductor.service.event.type.EventEntityService;
+import com.prosilion.superconductor.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.service.request.NotifierService;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import java.util.List;
@@ -37,8 +42,9 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   List<KindTypeIF> kindTypes() {
-    log.info("Loading custom AfterImage kind types [{}]", (Object[]) AfterimageKindType.values());
-    return List.of(AfterimageKindType.values());
+    List<KindTypeIF> values = List.of(AfterimageKindType.values());
+    log.info("Loading custom AfterImage kind types [{}]", values);
+    return values;
   }
 
   @Bean
@@ -57,5 +63,15 @@ public abstract class AfterimageBaseConfig {
         new EventKindTypePlugin(
             AfterimageKindType.REPUTATION,
             eventPlugin));
+  }
+
+  @Bean
+  NonPublishingEventKindPlugin superConductorRelayEnlistmentNonPublishingEventKindPlugin(
+      @NonNull EventEntityService eventEntityService,
+      @NonNull Identity aImgIdentity,
+      @NonNull EventPluginIF eventPlugin) {
+    return new SuperConductorRelayEnlistmentNonPublishingEventKindPlugin(
+        new EventKindPlugin(
+            Kind.GROUP_MEMBERS, eventPlugin), eventEntityService, aImgIdentity);
   }
 }

@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.request;
 
-import com.prosilion.afterimage.service.request.plugin.ReqKindPlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPluginIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.superconductor.util.EmptyFiltersException;
@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ReqKindService implements ReqKindServiceIF {
-  private final Map<Kind, ReqKindPlugin> reqKindTypePluginMap;
+  private final Map<Kind, ReqKindPluginIF<Kind>> reqKindTypePluginMap;
 
   @Autowired
-  public ReqKindService(@NonNull List<ReqKindPlugin> reqTypePlugins) {
-    this.reqKindTypePluginMap = reqTypePlugins.stream()
+  public ReqKindService(@NonNull List<ReqKindPluginIF<Kind>> reqKindPlugins) {
+    this.reqKindTypePluginMap = reqKindPlugins.stream()
         .collect(
             Collectors.toMap(
-                ReqKindPlugin::getKind,
+                ReqKindPluginIF::getKind,
                 Function.identity()));
   }
 
