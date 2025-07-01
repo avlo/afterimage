@@ -13,11 +13,12 @@ import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
 import java.util.Optional;
 
+// TODO: refactor when testing complete
 public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
   List<KindTypeIF> getKindTypes();
 
   default String validateIdentifierTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
-
+// TODO: refactor when testing complete
     List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();
 
     Filterable filterable = userProvidedKindTypes.stream()
@@ -40,6 +41,7 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
   }
 
   default void validateReferencedPubkeyTag(List<Filters> userProvidedKindTypes) throws NostrException {
+// TODO: refactor when testing complete    
     userProvidedKindTypes.stream()
         .flatMap(filters ->
             filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY).stream())

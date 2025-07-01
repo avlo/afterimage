@@ -15,6 +15,7 @@ public interface ReqKindServiceIF {
   List<Kind> getKinds();
 
   default Kind getReqKindPlugin(List<Filters> filtersList, List<Kind> kinds) throws NostrException {
+// TODO: refactor when testing complete    
     return filtersList.stream()
         .flatMap(filters ->
             filters.getFilterByType(KindFilter.FILTER_KEY).stream())

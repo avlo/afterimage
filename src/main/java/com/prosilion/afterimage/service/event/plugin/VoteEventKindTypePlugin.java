@@ -49,11 +49,13 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
     log.debug("processing incoming VOTE EVENT: [{}]", voteEvent);
 //    saves VOTE event without triggering subscriber listener
     super.processIncomingEvent(voteEvent);
+// TODO: refactor when testing complete    
     GenericEventKindTypeIF reputationEvent = calculateReputationEvent(voteEvent);
     reputationEventKindTypePlugin.processIncomingEvent(reputationEvent);
   }
 
   private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
+// TODO: refactor when testing complete    
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
@@ -83,20 +85,18 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score, @NonNull URI uri) throws NostrException, NoSuchAlgorithmException {
-    GenericEventKindTypeIF reputationEvent =
-        new GenericEventKindTypeDto(
-            new ReputationEvent(
-                aImgIdentity,
-                badgeReceiverPubkey,
-                score,
-                uri),
-            AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
-    return reputationEvent;
+    return new GenericEventKindTypeDto(
+        new ReputationEvent(
+            aImgIdentity,
+            badgeReceiverPubkey,
+            score,
+            uri),
+        AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
   }
 
   @Override
   public Kind getKind() {
-    return Kind.BADGE_AWARD_EVENT;  // 2112 EVENT is an incoming vote from a person
+    return Kind.BADGE_AWARD_EVENT;
   }
 
   abstract public KindTypeIF getKindType();

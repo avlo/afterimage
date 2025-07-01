@@ -30,6 +30,7 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
+// TODO: refactor when testing complete    
     List<Filters> filtersList = validateFiltersExist(reqMessage.getFiltersList());
 
     ReqMessage reqMessage1 = new ReqMessage(

@@ -31,6 +31,7 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
+// TODO: refactor when testing complete    
     List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
     Kind kind = getReqKindPlugin(filtersList, list);
 

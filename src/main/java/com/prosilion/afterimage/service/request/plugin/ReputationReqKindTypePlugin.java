@@ -34,6 +34,7 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
+// TODO: refactor when testing complete    
     ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
         .map(filters ->
             filters.getFilterByType(REF_PUBKEY_FILTER_KEY))
@@ -65,12 +66,6 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
                 Kind.BADGE_DEFINITION_EVENT,
                 getAImgIdentity().getPublicKey(),
                 identifierTag)));
-
-//    return new Filters(
-//        new KindFilter(getKind()),
-//        new ReferencedPublicKeyFilter(pubKeyTag),
-//        new IdentifierTagFilter(
-//            new IdentifierTag(matchedUuid)));
   }
 
   @Override

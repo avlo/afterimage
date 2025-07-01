@@ -59,7 +59,7 @@ public class SuperConductorRelayEnlistmentNonPublishingEventKindPlugin extends N
   @Override
   public void processIncomingEvent(GenericEventKindIF afterimageRelaysEvent) {
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processing incoming event: [{}]", afterimageRelaysEvent);
-
+// TODO: refactor when testing complete
     List<BaseTag> uniqueNewAfterimageRelays =
         Streams.failableStream(
                 Filterable.getTypeSpecificTags(PubKeyTag.class, afterimageRelaysEvent))

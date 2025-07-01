@@ -126,10 +126,10 @@ public class ReputationReqMessageServiceIT {
         subscriber);
 
     assertEquals(
-        getNoticeMessage(
-            subscriber.getItems()).getMessage(),
         String.format(
-            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "PubKeyTag"));
+            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "PubKeyTag"),
+        getNoticeMessage(
+            subscriber.getItems()).getMessage());
   }
 
   @Test
@@ -170,13 +170,11 @@ public class ReputationReqMessageServiceIT {
             filters),
         subscriber);
 
-    String format = String.format(
-        InvalidKindException.message, invalidUuid, AfterimageKindType.REPUTATION.getName());
-    String message = getNoticeMessage(
-        subscriber.getItems()).getMessage();
     assertEquals(
-        format,
-        message);
+        String.format(
+            InvalidKindException.message, invalidUuid, AfterimageKindType.REPUTATION.getName()),
+        getNoticeMessage(
+            subscriber.getItems()).getMessage());
   }
 
   @Test
@@ -247,12 +245,9 @@ public class ReputationReqMessageServiceIT {
   }
 
   private static NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
-    List<BaseMessage> returnedBaseMessages1 = returnedBaseMessages;
-
-    NoticeMessage noticeMessage = returnedBaseMessages1.stream()
+    return returnedBaseMessages.stream()
         .filter(NoticeMessage.class::isInstance)
         .map(NoticeMessage.class::cast).findFirst().orElseThrow(AssertionError::new);
-    return noticeMessage;
   }
 
   private static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
