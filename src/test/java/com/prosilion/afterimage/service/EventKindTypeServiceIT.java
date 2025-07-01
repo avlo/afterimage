@@ -4,8 +4,6 @@ import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.user.Identity;
@@ -26,13 +24,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
   private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
-  private final EventKindServiceIF<Kind> eventKindService;
-  private final EventKindTypeServiceIF<KindTypeIF> eventKindTypeService;
+  private final EventKindServiceIF eventKindService;
+  private final EventKindTypeServiceIF eventKindTypeService;
 
   @Autowired
   public EventKindTypeServiceIT(
-      EventKindServiceIF<Kind> eventKindService,
-      EventKindTypeServiceIF<KindTypeIF> eventKindTypeService) {
+      EventKindServiceIF eventKindService,
+      EventKindTypeServiceIF eventKindTypeService) {
     this.eventKindService = eventKindService;
     this.eventKindTypeService = eventKindTypeService;
     log.info("EventKindTypeServiceIT initialized, EventKindServiceIF services: {}", this.eventKindService.getClass().getName());

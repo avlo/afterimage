@@ -3,6 +3,7 @@ package com.prosilion.afterimage.relay;
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.filter.AbstractFilterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -31,23 +32,28 @@ public class AfterimageReqService implements ReqServiceIF {
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws EmptyFiltersException {
     List<Filters> filtersList = validateFiltersExist(reqMessage.getFiltersList());
-    
-    reqService.processIncoming(
-        new ReqMessage(
-            reqMessage.getSubscriptionId(),
-            reqKindService.getKinds().stream()
-                .anyMatch(kind ->
-                    kind.equals(
-                        filtersList.stream()
-                            .map(filters ->
-                                filters.getFilterByType(KindFilter.FILTER_KEY))
-                            .flatMap(Collection::stream)
-                            .map(KindFilter.class::cast)
-                            .map(AbstractFilterable::getFilterable)
-                            .findAny().orElseThrow(() ->
-                                new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
-                processReqKindService(reqMessage) :
-                processReqKindTypeService(reqMessage)), sessionId);
+
+    try {
+      ReqMessage reqMessage1 = new ReqMessage(
+          reqMessage.getSubscriptionId(),
+          reqKindService.getKinds().stream()
+              .anyMatch(kind ->
+                  kind.equals(
+                      filtersList.stream()
+                          .map(filters ->
+                              filters.getFilterByType(KindFilter.FILTER_KEY))
+                          .flatMap(Collection::stream)
+                          .map(KindFilter.class::cast)
+                          .map(AbstractFilterable::getFilterable)
+                          .findAny().orElseThrow(() ->
+                              new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
+              processReqKindService(reqMessage) :
+              processReqKindTypeService(reqMessage));
+      
+      reqService.processIncoming(reqMessage1, sessionId);
+    } catch (Exception e) {
+      throw new NostrException(e.getMessage());
+    }
   }
 
   private Filters processReqKindTypeService(ReqMessage reqMessage) {
@@ -59,7 +65,7 @@ public class AfterimageReqService implements ReqServiceIF {
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {
-    filtersList.stream().findAny().orElseThrow(() -> new EmptyFiltersException(Filters.FILTERS_CANNOT_BE_EMPTY));
+    filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));
     return filtersList;
   }
 }

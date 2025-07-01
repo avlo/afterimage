@@ -1,11 +1,14 @@
 package com.prosilion.afterimage.service.request;
 
+import com.prosilion.afterimage.InvalidKindException;
+import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePlugin;
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.superconductor.util.EmptyFiltersException;
@@ -17,6 +20,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -39,13 +43,12 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
     Kind kind = getReqKindPlugin(filtersList, list);
 
     Map<KindTypeIF, ReqKindTypePluginIF<KindTypeIF>> value = Optional.ofNullable(
-        reqKindTypePluginMap.get(kind)).orElseThrow();
+        reqKindTypePluginMap.get(kind)).orElseThrow(() ->
+        new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()));
 
-    Filterable filterable = filtersList.stream()
-        .map(filters ->
-            filters.getFilterByType(IdentifierTagFilter.FILTER_KEY).getFirst()).findFirst().orElseThrow();
+    validateReferencedPubkeyTag(filtersList);
     
-    String uuid = filterable.getFilterableValue().toString();
+    String uuid = validateIdentifierTag(filtersList, getKindTypes());
 
     KindTypeIF reqKindTypePlugin = getKindTypes().stream().filter(k -> k.getName().equalsIgnoreCase(uuid)).findFirst().orElseThrow();
     

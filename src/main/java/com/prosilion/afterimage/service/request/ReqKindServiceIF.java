@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.request;
 
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
@@ -20,7 +21,7 @@ public interface ReqKindServiceIF {
         .map(Filterable::getFilterable)
         .map(Kind.class::cast)
         .findFirst().orElseThrow(() ->
-            new EmptyFiltersException(
+            new NostrException(
                 String.format("Valid Kind filter not specified, must be one of Kind [%s]",
                     Strings.join(kinds, ','))));
   }
