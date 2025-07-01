@@ -15,7 +15,6 @@ import com.prosilion.superconductor.dto.GenericEventKindDto;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.service.event.type.NonPublishingEventKindTypePlugin;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

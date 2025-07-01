@@ -170,11 +170,13 @@ public class ReputationReqMessageServiceIT {
             filters),
         subscriber);
 
+    String format = String.format(
+        InvalidKindException.message, invalidUuid, AfterimageKindType.REPUTATION.getName());
+    String message = getNoticeMessage(
+        subscriber.getItems()).getMessage();
     assertEquals(
-        String.format(
-            InvalidKindException.message, invalidUuid, AfterimageKindType.REPUTATION.getName()),
-        getNoticeMessage(
-            subscriber.getItems()).getMessage());
+        format,
+        message);
   }
 
   @Test
@@ -247,9 +249,10 @@ public class ReputationReqMessageServiceIT {
   private static NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
     List<BaseMessage> returnedBaseMessages1 = returnedBaseMessages;
 
-    return returnedBaseMessages1.stream()
+    NoticeMessage noticeMessage = returnedBaseMessages1.stream()
         .filter(NoticeMessage.class::isInstance)
         .map(NoticeMessage.class::cast).findFirst().orElseThrow(AssertionError::new);
+    return noticeMessage;
   }
 
   private static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {

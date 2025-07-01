@@ -1,17 +1,11 @@
 package com.prosilion.afterimage.service.request;
 
 import com.prosilion.afterimage.InvalidKindException;
-import com.prosilion.afterimage.InvalidReputationReqJsonException;
-import com.prosilion.afterimage.service.request.plugin.ReqKindTypePlugin;
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
-import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -38,7 +30,7 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
   }
 
   @Override
-  public Filters processIncoming(@NonNull List<Filters> filtersList) throws EmptyFiltersException {
+  public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
     List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
     Kind kind = getReqKindPlugin(filtersList, list);
 
@@ -47,11 +39,11 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
         new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()));
 
     validateReferencedPubkeyTag(filtersList);
-    
+
     String uuid = validateIdentifierTag(filtersList, getKindTypes());
 
     KindTypeIF reqKindTypePlugin = getKindTypes().stream().filter(k -> k.getName().equalsIgnoreCase(uuid)).findFirst().orElseThrow();
-    
+
     Filters filters = value.get(reqKindTypePlugin).processIncomingRequest(filtersList);
     return filters;
   }

@@ -1,9 +1,9 @@
 package com.prosilion.afterimage.service.request;
 
 import com.prosilion.afterimage.service.request.plugin.ReqKindPluginIF;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class ReqKindService implements ReqKindServiceIF {
   }
 
   @Override
-  public Filters processIncoming(@NonNull List<Filters> filtersList) throws EmptyFiltersException {
+  public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
     List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
     Kind reqKindTypePlugin = getReqKindPlugin(filtersList, list);
     return reqKindTypePluginMap.get(reqKindTypePlugin).processIncomingRequest(filtersList);

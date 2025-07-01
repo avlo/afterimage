@@ -1,7 +1,8 @@
 package com.prosilion.afterimage.service.request.plugin;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
+import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;
@@ -32,7 +33,7 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
   }
 
   @Override
-  public Filters processIncomingRequest(@NonNull List<Filters> filtersList) {
+  public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
     ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
         .map(filters ->
             filters.getFilterByType(REF_PUBKEY_FILTER_KEY))
