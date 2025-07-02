@@ -8,6 +8,7 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
@@ -48,15 +49,18 @@ public class ReputationReqMessageServiceIT {
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventService eventService;
   private final Identity afterimageInstanceIdentity;
+  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
+      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
+    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
   }
 
   @Test
@@ -67,6 +71,7 @@ public class ReputationReqMessageServiceIT {
             Factory.generateRandomHex64String(),
             new Filters()),
         subscriber));
+    log.debug("testInvalidAfterImageReputationRequestEmptyFilters");
   }
 
   @Test
@@ -208,7 +213,8 @@ public class ReputationReqMessageServiceIT {
         new GenericEventKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
-                upvotedUserPubKey),
+                upvotedUserPubKey,
+                upvoteBadgeDefinitionEvent),
             AfterimageKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 

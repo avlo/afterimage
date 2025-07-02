@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
-import java.util.concurrent.ExecutionException;
 import lombok.NonNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,7 +18,7 @@ public class AfterimageWssConfig extends AfterimageBaseConfig {
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageReactiveRelayClient(
       @NonNull String afterimageRelayUrl,
-      @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+      @NonNull SslBundles sslBundles) {
     return new AfterimageMeshRelayService(afterimageRelayUrl, sslBundles);
   }
 }

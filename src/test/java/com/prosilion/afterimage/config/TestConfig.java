@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
 public class TestConfig {
 
   @Bean
-  String afterimageRelayUrl(@NonNull @Value("${afterimage.relay.url}") String relayUrl) {
-    return relayUrl;
+  String afterimageRelayUrl(@NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
+    return afterimageRelayUrl;
   }
 }

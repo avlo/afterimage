@@ -8,7 +8,6 @@ import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
 import org.springframework.boot.ssl.SslBundle;
@@ -20,13 +19,13 @@ import org.springframework.lang.NonNull;
 public class AfterimageMeshRelayService {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
-  public AfterimageMeshRelayService(@NonNull String relayUri) {
-    log.debug("relayUri: \n{}", relayUri);
-    this.nostrRelayClient = new ReactiveNostrRelayClient(relayUri);
-    System.out.println("relayUri: " + relayUri);
+  public AfterimageMeshRelayService(@NonNull String afterimageRelayUrl) {
+    log.debug("relayUri: \n{}", afterimageRelayUrl);
+    this.nostrRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
+    System.out.println("relayUri: " + afterimageRelayUrl);
   }
 
-  public AfterimageMeshRelayService(@NonNull String relayUri, @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
+  public AfterimageMeshRelayService(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
     log.debug("relayUri: \n{}", relayUri);
     log.debug("sslBundles: \n{}", sslBundles);
     final SslBundle server = sslBundles.getBundle("server");

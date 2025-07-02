@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ReqKindService implements ReqKindServiceIF {
-  private final Map<Kind, ReqKindPluginIF<Kind>> reqKindTypePluginMap;
+  private final Map<Kind, ReqKindPluginIF<Kind>> reqKindPluginsMap;
 
   @Autowired
   public ReqKindService(@NonNull List<ReqKindPluginIF<Kind>> reqKindPlugins) {
-    this.reqKindTypePluginMap = reqKindPlugins.stream()
+    this.reqKindPluginsMap = reqKindPlugins.stream()
         .collect(
             Collectors.toMap(
                 ReqKindPluginIF::getKind,
@@ -29,13 +29,13 @@ public class ReqKindService implements ReqKindServiceIF {
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
 // TODO: refactor when testing complete    
-    List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
+    List<Kind> list = reqKindPluginsMap.keySet().stream().toList();
     Kind reqKindTypePlugin = getReqKindPlugin(filtersList, list);
-    return reqKindTypePluginMap.get(reqKindTypePlugin).processIncomingRequest(filtersList);
+    return reqKindPluginsMap.get(reqKindTypePlugin).processIncomingRequest(filtersList);
   }
 
   @Override
   public List<Kind> getKinds() {
-    return new ArrayList<>(reqKindTypePluginMap.keySet());
+    return new ArrayList<>(reqKindPluginsMap.keySet());
   }
 }

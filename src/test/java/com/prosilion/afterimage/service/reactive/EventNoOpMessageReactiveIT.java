@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.TextNoteEvent;
@@ -39,8 +38,8 @@ class EventNoOpMessageReactiveIT {
 
     TextNoteEvent genericEvent = new TextNoteEvent(identity, "TEXT note event text content");
 
-    log.debug("textNoteEvent getId(): " + genericEvent.getId());
-    log.debug("textNoteEvent getPubKey().toHexString(): " + genericEvent.getPublicKey().toHexString());
+    log.debug("textNoteEvent getId(): {}", genericEvent.getId());
+    log.debug("textNoteEvent getPubKey().toHexString(): {}", genericEvent.getPublicKey().toHexString());
     assertEquals(genericEvent.getPublicKey().toHexString(), identity.getPublicKey().toHexString());
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();

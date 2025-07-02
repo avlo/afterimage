@@ -8,6 +8,7 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filters;
@@ -27,6 +28,7 @@ import com.prosilion.superconductor.service.event.EventService;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,33 +49,35 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventService eventService;
-
-  private final Identity authorIdentity = Identity.generateRandomIdentity();
-  private final static String subscriberId = Factory.generateRandomHex64String();
+  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
   @Autowired
   AfterimageReqThenSuperconductorEventIT(
       @NonNull EventService eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull AfterimageMeshRelayService afterimageMeshRelayService
-  ) {
+      @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
+      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
 //    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
     log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = afterimageMeshRelayService;
+    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.eventService = eventService;
   }
 
   @Test
-  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
+    final Identity authorIdentity = Identity.generateRandomIdentity();
+
 //    // # --------------------- Aimg EVENT -------------------
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
-    TestSubscriber<BaseMessage> afterImageEventsSubscriber = new TestSubscriber<>();
+    final String subscriberId_1 = Factory.generateRandomHex64String();
+    TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
     afterimageMeshRelayService.send(
-        createAfterImageReqMessage(subscriberId, upvotedUser.getPublicKey()), afterImageEventsSubscriber);
+        createAfterImageReqMessage(subscriberId_1, upvotedUser.getPublicKey()), afterImageEventsSubscriber_A);
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
@@ -81,7 +85,8 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         new GenericEventKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
-                upvotedUser.getPublicKey()),
+                upvotedUser.getPublicKey(),
+                upvoteBadgeDefinitionEvent),
             AfterimageKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
@@ -94,20 +99,20 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         .getFlag());
     log.debug("received 1of2 OkMessage...");
 
+    // # --------------------- SC EVENT 2 of 2-------------------
     GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
         new GenericEventKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
-                upvotedUser.getPublicKey()),
+                upvotedUser.getPublicKey(),
+                upvoteBadgeDefinitionEvent),
             AfterimageKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
-    // # --------------------- SC EVENT 2 of 2-------------------
+    TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
+    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_2), okMessageSubscriber_2);
 
-    TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
-    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_2), okMessageSubscriber);
-
-    assertEquals(true, okMessageSubscriber_1
+    assertEquals(true, okMessageSubscriber_2
         .getItems()
         .getFirst()
         .getFlag());
@@ -116,9 +121,10 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     // # --------------------- SC REQ -------------------
     //    submit matching author & vote tag Req to superconductor
 
+    final String subscriberId_2 = Factory.generateRandomHex64String();
     TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
-        createSuperconductorReqMessage(subscriberId, upvotedUser.getPublicKey()), superConductorEventsSubscriber);
+        createSuperconductorReqMessage(subscriberId_2, upvotedUser.getPublicKey()), superConductorEventsSubscriber);
 
     List<BaseMessage> returnedSuperconductorBaseMessages = superConductorEventsSubscriber.getItems();
     List<GenericEventKindIF> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
@@ -131,11 +137,12 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 
     //    save SC result to Aimg
     //    should trigger Aimg afterImageEventsSubscriber
-    returnedSuperconductorEvents.forEach(event ->
-        eventService.processIncomingEvent(new EventMessage(event)));
+    eventService.processIncomingEvent(new EventMessage(returnedSuperconductorEvents.getFirst()));
+
+    TimeUnit.SECONDS.sleep(1);
 
     // # --------------------- Aimg EVENTS returned -------------------
-    List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber.getItems();
+    List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber_A.getItems();
     List<GenericEventKindIF> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
     log.debug("afterimage returned events:");
     afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
