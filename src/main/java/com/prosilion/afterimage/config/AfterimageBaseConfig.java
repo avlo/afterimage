@@ -73,18 +73,6 @@ public abstract class AfterimageBaseConfig {
             reputationBadgeDefinitionEvent));
   }
 
-////  DECORATED
-//  @Bean
-//  EventKindTypePluginIF<KindTypeIF> reputationPublishingEventKindTypePlugin(
-//      @NonNull NotifierService notifierService,
-////  DECORATION      
-//      @NonNull ReputationEventKindTypePlugin reputationEventKindTypePlugin) {
-
-  /// /  DECORATOR
-//    return new PublishingEventKindTypePlugin(notifierService, reputationEventKindTypePlugin);
-//  }
-
-//  DECORATED  
   @Bean
   EventKindTypePluginIF<KindTypeIF> upvoteEventKindTypePlugin(
       @NonNull EventEntityService eventEntityService,

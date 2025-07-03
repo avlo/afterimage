@@ -204,9 +204,8 @@ public class ReputationReqMessageServiceIT {
   @Test
   void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException, NoSuchAlgorithmException {
     final Identity authorIdentity = Identity.generateRandomIdentity();
-    final PublicKey authorPublicKey = authorIdentity.getPublicKey();
     final PublicKey upvotedUserPubKey = Identity.generateRandomIdentity().getPublicKey();
-    log.info("authorIdentity: {}", authorPublicKey);
+    log.info("authorIdentity: {}", authorIdentity.getPublicKey());
     log.info("upvotedUserPubKey: {}", upvotedUserPubKey);
 
     GenericEventKindTypeIF upvoteEvent =

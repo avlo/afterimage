@@ -56,17 +56,18 @@ public class ReputationEventKindTypePlugin implements EventKindTypePluginIF<Kind
   public void processIncomingEvent(@NonNull GenericEventKindIF event) {
 //    below (saving of what should be a vote) is done by VoteEventKindTypePlugin
 //    eventEntityService.saveEventEntity(event);
-    GenericEventKindTypeIF genericEventKindTypeIF = calculateReputationEvent(event);
-    processIncomingEvent(genericEventKindTypeIF);
-  }
 
-  @Override
-  public void processIncomingEvent(@NonNull GenericEventKindTypeIF event) {
-//    below event save should trigger reputation request listeners
+//    check event should be of type GenericEventKindTypeIF        
+    GenericEventKindTypeIF genericEventKindTypeIF = calculateReputationEvent(event);
     eventEntityService.saveEventEntity(event);
   }
 
+//  @Override
+//  public void processIncomingEvent(@NonNull GenericEventKindTypeIF event) {
 
+  /// /    below event save should trigger reputation request listeners
+//    eventEntityService.saveEventEntity(event);
+//  }
   private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws URISyntaxException, NostrException, NoSuchAlgorithmException {
 // TODO: refactor when testing complete    
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
