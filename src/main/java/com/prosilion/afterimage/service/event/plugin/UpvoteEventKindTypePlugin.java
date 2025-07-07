@@ -19,7 +19,7 @@ public class UpvoteEventKindTypePlugin extends VoteEventKindTypePlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    log.debug("UpvoteEventKindTypePlugin getKindTypeIF returning AfterimageKindType.UPVOTE");
+    log.debug("UpvoteEventKindTypePlugin getKindTypeIF returning SuperconductorKindType.UPVOTE");
     return SuperconductorKindType.UPVOTE;
   }
 }
