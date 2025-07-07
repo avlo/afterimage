@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
@@ -28,7 +27,6 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
-import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -54,22 +52,18 @@ public class ReputationReqMessageServiceIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
-  private final EventEntityService eventEntityService;
-
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
-      @NonNull Identity afterimageInstanceIdentity,
-      @NonNull EventEntityService eventEntityService) {
+      @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
-    this.eventEntityService = eventEntityService;
   }
 
   @Test
@@ -147,7 +141,7 @@ public class ReputationReqMessageServiceIT {
   }
 
   @Test
-  void testInvalidAfterImageReputationRequestMissingIdentifierTagFilter() throws IOException, NostrException {
+  void testInvalidAfterImageReputationHasIdentifierTagFilterInsteadOfAddressTagFilter() throws IOException, NostrException {
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     Filters filters = new Filters(
         new KindFilter(Kind.BADGE_AWARD_EVENT),
@@ -162,13 +156,13 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(
         String.format(
-            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "IdentifierTag"),
+            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "AddressTagFilter"),
         getNoticeMessage(
             subscriber.getItems()).getMessage());
   }
 
   @Test
-  void testInvalidAfterImageReputationRequestMissingReputationDTagFilter() throws IOException, NostrException {
+  void testInvalidAfterImageReputationRequestMissingAddressTagFilter() throws IOException, NostrException {
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     String invalidUuid = "invalid-uuid";
     Filters filters = new Filters(
@@ -179,6 +173,18 @@ public class ReputationReqMessageServiceIT {
         new IdentifierTagFilter(
             new IdentifierTag(invalidUuid)));
 
+    new Filters(
+        new KindFilter(
+            Kind.BADGE_AWARD_EVENT),
+        new ReferencedPublicKeyFilter(
+            new PubKeyTag(
+                Identity.generateRandomIdentity().getPublicKey())),
+        new AddressTagFilter(
+            new AddressTag(
+                reputationBadgeDefinitionEvent.getKind(),
+                reputationBadgeDefinitionEvent.getPublicKey(),
+                reputationBadgeDefinitionEvent.getIdentifierTag())));
+
     afterimageMeshRelayService.send(
         new ReqMessage(Factory.generateRandomHex64String(),
             filters),
@@ -186,7 +192,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(
         String.format(
-            InvalidKindException.message, invalidUuid, AfterimageKindType.REPUTATION.getName()),
+            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "AddressTagFilter"),
         getNoticeMessage(
             subscriber.getItems()).getMessage());
   }
