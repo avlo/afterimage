@@ -12,13 +12,13 @@ import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.nostr.tag.IdentifierTag;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -49,6 +49,7 @@ class SuperconductorEventThenAfterimageReqIT
   private final EventService eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final PublicKey afterimageInstancePublicKey;
+  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
   SuperconductorEventThenAfterimageReqIT(
@@ -56,6 +57,7 @@ class SuperconductorEventThenAfterimageReqIT
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
 //    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
@@ -65,6 +67,7 @@ class SuperconductorEventThenAfterimageReqIT
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
+    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstancePublicKey = afterimageInstanceIdentity.getPublicKey();
     this.eventService = eventService;
   }
@@ -110,7 +113,8 @@ class SuperconductorEventThenAfterimageReqIT
     assertEquals(returnedSuperconductorEvents.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
 
 //    save SC result to Aimg
-    eventService.processIncomingEvent(new EventMessage(returnedSuperconductorEvents.getFirst()));
+    returnedSuperconductorEvents.forEach(gev ->
+        eventService.processIncomingEvent(new EventMessage(gev)));
 
 //    query Aimg for above event
     final String subscriberId_2 = Factory.generateRandomHex64String();
@@ -125,7 +129,7 @@ class SuperconductorEventThenAfterimageReqIT
 
     List<GenericEventKindIF> returnedReqGenericEvents_2 = getGenericEvents(items_2);
 
-    assertEquals(returnedReqGenericEvents_2.getFirst().getContent(), badgeAwardUpvoteEvent_1.getContent());
+    assertEquals(returnedReqGenericEvents_2.getFirst().getContent(), "2");
     assertEquals(returnedReqGenericEvents_2.getFirst().getPublicKey().toHexString(), afterimageInstancePublicKey.toHexString());
     assertEquals(returnedReqGenericEvents_2.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
   }
@@ -186,7 +190,7 @@ class SuperconductorEventThenAfterimageReqIT
     List<GenericEventKindIF> returnedAfterImageEvents = getGenericEvents(afterImageEvents);
 
 //    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
-    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(textNoteEvent_1.getContent())));
+    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(afterimageInstancePublicKey.toHexString())));
     assertEquals(returnedAfterImageEvents.getFirst().getKind(), textNoteEvent_1.getKind());
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
@@ -209,9 +213,11 @@ class SuperconductorEventThenAfterimageReqIT
             new ReferencedPublicKeyFilter(
                 new PubKeyTag(
                     upvotedUserPublicKey)),
-            new IdentifierTagFilter(
-                new IdentifierTag(
-                    AfterimageKindType.REPUTATION.getName()))));
+            new AddressTagFilter(
+                new AddressTag(
+                    reputationBadgeDefinitionEvent.getKind(),
+                    reputationBadgeDefinitionEvent.getPublicKey(),
+                    reputationBadgeDefinitionEvent.getIdentifierTag()))));
   }
 
   private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {

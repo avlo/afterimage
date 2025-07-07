@@ -13,13 +13,13 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePlugin;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.service.event.type.NonPublishingEventKindTypePlugin;
-import com.prosilion.superconductor.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.service.request.NotifierService;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import java.util.List;
@@ -62,15 +62,18 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin(
       @NonNull NotifierService notifierService,
+      @NonNull EventPluginIF eventPlugin,
       @NonNull EventEntityService eventEntityService,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    return new PublishingEventKindTypePlugin(
+    return new ReputationEventKindTypePlugin(
         notifierService,
-        new ReputationEventKindTypePlugin(
-            eventEntityService,
-            aImgIdentity,
-            reputationBadgeDefinitionEvent));
+        new EventKindTypePlugin(
+            AfterimageKindType.REPUTATION,
+            eventPlugin),
+        eventEntityService,
+        aImgIdentity,
+        reputationBadgeDefinitionEvent);
   }
 
   @Bean

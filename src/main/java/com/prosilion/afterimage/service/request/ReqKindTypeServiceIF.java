@@ -6,8 +6,10 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.List;
@@ -32,6 +34,30 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
 
     String userProvidedUuid = Optional.ofNullable(userProvidedIdentifierTag.getUuid()).orElseThrow(() ->
         new InvalidTagException(userProvidedIdentifierTag.getUuid(), acceptableKindTypeStrings));
+
+    if (!acceptableKindTypeStrings.contains(userProvidedUuid)) {
+      throw new InvalidKindException(userProvidedUuid, acceptableKindTypeStrings);
+    }
+
+    return userProvidedUuid;
+  }
+
+  default String validateAddressTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
+// TODO: refactor when testing complete
+    List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();
+
+    Filterable filterable = userProvidedKindTypes.stream()
+        .flatMap(filters ->
+            filters.getFilterByType(AddressTagFilter.FILTER_KEY).stream())
+        .findFirst().orElseThrow(() ->
+            new EmptyFiltersException(
+                userProvidedKindTypes, "AddressTagFilter"));
+
+    AddressTag userProvidedAddressTag = filterable.getFilterable();
+
+    String userProvidedUuid = Optional.ofNullable(userProvidedAddressTag.getIdentifierTag()).orElseThrow(() ->
+        new InvalidTagException("AddressTag is missing an IdentifierTag UUID", acceptableKindTypeStrings))
+        .getUuid();
 
     if (!acceptableKindTypeStrings.contains(userProvidedUuid)) {
       throw new InvalidKindException(userProvidedUuid, acceptableKindTypeStrings);

@@ -14,6 +14,7 @@ import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
@@ -27,6 +28,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
+import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -50,17 +52,24 @@ public class ReputationReqMessageServiceIT {
   private final EventService eventService;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+
+  private final EventEntityService eventEntityService;
 
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventService eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull Identity afterimageInstanceIdentity) {
+      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull Identity afterimageInstanceIdentity,
+      @NonNull EventEntityService eventEntityService) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
+    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.eventEntityService = eventEntityService;
   }
 
   @Test
@@ -217,21 +226,22 @@ public class ReputationReqMessageServiceIT {
             AfterimageKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
-//    simulate vote event received from SC
     eventService.processIncomingEvent(new EventMessage(upvoteEvent));
 
 //    submit Req for above event to Aimg
+
     ReqMessage reputationReqMessage = new ReqMessage(
         Factory.generateRandomHex64String(),
         new Filters(
-            new KindFilter(
-                Kind.BADGE_AWARD_EVENT),
+            new KindFilter(Kind.BADGE_AWARD_EVENT),
             new ReferencedPublicKeyFilter(
                 new PubKeyTag(
                     upvotedUserPubKey)),
-            new IdentifierTagFilter(
-                new IdentifierTag(
-                    AfterimageKindType.REPUTATION.getName()))));
+            new AddressTagFilter(
+                new AddressTag(
+                    reputationBadgeDefinitionEvent.getKind(),
+                    reputationBadgeDefinitionEvent.getPublicKey(),
+                    reputationBadgeDefinitionEvent.getIdentifierTag()))));
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(reputationReqMessage, subscriber);
