@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.service.CommonContainer;
@@ -25,6 +24,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -90,7 +90,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
                 authorIdentity,
                 upvotedUser.getPublicKey(),
                 upvoteBadgeDefinitionEvent),
-            AfterimageKindType.UPVOTE)
+            SuperconductorKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
@@ -109,7 +109,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
                 authorIdentity,
                 upvotedUser.getPublicKey(),
                 upvoteBadgeDefinitionEvent),
-            AfterimageKindType.UPVOTE)
+            SuperconductorKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();

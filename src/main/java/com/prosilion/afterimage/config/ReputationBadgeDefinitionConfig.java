@@ -31,7 +31,7 @@ public class ReputationBadgeDefinitionConfig {
 
     eventPlugin.processIncomingEvent(
         new GenericEventKindDto(reputationBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
-    
+
     return reputationBadgeDefinitionEvent;
   }
 }

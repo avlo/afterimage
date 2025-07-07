@@ -27,6 +27,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -229,7 +230,7 @@ public class ReputationReqMessageServiceIT {
                 authorIdentity,
                 upvotedUserPubKey,
                 upvoteBadgeDefinitionEvent),
-            AfterimageKindType.UPVOTE)
+            SuperconductorKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
     eventService.processIncomingEvent(new EventMessage(upvoteEvent));

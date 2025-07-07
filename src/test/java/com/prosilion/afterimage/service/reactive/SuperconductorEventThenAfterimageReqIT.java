@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
@@ -24,6 +23,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.EventService;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -83,7 +83,7 @@ class SuperconductorEventThenAfterimageReqIT
                 authorIdentity,
                 upvotedUser.getPublicKey(),
                 upvoteBadgeDefinitionEvent),
-            AfterimageKindType.UPVOTE)
+            SuperconductorKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
     assertEquals(badgeAwardUpvoteEvent_1.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
@@ -140,7 +140,7 @@ class SuperconductorEventThenAfterimageReqIT
     final Identity authorIdentity = Identity.generateRandomIdentity();
 
     BadgeAwardUpvoteEvent textNoteEvent_1 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(textNoteEvent_1, AfterimageKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(textNoteEvent_1, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
@@ -150,7 +150,7 @@ class SuperconductorEventThenAfterimageReqIT
     log.debug("received 1of2 OkMessage...");
 
     BadgeAwardUpvoteEvent textNoteEvent_2 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF2 = new GenericEventKindTypeDto(textNoteEvent_2, AfterimageKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF2 = new GenericEventKindTypeDto(textNoteEvent_2, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 
 //    submit subscriber's second Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();

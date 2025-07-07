@@ -1,9 +1,9 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -20,6 +20,6 @@ public class DownvoteEventKindTypePlugin extends VoteEventKindTypePlugin {
   @Override
   public KindTypeIF getKindType() {
     log.debug("DownvoteEventKindTypePlugin getKindTypeIF returning AfterimageKindType.DOWNVOTE");
-    return AfterimageKindType.DOWNVOTE;
+    return SuperconductorKindType.DOWNVOTE;
   }
 }

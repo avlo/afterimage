@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.event;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.internal.Vote;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.KindTypeIF;
@@ -10,6 +9,7 @@ import com.prosilion.nostr.event.internal.AwardEvent;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.springframework.lang.NonNull;
@@ -20,7 +20,7 @@ public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
       @NonNull PublicKey upvotedUser,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NostrException, NoSuchAlgorithmException {
     super(
-        AfterimageKindType.UPVOTE,
+        SuperconductorKindType.UPVOTE,
         authorIdentity,
         getAwardEvent(
             upvotedUser,
@@ -34,7 +34,7 @@ public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull List<BaseTag> tags) throws NostrException, NoSuchAlgorithmException {
     super(
-        AfterimageKindType.UPVOTE,
+        SuperconductorKindType.UPVOTE,
         identity,
         getAwardEvent(
             upvotedUser,

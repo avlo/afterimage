@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.nostr.NostrException;
@@ -15,6 +14,7 @@ import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
 import com.prosilion.superconductor.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class EventKindTypeServiceIT {
                 voterIdentity,
                 upvotedUser,
                 upvoteBadgeDefinitionEvent),
-            AfterimageKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF());
+            SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF());
 
     List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(upvoteBadgeDefinitionEvent.getKind());
     eventsByKind.forEach(System.out::println);
@@ -75,7 +75,7 @@ class EventKindTypeServiceIT {
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, AfterimageKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, SuperconductorKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
     List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(downvoteBadgeDefinitionEvent.getKind());
