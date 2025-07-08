@@ -4,7 +4,7 @@ import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
 import com.prosilion.afterimage.service.event.plugin.DownvoteEventKindTypePlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationPublishingEventKindTypePlugin;
-import com.prosilion.afterimage.service.event.plugin.SuperConductorRelayEnlistmentNonPublishingEventKindPlugin;
+import com.prosilion.afterimage.service.event.plugin.SuperconductorFollowsListNonPublishingEventKindPlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventKindTypePlugin;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
@@ -13,12 +13,13 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.service.event.service.EventKindTypeServiceIF;
+import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePlugin;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.service.event.type.EventPluginIF;
-import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.service.request.NotifierService;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
@@ -99,12 +100,17 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  NonPublishingEventKindPlugin superConductorRelayEnlistmentNonPublishingEventKindPlugin(
+  EventKindPluginIF<Kind> superconductorFollowsListNonPublishingEventKindPlugin(
       @NonNull EventEntityService eventEntityService,
+      @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {
-    return new SuperConductorRelayEnlistmentNonPublishingEventKindPlugin(
+    return new SuperconductorFollowsListNonPublishingEventKindPlugin(
         new EventKindPlugin(
-            Kind.GROUP_MEMBERS, eventPlugin), eventEntityService, aImgIdentity);
+            Kind.RELAY_LIST_METADATA,
+            eventPlugin),
+        eventKindTypeService,
+        eventEntityService,
+        aImgIdentity);
   }
 }

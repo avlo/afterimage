@@ -56,7 +56,7 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
     AddressTag userProvidedAddressTag = filterable.getFilterable();
 
     String userProvidedUuid = Optional.ofNullable(userProvidedAddressTag.getIdentifierTag()).orElseThrow(() ->
-        new InvalidTagException("AddressTag is missing an IdentifierTag UUID", acceptableKindTypeStrings))
+            new InvalidTagException("AddressTag is missing an IdentifierTag UUID", acceptableKindTypeStrings))
         .getUuid();
 
     if (!acceptableKindTypeStrings.contains(userProvidedUuid)) {
@@ -67,13 +67,11 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
   }
 
   default void validateReferencedPubkeyTag(List<Filters> userProvidedKindTypes) throws NostrException {
-// TODO: refactor when testing complete    
     userProvidedKindTypes.stream()
         .flatMap(filters ->
             filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY).stream())
         .findFirst().orElseThrow(() ->
             new EmptyFiltersException(
                 userProvidedKindTypes, "PubKeyTag"));
-    System.out.println("good");
   }
 }

@@ -1,16 +1,16 @@
 $(function () {
-    $("#send39002").click(() => createEvent(generate39002TypeScriptEvent()));
+    $("#send10002").click(() => createEvent(generate10002TypeScriptEvent()));
     $("#send39001").click(() => createEvent(generate39001TypeScriptEvent()));
 });
 
-function generate39002TypeScriptEvent() {
+function generate10002TypeScriptEvent() {
     const tags = [
-        ['p', $("#39002-pubkey").val(), $("#superconductor_url").val(), ws]
+        ['r', $("#superconductor_url").val()]
     ];
 
     return {
         id: '',
-        kind: Number($("#39002-kind").val()),
+        kind: Number($("#10002-kind").val()),
         created_at: Math.floor(Date.now() / 1000),
         content: 'SuperConductor Follows List Event',
         tags: tags,

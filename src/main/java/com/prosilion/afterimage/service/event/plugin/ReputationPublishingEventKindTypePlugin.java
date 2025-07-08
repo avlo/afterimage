@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
+import com.prosilion.afterimage.InvalidTagException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
@@ -10,6 +11,7 @@ import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindType;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -20,6 +22,8 @@ import com.prosilion.superconductor.service.event.type.PublishingEventKindTypePl
 import com.prosilion.superconductor.service.request.NotifierService;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -42,18 +46,6 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     this.aImgIdentity = aImgIdentity;
   }
 
-  @Override
-  public Kind getKind() {
-    log.debug("ReputationEventKindTypePlugin getKind returning Kind.BADGE_AWARD_EVENT");
-    return super.getKind();
-  }
-
-  @Override
-  public KindTypeIF getKindType() {
-    log.debug("ReputationEventKindTypePlugin getKindType returning Kind.REPUTATION");
-    return super.getKindType();
-  }
-
   @SneakyThrows
   public void processIncomingEvent(@NonNull GenericEventKindIF voteEvent) {
     super.processIncomingEvent(
@@ -69,25 +61,34 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
         eventEntityService
             .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(e ->
                 eventEntityService.findByEventIdString(e.getId()))
-            .map(a -> eventEntityService.getEventById(a.orElseThrow().getId()))
-            .filter(genericEventKindIF1 -> genericEventKindIF1.getTags()
+            .map(eventEntity -> eventEntityService.getEventById(eventEntity.orElseThrow().getId()))
+            .filter(genericEventKind -> genericEventKind.getTags()
                 .stream()
                 .filter(PubKeyTag.class::isInstance)
                 .map(PubKeyTag.class::cast)
                 .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey)))
-            .map(genericEventKindIF ->
+            .filter(genericEventKind -> genericEventKind.getTags()
+                .stream()
+                .filter(AddressTag.class::isInstance)
+                .map(AddressTag.class::cast)
+                .anyMatch(addressTag ->
+                    !Optional.ofNullable(
+                            addressTag.getIdentifierTag()).orElseThrow(() ->
+                            new InvalidTagException("NULL", List.of(getKindType().getName())))
+                        .getUuid().equals(getKindType().getName())))
+            .map(genericEventKind ->
                 new GenericEventKindType(
-                    genericEventKindIF.getId(),
-                    genericEventKindIF.getPublicKey(),
-                    genericEventKindIF.getCreatedAt(),
-                    genericEventKindIF.getKind(),
-                    genericEventKindIF.getTags(),
-                    genericEventKindIF.getContent(),
-                    genericEventKindIF.getSignature(),
+                    genericEventKind.getId(),
+                    genericEventKind.getPublicKey(),
+                    genericEventKind.getCreatedAt(),
+                    genericEventKind.getKind(),
+                    genericEventKind.getTags(),
+                    genericEventKind.getContent(),
+                    genericEventKind.getSignature(),
                     getKindType())).toList().stream()
             .map(GenericEventKindTypeIF::getContent)
-            .map(BigDecimal::new)
-            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).add(new BigDecimal(event.getContent())));
+            .map(BigDecimal::new).toList().stream()
+            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO));
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
@@ -98,5 +99,17 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
             reputationBadgeDefinitionEvent,
             score),
         AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
+  }
+
+  @Override
+  public Kind getKind() {
+    log.debug("ReputationEventKindTypePlugin getKind returning Kind.BADGE_AWARD_EVENT");
+    return super.getKind();
+  }
+
+  @Override
+  public KindTypeIF getKindType() {
+    log.debug("ReputationEventKindTypePlugin getKindType returning Kind.REPUTATION");
+    return super.getKindType();
   }
 }

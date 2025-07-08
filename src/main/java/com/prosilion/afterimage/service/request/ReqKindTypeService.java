@@ -41,7 +41,8 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
 
     validateReferencedPubkeyTag(filtersList);
 
-    String uuid = validateAddressTag(filtersList, getKindTypes());
+//    String uuid = validateAddressTag(filtersList, getKindTypes());
+    String uuid = validateIdentifierTag(filtersList, getKindTypes());
 
     KindTypeIF reqKindTypePlugin = getKindTypes().stream().filter(k -> k.getName().equalsIgnoreCase(uuid)).findFirst().orElseThrow();
 

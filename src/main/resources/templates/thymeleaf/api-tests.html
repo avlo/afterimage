@@ -27,17 +27,10 @@
   <!--  <div th:if="!${authActive}" class="tabs">-->
   <div class="tabs">
     <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabone" checked="checked">
-    <label class="label" for="tabone">SC NIP-29 Kind 39002</label>
+    <label class="label" for="tabone">SC NIP-65 Kind 10002</label>
     <div class="panel">
       <div class="col-md-6">
         <form class="form-inline">
-          <div class="form-group">
-            <label for="39002-pubkey">Pubkey: </label>
-            <input tabindex="1" type="text"
-                   value="8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e"
-                   id="39002-pubkey"
-                   class="form-control" placeholder="39002-pubkey">
-          </div>
           <div class="form-group">
             <label for="superconductor_url">SuperConductor URL:</label>
             <select name="superconductor_url" id="superconductor_url">
@@ -46,13 +39,13 @@
               <option value="ws://localhost:5553">5553</option>
             </select>
           </div>
-          <input type="hidden" id="39002-kind" name="39002-kind" value=39002>
+          <input type="hidden" id="10002-kind" name="10002-kind" value=10002>
           <div class="row">
             <div class="col-md-6">
               <div class="form-inline">
                 <div class="center gap">
-                  <button id="send39002" class="btn btn-default" type="submit" disabled="disabled">
-                    Send SC Nip-29 Kind 39002 Event
+                  <button id="send10002" class="btn btn-default" type="submit" disabled="disabled">
+                    Send SC Nip-65 Kind 10002 Event
                   </button>
                 </div>
               </div>

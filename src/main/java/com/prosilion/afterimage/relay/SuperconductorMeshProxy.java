@@ -2,14 +2,12 @@ package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.service.event.type.EventPluginIF;
 import java.util.Map;
 import java.util.Optional;
