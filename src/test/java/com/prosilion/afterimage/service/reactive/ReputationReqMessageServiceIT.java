@@ -13,7 +13,6 @@ import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -157,43 +157,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(
         String.format(
-            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "AddressTagFilter"),
-        getNoticeMessage(
-            subscriber.getItems()).getMessage());
-  }
-
-  @Test
-  void testInvalidAfterImageReputationRequestMissingAddressTagFilter() throws IOException, NostrException {
-    TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
-    String invalidUuid = "invalid-uuid";
-    Filters filters = new Filters(
-        new KindFilter(Kind.BADGE_AWARD_EVENT),
-        new ReferencedPublicKeyFilter(
-            new PubKeyTag(
-                Identity.generateRandomIdentity().getPublicKey())),
-        new IdentifierTagFilter(
-            new IdentifierTag(invalidUuid)));
-
-    new Filters(
-        new KindFilter(
-            Kind.BADGE_AWARD_EVENT),
-        new ReferencedPublicKeyFilter(
-            new PubKeyTag(
-                Identity.generateRandomIdentity().getPublicKey())),
-        new AddressTagFilter(
-            new AddressTag(
-                reputationBadgeDefinitionEvent.getKind(),
-                reputationBadgeDefinitionEvent.getPublicKey(),
-                reputationBadgeDefinitionEvent.getIdentifierTag())));
-
-    afterimageMeshRelayService.send(
-        new ReqMessage(Factory.generateRandomHex64String(),
-            filters),
-        subscriber);
-
-    assertEquals(
-        String.format(
-            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "AddressTagFilter"),
+            EmptyFiltersException.FILTERS_EXCEPTION, List.of(filters), "IdentifierTag"),
         getNoticeMessage(
             subscriber.getItems()).getMessage());
   }
@@ -202,14 +166,7 @@ public class ReputationReqMessageServiceIT {
   void testValidFilters() throws IOException, NostrException {
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(
-        new ReqMessage(Factory.generateRandomHex64String(),
-            new Filters(
-                new KindFilter(Kind.BADGE_AWARD_EVENT),
-                new ReferencedPublicKeyFilter(
-                    new PubKeyTag(
-                        Identity.generateRandomIdentity().getPublicKey())),
-                new IdentifierTagFilter(
-                    new IdentifierTag(AfterimageKindType.REPUTATION.getName())))),
+        getReputationReqMessage(Identity.generateRandomIdentity().getPublicKey()),
         subscriber);
 
     assertTrue(
@@ -237,18 +194,7 @@ public class ReputationReqMessageServiceIT {
 
 //    submit Req for above event to Aimg
 
-    ReqMessage reputationReqMessage = new ReqMessage(
-        Factory.generateRandomHex64String(),
-        new Filters(
-            new KindFilter(Kind.BADGE_AWARD_EVENT),
-            new ReferencedPublicKeyFilter(
-                new PubKeyTag(
-                    upvotedUserPubKey)),
-            new AddressTagFilter(
-                new AddressTag(
-                    reputationBadgeDefinitionEvent.getKind(),
-                    reputationBadgeDefinitionEvent.getPublicKey(),
-                    reputationBadgeDefinitionEvent.getIdentifierTag()))));
+    ReqMessage reputationReqMessage = getReputationReqMessage(upvotedUserPubKey);
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(reputationReqMessage, subscriber);
@@ -264,6 +210,18 @@ public class ReputationReqMessageServiceIT {
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
     assertEquals(AfterimageKindType.REPUTATION.getName(), reputationAddressTag.getIdentifierTag().getUuid());
+  }
+
+  private @NotNull ReqMessage getReputationReqMessage(PublicKey upvotedUserPubKey) {
+    return new ReqMessage(
+        Factory.generateRandomHex64String(),
+        new Filters(
+            new KindFilter(Kind.BADGE_AWARD_EVENT),
+            new ReferencedPublicKeyFilter(
+                new PubKeyTag(
+                    upvotedUserPubKey)),
+            new IdentifierTagFilter(
+                reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
   private static NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {

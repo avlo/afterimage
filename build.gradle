@@ -98,6 +98,9 @@ test {
     filter {
         excludeTestsMatching("*IT");
     }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.register('integrationTest', Test) {
@@ -115,6 +118,9 @@ integrationTest {
     retry {
         failOnPassedAfterRetry = false
         maxRetries = 1
+    }
+    testLogging {
+        showStandardStreams = true
     }
 //    setTimeout(Duration.ofSeconds(6000))
 }
