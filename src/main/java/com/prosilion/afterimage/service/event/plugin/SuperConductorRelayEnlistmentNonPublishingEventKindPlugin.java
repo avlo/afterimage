@@ -54,7 +54,6 @@ public class SuperConductorRelayEnlistmentNonPublishingEventKindPlugin extends N
 //    new SuperconductorMeshProxy<>(superconductorRelays, this.voteEventTypePlugin).setUpReputationReqFlux();
 //  }
 
-
   @SneakyThrows
   @Override
   public void processIncomingEvent(GenericEventKindIF afterimageRelaysEvent) {

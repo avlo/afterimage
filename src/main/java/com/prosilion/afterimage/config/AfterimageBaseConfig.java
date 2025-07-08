@@ -3,7 +3,7 @@ package com.prosilion.afterimage.config;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
 import com.prosilion.afterimage.service.event.plugin.DownvoteEventKindTypePlugin;
-import com.prosilion.afterimage.service.event.plugin.ReputationEventKindTypePlugin;
+import com.prosilion.afterimage.service.event.plugin.ReputationPublishingEventKindTypePlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperConductorRelayEnlistmentNonPublishingEventKindPlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventKindTypePlugin;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
@@ -19,7 +19,7 @@ import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.service.event.type.NonPublishingEventKindTypePlugin;
+import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.service.request.NotifierService;
 import com.prosilion.superconductor.service.request.ReqServiceIF;
 import java.util.List;
@@ -66,7 +66,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull EventEntityService eventEntityService,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    return new ReputationEventKindTypePlugin(
+    return new ReputationPublishingEventKindTypePlugin(
         notifierService,
         new EventKindTypePlugin(
             AfterimageKindType.REPUTATION,
@@ -78,18 +78,24 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   EventKindTypePluginIF<KindTypeIF> upvoteEventKindTypePlugin(
-      @NonNull EventEntityService eventEntityService,
+      @NonNull EventPluginIF eventPlugin,
       @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
-    return new NonPublishingEventKindTypePlugin(
-        new UpvoteEventKindTypePlugin(eventEntityService, reputationEventKindTypePlugin));
+    return new UpvoteEventKindTypePlugin(
+        new EventKindTypePlugin(
+            SuperconductorKindType.UPVOTE,
+            eventPlugin),
+        reputationEventKindTypePlugin);
   }
 
   @Bean
   EventKindTypePluginIF<KindTypeIF> downvoteEventKindTypePlugin(
-      @NonNull EventEntityService eventEntityService,
+      @NonNull EventPluginIF eventPlugin,
       @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
-    return new NonPublishingEventKindTypePlugin(
-        new DownvoteEventKindTypePlugin(eventEntityService, reputationEventKindTypePlugin));
+    return new DownvoteEventKindTypePlugin(
+        new EventKindTypePlugin(
+            SuperconductorKindType.DOWNVOTE,
+            eventPlugin),
+        reputationEventKindTypePlugin);
   }
 
   @Bean

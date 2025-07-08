@@ -4,7 +4,6 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.service.event.type.EventEntityService;
 import com.prosilion.superconductor.service.event.type.NonPublishingEventKindTypePlugin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -12,14 +11,12 @@ import org.springframework.lang.NonNull;
 @Slf4j
 // our SportsCar extends CarDecorator
 public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindTypePlugin {
-  private final EventEntityService eventEntityService;
   private final EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin;
 
   public VoteEventKindTypePlugin(
-      @NonNull EventEntityService eventEntityService,
+      @NonNull EventKindTypePluginIF<KindTypeIF> eventKindTypePlugin,
       @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
-    super(reputationEventKindTypePlugin);
-    this.eventEntityService = eventEntityService;
+    super(eventKindTypePlugin);
     this.reputationEventKindTypePlugin = reputationEventKindTypePlugin;
   }
 
@@ -27,7 +24,7 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
   public void processIncomingEvent(@NonNull GenericEventKindIF voteEvent) {
     log.debug("VoteEventKindTypePlugin processing incoming VOTE EVENT: [{}]", voteEvent);
 //    saves VOTE event without triggering subscriber listener
-    eventEntityService.saveEventEntity(voteEvent);
+    super.processIncomingEvent(voteEvent);
     log.debug("vote saved to db, send vote off to reputationEventKindTypePlugin for rep calculation");
     reputationEventKindTypePlugin.processIncomingEvent(voteEvent);
   }

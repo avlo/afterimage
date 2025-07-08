@@ -74,5 +74,6 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
         .findFirst().orElseThrow(() ->
             new EmptyFiltersException(
                 userProvidedKindTypes, "PubKeyTag"));
+    System.out.println("good");
   }
 }

@@ -57,13 +57,16 @@ class EventKindTypeServiceIT {
     Identity voterIdentity = Identity.generateRandomIdentity();
     PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
-    eventKindTypeService.processIncomingEvent(
-        new GenericEventKindTypeDto(
-            new BadgeAwardUpvoteEvent(
-                voterIdentity,
-                upvotedUser,
-                upvoteBadgeDefinitionEvent),
-            SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF());
+    BadgeAwardUpvoteEvent event1 = new BadgeAwardUpvoteEvent(
+        voterIdentity,
+        upvotedUser,
+        upvoteBadgeDefinitionEvent);
+
+    GenericEventKindTypeDto genericEventKindTypeDto = new GenericEventKindTypeDto(event1, SuperconductorKindType.UPVOTE);
+    
+    GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
+    
+    eventKindTypeService.processIncomingEvent(event);
 
     List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(upvoteBadgeDefinitionEvent.getKind());
     eventsByKind.forEach(System.out::println);

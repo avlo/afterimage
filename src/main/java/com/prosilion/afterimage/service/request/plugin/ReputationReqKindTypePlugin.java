@@ -8,7 +8,6 @@ import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
-import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
   public static final String REF_PUBKEY_FILTER_KEY = ReferencedPublicKeyFilter.FILTER_KEY;
-  public static final String IDENTIFIER_TAG_FILTER_KEY = IdentifierTagFilter.FILTER_KEY;
   public static final String ADDRESS_TAG_FILTER_KEY = AddressTagFilter.FILTER_KEY;
 
   @Autowired
@@ -35,7 +33,6 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-// TODO: refactor when testing complete    
     ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
         .map(filters ->
             filters.getFilterByType(REF_PUBKEY_FILTER_KEY))
