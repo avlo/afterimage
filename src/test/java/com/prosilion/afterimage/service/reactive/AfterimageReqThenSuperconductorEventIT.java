@@ -12,13 +12,12 @@ import com.prosilion.nostr.event.GenericEventKindIF;
 import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -28,7 +27,6 @@ import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +58,8 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
 //    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
-//    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
-    log.debug("SuperconductorEventThenAfterimageReqIT hash: {}", superconductorRelayUri.hashCode());
+//    log.debug("AfterimageReqThenSuperconductorEventIT host: {}", serviceHost);
+    log.debug("AfterimageReqThenSuperconductorEventIT hash: {}", superconductorRelayUri.hashCode());
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
@@ -129,6 +127,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     superconductorRelayReactiveClient.send(
         createSuperconductorReqMessage(subscriberId_2, upvotedUser.getPublicKey()), superConductorEventsSubscriber);
 
+
     List<BaseMessage> returnedSuperconductorBaseMessages = superConductorEventsSubscriber.getItems();
     List<GenericEventKindIF> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
 
@@ -143,10 +142,10 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     returnedSuperconductorEvents.forEach(gev ->
         eventService.processIncomingEvent(new EventMessage(gev)));
 
-    TimeUnit.SECONDS.sleep(2);
 
     // # --------------------- Aimg EVENTS returned -------------------
     List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber_A.getItems();
+
     List<GenericEventKindIF> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
     log.debug("afterimage returned events:");
     afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
@@ -156,10 +155,11 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
         .map(PubKeyTag.class::cast)
         .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(upvotedUser.getPublicKey())))
     );
-    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
+
+    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("1")));
   }
 
-  private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  synchronized private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
     return new ReqMessage(
         subscriberId,
         new Filters(
@@ -168,14 +168,11 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
             new ReferencedPublicKeyFilter(
                 new PubKeyTag(
                     upvotedUserPublicKey)),
-            new AddressTagFilter(
-                new AddressTag(
-                    reputationBadgeDefinitionEvent.getKind(),
-                    reputationBadgeDefinitionEvent.getPublicKey(),
-                    reputationBadgeDefinitionEvent.getIdentifierTag()))));
+            new IdentifierTagFilter(
+                reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  synchronized private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
     return new ReqMessage(subscriberId,
         new Filters(
             new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),
