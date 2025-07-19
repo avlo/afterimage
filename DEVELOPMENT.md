@@ -83,7 +83,9 @@ and / or
 }
 ```
 
-and where Badge Award ([Kind: 8, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) event IdentifierTag exists with (as either UPVOTE / DOWNVOTE) format as follows:
+###### _(see [SuperConductor nostr-relay](https://github.com/avlo/superconductor) for a working implementation)_
+
+and where Badge Award ([Kind: 8, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) event IdentifierTag exists with (as either [UPVOTE / DOWNVOTE](https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13-L14)) format as follows:
 
 ```java
 {
@@ -111,8 +113,9 @@ and / or
   ...
 }     
 ```
+For AfterImage to then generate [reputation events](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java).
 
-See [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) for further details.
+See [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) integration test for additional / implementation details and examples.
 
 ----
 
