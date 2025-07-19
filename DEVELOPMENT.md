@@ -113,7 +113,7 @@ and / or
   ...
 }     
 ```
-For AfterImage to then generate [reputation events](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java).
+For AfterImage to then generate [reputation events](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java#L13).
 
 See [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) integration test for additional / implementation details and examples.
 
