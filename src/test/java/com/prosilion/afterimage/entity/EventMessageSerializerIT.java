@@ -9,7 +9,7 @@ import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.user.Signature;
-import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
+import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;

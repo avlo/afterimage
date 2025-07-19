@@ -13,11 +13,11 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.dto.GenericEventKindDto;
-import com.prosilion.superconductor.service.event.service.EventKindTypeServiceIF;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.service.event.type.EventEntityService;
-import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.base.service.event.CacheIF;
+import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +32,16 @@ import org.springframework.lang.NonNull;
 @Slf4j
 public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPublishingEventKindPlugin {
   private final EventKindTypeServiceIF eventKindTypeService;
-  private final EventEntityService eventEntityService;
+  private final CacheIF cacheIF;
   private final Identity aImgIdentity;
 
   public SuperconductorFollowsListNonPublishingEventKindPlugin(
       @NonNull EventKindPluginIF<Kind> eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
-      @NonNull EventEntityService eventEntityService,
+      @NonNull CacheIF cacheIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.eventEntityService = eventEntityService;
+    this.cacheIF = cacheIF;
     this.eventKindTypeService = eventKindTypeService;
     this.aImgIdentity = aImgIdentity;
   }
@@ -73,7 +73,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
             URI::toString)
         .collect(Collectors.toSet());
 
-    Set<String> savedRelays = eventEntityService.getEventsByKind(getKind())
+    Set<String> savedRelays = cacheIF.getEventsByKind(getKind())
         .stream()
         .map(e ->
             e.getTags()
@@ -117,7 +117,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
     log.debug("SuperConductorRelayEnlistmentEventTypePlugin processing incoming Kind.RELAY_LIST_METADATA 10002 event");
     return new MetadataEvent(
         identity,
-        uniqueNewSuperconductorRelays.stream().map(ref -> new ReferenceTag(URI.create(ref))).toList(),
+        uniqueNewSuperconductorRelays.stream().map(ReferenceTag::new).toList(),
         "Kind.RELAY_LIST_METADATA");
   }
 

@@ -13,16 +13,16 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.service.event.service.EventKindTypeServiceIF;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePlugin;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.service.event.type.EventEntityService;
-import com.prosilion.superconductor.service.event.type.EventKindPlugin;
-import com.prosilion.superconductor.service.event.type.EventPluginIF;
-import com.prosilion.superconductor.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.service.request.NotifierService;
-import com.prosilion.superconductor.service.request.ReqServiceIF;
+import com.prosilion.superconductor.base.service.event.CacheIF;
+import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
+import com.prosilion.superconductor.base.service.event.type.EventKindPlugin;
+import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
+import com.prosilion.superconductor.base.service.request.NotifierService;
+import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +64,7 @@ public abstract class AfterimageBaseConfig {
   EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventEntityService eventEntityService,
+      @NonNull CacheIF cacheIF,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
     return new ReputationPublishingEventKindTypePlugin(
@@ -72,7 +72,7 @@ public abstract class AfterimageBaseConfig {
         new EventKindTypePlugin(
             AfterimageKindType.REPUTATION,
             eventPlugin),
-        eventEntityService,
+        cacheIF,
         aImgIdentity,
         reputationBadgeDefinitionEvent);
   }
@@ -101,7 +101,7 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   EventKindPluginIF<Kind> superconductorFollowsListNonPublishingEventKindPlugin(
-      @NonNull EventEntityService eventEntityService,
+      @NonNull CacheIF cacheIF,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {
@@ -110,7 +110,7 @@ public abstract class AfterimageBaseConfig {
             Kind.RELAY_LIST_METADATA,
             eventPlugin),
         eventKindTypeService,
-        eventEntityService,
+        cacheIF,
         aImgIdentity);
   }
 }

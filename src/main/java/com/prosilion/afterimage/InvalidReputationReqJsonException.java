@@ -2,7 +2,6 @@ package com.prosilion.afterimage;
 
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.superconductor.util.EmptyFiltersException;
 import java.util.Arrays;
 import java.util.List;
 

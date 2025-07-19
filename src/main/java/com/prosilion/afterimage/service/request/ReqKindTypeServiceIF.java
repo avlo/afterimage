@@ -11,7 +11,7 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.superconductor.util.EmptyFiltersException;
+import com.prosilion.superconductor.base.util.EmptyFiltersException;
 import java.util.List;
 import java.util.Optional;
 

@@ -8,7 +8,7 @@ import com.prosilion.nostr.filter.AbstractFilterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.superconductor.service.request.ReqServiceIF;
+import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.lang.NonNull;

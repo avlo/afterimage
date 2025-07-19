@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.superconductor.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service;
 
-import com.prosilion.superconductor.service.message.RelayInfoDocServiceIF;
+import com.prosilion.superconductor.base.service.message.RelayInfoDocServiceIF;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

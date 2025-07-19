@@ -7,7 +7,6 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.PublicKey;
-import java.net.URI;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.lang.NonNull;
@@ -24,7 +23,7 @@ public class Reputation {
         Kind.BADGE_DEFINITION_EVENT,
         reputationBadgeDefinitionEvent.getPublicKey(),
         reputationBadgeDefinitionEvent.getIdentifierTag(),
-        new Relay(URI.create(reputationBadgeDefinitionEvent.getReferenceTag().getUri().toString())));
+        new Relay(reputationBadgeDefinitionEvent.getReferenceTag().getUri().toString()));
 
     awardEvent = new AwardEvent(addressTag, new PubKeyTag(upvotedUser));
   }

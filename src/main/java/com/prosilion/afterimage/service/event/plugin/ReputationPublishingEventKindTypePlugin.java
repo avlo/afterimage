@@ -15,11 +15,11 @@ import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
-import com.prosilion.superconductor.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.service.event.type.EventEntityService;
-import com.prosilion.superconductor.service.event.type.PublishingEventKindTypePlugin;
-import com.prosilion.superconductor.service.request.NotifierService;
+import com.prosilion.superconductor.base.service.event.CacheIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
+import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
+import com.prosilion.superconductor.base.service.request.NotifierService;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -30,18 +30,18 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationPublishingEventKindTypePlugin extends PublishingEventKindTypePlugin {
-  private final EventEntityService eventEntityService;
+  private final CacheIF cacheIF;
   private final Identity aImgIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   public ReputationPublishingEventKindTypePlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindTypePluginIF<KindTypeIF> eventKindTypePlugin,
-      @NonNull EventEntityService eventEntityService,
+      @NonNull CacheIF cacheIF,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
     super(notifierService, eventKindTypePlugin);
-    this.eventEntityService = eventEntityService;
+    this.cacheIF = cacheIF;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.aImgIdentity = aImgIdentity;
   }
@@ -58,16 +58,15 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
 
     return createReputationEvent(
         badgeReceiverPubkey,
-        eventEntityService
+        cacheIF
             .getEventsByKind(Kind.BADGE_AWARD_EVENT).stream().map(e ->
-                eventEntityService.findByEventIdString(e.getId()))
-            .map(eventEntity -> eventEntityService.getEventById(eventEntity.orElseThrow().getId()))
-            .filter(genericEventKind -> genericEventKind.getTags()
+                cacheIF.getByEventIdString(e.getId()))
+            .filter(genericEventKind -> genericEventKind.orElseThrow().getTags()
                 .stream()
                 .filter(PubKeyTag.class::isInstance)
                 .map(PubKeyTag.class::cast)
                 .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey)))
-            .filter(genericEventKind -> genericEventKind.getTags()
+            .filter(genericEventKind -> genericEventKind.orElseThrow().getTags()
                 .stream()
                 .filter(AddressTag.class::isInstance)
                 .map(AddressTag.class::cast)
@@ -78,13 +77,13 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
                         .getUuid().equals(getKindType().getName())))
             .map(genericEventKind ->
                 new GenericEventKindType(
-                    genericEventKind.getId(),
-                    genericEventKind.getPublicKey(),
-                    genericEventKind.getCreatedAt(),
-                    genericEventKind.getKind(),
-                    genericEventKind.getTags(),
-                    genericEventKind.getContent(),
-                    genericEventKind.getSignature(),
+                    genericEventKind.orElseThrow().getId(),
+                    genericEventKind.orElseThrow().getPublicKey(),
+                    genericEventKind.orElseThrow().getCreatedAt(),
+                    genericEventKind.orElseThrow().getKind(),
+                    genericEventKind.orElseThrow().getTags(),
+                    genericEventKind.orElseThrow().getContent(),
+                    genericEventKind.orElseThrow().getSignature(),
                     getKindType())).toList().stream()
             .map(GenericEventKindTypeIF::getContent)
             .map(BigDecimal::new).toList().stream()

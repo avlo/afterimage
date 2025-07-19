@@ -8,9 +8,9 @@
 //import com.prosilion.nostr.filter.event.KindFilter;
 //import com.prosilion.nostr.tag.IdentifierTag;
 //import com.prosilion.nostr.tag.PubKeyTag;
-//import com.prosilion.superconductor.service.event.service.plugin.EventKindPluginIF;
-//import com.prosilion.superconductor.service.event.type.EventEntityService;
-//import com.prosilion.superconductor.service.event.type.NonPublishingEventKindPlugin;
+//import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+//import com.prosilion.superconductor.base.service.event.type.EventEntityService;
+//import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
 //import java.util.List;
 //import java.util.Map;
 //import java.util.stream.Collectors;

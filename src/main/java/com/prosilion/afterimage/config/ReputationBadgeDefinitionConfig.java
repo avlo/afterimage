@@ -5,9 +5,8 @@ import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.dto.GenericEventKindDto;
-import com.prosilion.superconductor.service.event.type.EventPluginIF;
-import java.net.URI;
+import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +25,7 @@ public class ReputationBadgeDefinitionConfig {
     BadgeDefinitionEvent reputationBadgeDefinitionEvent = new BadgeDefinitionEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(AfterimageKindType.REPUTATION.getName()),
-        new ReferenceTag(URI.create(afterimageRelayUrl)),
+        new ReferenceTag(afterimageRelayUrl),
         "afterimage reputation definition f(x)");
 
     eventPlugin.processIncomingEvent(

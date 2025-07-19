@@ -8,7 +8,7 @@ import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
