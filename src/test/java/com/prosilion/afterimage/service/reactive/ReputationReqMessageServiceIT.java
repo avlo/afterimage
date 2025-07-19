@@ -24,10 +24,10 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
-import com.prosilion.superconductor.base.service.event.EventService;
+import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.util.EmptyFiltersException;
+import com.prosilion.superconductor.base.util.EmptyFiltersException;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -48,14 +48,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 public class ReputationReqMessageServiceIT {
   private final AfterimageMeshRelayService afterimageMeshRelayService;
-  private final EventService eventService;
+  private final EventServiceIF eventService;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
   public ReputationReqMessageServiceIT(
-      @NonNull EventService eventService,
+      @NonNull EventServiceIF eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,

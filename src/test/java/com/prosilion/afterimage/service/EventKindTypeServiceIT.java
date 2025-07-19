@@ -9,12 +9,12 @@ import com.prosilion.nostr.event.GenericEventKindTypeIF;
 import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.GenericEventKindDto;
-import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.base.service.event.CacheIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
-import com.prosilion.superconductor.base.service.event.type.EventEntityService;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class EventKindTypeServiceIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final BadgeDefinitionEvent downvoteBadgeDefinitionEvent;
 
-  private final EventEntityService eventEntityService;
+  private final CacheIF cacheIF;
 
   @Autowired
   public EventKindTypeServiceIT(
@@ -41,12 +41,12 @@ class EventKindTypeServiceIT {
       EventKindTypeServiceIF eventKindTypeService,
       BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
-      EventEntityService eventEntityService) {
+      CacheIF cacheIF) {
     this.eventKindService = eventKindService;
     this.eventKindTypeService = eventKindTypeService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.downvoteBadgeDefinitionEvent = downvoteBadgeDefinitionEvent;
-    this.eventEntityService = eventEntityService;
+    this.cacheIF = cacheIF;
 
     log.info("EventKindTypeServiceIT initialized, EventKindServiceIF services: {}", this.eventKindService.getClass().getName());
     log.info("EventKindTypeServiceIT initialized, EventKindTypeServiceIF services: {}", this.eventKindTypeService.getClass().getName());
@@ -63,12 +63,12 @@ class EventKindTypeServiceIT {
         upvoteBadgeDefinitionEvent);
 
     GenericEventKindTypeDto genericEventKindTypeDto = new GenericEventKindTypeDto(event1, SuperconductorKindType.UPVOTE);
-    
+
     GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
-    
+
     eventKindTypeService.processIncomingEvent(event);
 
-    List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(upvoteBadgeDefinitionEvent.getKind());
+    List<GenericEventKindIF> eventsByKind = cacheIF.getEventsByKind(upvoteBadgeDefinitionEvent.getKind());
     eventsByKind.forEach(System.out::println);
   }
 
@@ -81,7 +81,7 @@ class EventKindTypeServiceIT {
     GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, SuperconductorKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
-    List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(downvoteBadgeDefinitionEvent.getKind());
+    List<GenericEventKindIF> eventsByKind = cacheIF.getEventsByKind(downvoteBadgeDefinitionEvent.getKind());
     eventsByKind.forEach(System.out::println);
   }
 
@@ -92,7 +92,7 @@ class EventKindTypeServiceIT {
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
     eventKindService.processIncomingEvent(new GenericEventKindDto(textNoteEvent).convertBaseEventToGenericEventKindIF());
 
-    List<GenericEventKindIF> eventsByKind = eventEntityService.getEventsByKind(textNoteEvent.getKind());
+    List<GenericEventKindIF> eventsByKind = cacheIF.getEventsByKind(textNoteEvent.getKind());
     eventsByKind.forEach(System.out::println);
   }
 }

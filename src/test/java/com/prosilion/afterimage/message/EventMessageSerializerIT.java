@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.entity;
+package com.prosilion.afterimage.message;
 
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.codec.IDecoder;

@@ -7,7 +7,7 @@ import com.prosilion.nostr.event.TextNoteEvent;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.dto.GenericEventKindDto;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;

@@ -21,9 +21,9 @@ import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
-import com.prosilion.superconductor.base.service.event.EventService;
+import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -46,13 +46,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
-  private final EventService eventService;
+  private final EventServiceIF eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
   AfterimageReqThenSuperconductorEventIT(
-      @NonNull EventService eventService,
+      @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,

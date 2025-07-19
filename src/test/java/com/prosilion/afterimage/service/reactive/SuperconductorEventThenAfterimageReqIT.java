@@ -20,9 +20,9 @@ import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.dto.GenericEventKindTypeDto;
-import com.prosilion.superconductor.base.service.event.EventService;
+import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
+import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -50,14 +50,14 @@ class SuperconductorEventThenAfterimageReqIT
 {
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
-  private final EventService eventService;
+  private final EventServiceIF eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final PublicKey afterimageInstancePublicKey;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
   SuperconductorEventThenAfterimageReqIT(
-      @NonNull EventService eventService,
+      @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
