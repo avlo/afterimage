@@ -8,7 +8,7 @@
    _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
                                                                        _//
 ```
-# AfterImage Nostr-Reputation Authority
+# AfterImage Nostr-Reputation Relay
 
 ----
 
