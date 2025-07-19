@@ -45,17 +45,7 @@
 
 ----
 
-### Build Superconductor
-#### Build and install nostr-java-core dependency library
-
-    $ cd <your_git_home_dir>
-    $ git clone git@github.com:avlo/nostr-java-core.git
-    $ cd nostr-java-core
-    $ git checkout develop
-    $ mvn clean install
-
-#### Build and install AfterImage
-
+### Build AfterImage
     $ cd <your_git_home_dir>
     $ git clone https://github.com/avlo/afterimage
     $ cd afterimage
@@ -63,35 +53,66 @@
 
 ----
 
-### JUnit / SpringBootTest Superconductor
-##### Two test modes, configurable via [appication-test.properties](src/test/resources/application-test.properties) file
-#### 1. Non-Secure (WS) tests mode
+### JUnit / SpringBootTest AfterImage
+
+AfterImage integration tests require an active nostr-relay connection (configurable via [appication-test.properties](src/test/resources/application-test.properties) file) from which Badge Definitions ([Kind: 3009, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) exist, as follows:  
+
+```java
+{
+  ...
+  "pubkey": "<BADGE_DEFINITION_SOURCE-PUBKEY>",
+  "kind": 30009,
+  "tags": [
+    ["d","UPVOTE"],
+    ...
+  ],
+  "content": "+1"
+}
 ```
-# ws autoconfigure
-# security test (ws) disabled ('false') by default.
-server.ssl.enabled=false                                           <--------  "false" for ws/non-secure
-# ...
-afterimage.relay.url=ws://localhost:5556                       <--------  "ws" protocol for ws/non-secure 
+and / or
+```java
+{
+  ...
+  "pubkey": "<BADGE_DEFINITION_SOURCE-PUBKEY>",
+  "kind": 30009,
+  "tags": [
+    ["d","DOWNVOTE"],
+    ...
+  ],
+  "content": "-1"
+}
 ```
 
-##### 2. Secure (WSS/TLS) tests mode
+and where Badge Award ([Kind: 8, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) event IdentifierTag exists with (as either UPVOTE / DOWNVOTE) format as follows:
+
+```java
+{
+  ...
+  "kind": 8,
+  "pubkey": "AUTHOR_PUBKEY",
+  "tags": [
+    ["a", "30009:BADGE_DEFINITION_SOURCE-PUBKEY:UPVOTE", "ws://vote-occurence-relay-uri"],
+    ["p", "VOTE_RECIPIENT_PUBKEY"]
+  ]
+  ...
+}     
 ```
-# wss autoconfigure
-# to enable secure tests (wss), change below value to 'true' and...
-server.ssl.enabled=true                                            <--------  "true" for wss/secure
-# ...also for secure (wss), change below value to 'wss'...
-afterimage.relay.url=wss://localhost:5556                      <--------  "wss" protocol for wss/secure 
+
+and / or
+```java
+{
+  ...
+  "kind": 8,
+  "pubkey": "AUTHOR_PUBKEY",
+  "tags": [
+    ["a", "30009:BADGE_DEFINITION_SOURCE-PUBKEY:DOWNVOTE", "ws://vote-occurence-relay-uri"],
+    ["p", "VOTE_RECIPIENT_PUBKEY"]
+  ]
+  ...
+}     
 ```
 
-----
-
-#### Configure AfterImage run-time security, 3 options:
-
-| SecurityLevel | Specification                                                        | Details                                                                                                                                                                                                                                                                                                                                                                                 |
-|---------------|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Highest       | SSL Certificate WSS/HTTPS<br>(industry standard secure encrypted)    | 1. [Obtain](https://www.websitebuilderexpert.com/building-websites/how-to-get-an-ssl-certificate/) an SSL certificate.<br>2. [Install](https://www.baeldung.com/java-import-cer-certificate-into-keystore) the certificate<br>3. Enable [SSL configuration options](src/main/resources/application-local_wss.properties?plain=1#L6,8,L11-L15) in application-local_wss/dev_wss.properties file. |
-| Medium        | Self-Signed Certificate WSS/HTTPS (locally created secure encrypted) | 1. Create a [Self-Signed Certificate](https://www.baeldung.com/openssl-self-signed-cert).<br>2. [Install](https://www.baeldung.com/java-import-cer-certificate-into-keystore) the certificate<br>3. Enable [SSL configuration options](src/main/resources/application-local_wss.properties?plain=1#L6,8,L11-L15) in application-local_wss/dev_wss.properties file.                      |
-| None/Default  | WS/HTTP<br>non-secure / non-encrypted                                | Security-related configuration(s) not required                                                                                                                                                                                                                                                                                                                                          |  
+See [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) for further details.
 
 ----
 
