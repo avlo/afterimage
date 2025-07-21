@@ -55,12 +55,16 @@
 
 ### JUnit / SpringBootTest AfterImage
 
-AfterImage integration tests require an active nostr-relay connection (configurable via [appication-test.properties](src/test/resources/application-test.properties) file) from which Badge Definitions ([Kind: 3009, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) exist, as follows:  
+AfterImage integration tests require an active nostr-relay connection (configurable via [appication-test.properties](src/test/resources/application-test.properties) file) with the following two (2) requirements:
+
+1 / 2 : [ NIP-58 Badge Definition Event(s)](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) exist, as follows
+
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Definition UPVOTE</a></summary>
 
 ```java
 {
   ...
-  "pubkey": "<BADGE_DEFINITION_SOURCE-PUBKEY>",
+  "pubkey": "<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>",
   "kind": 30009,
   "tags": [
     ["d","UPVOTE"],
@@ -69,53 +73,60 @@ AfterImage integration tests require an active nostr-relay connection (configura
   "content": "+1"
 }
 ```
-and / or
+</details>
+
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L14">Badge Definition DOWNVOTE</a></summary>
+
 ```java
 {
   ...
-  "pubkey": "<BADGE_DEFINITION_SOURCE-PUBKEY>",
+  "pubkey": "<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>",
   "kind": 30009,
   "tags": [
     ["d","DOWNVOTE"],
     ...
   ],
-  "content": "-1"
+  "content": "+1"
 }
 ```
+</details>
 
-###### _(see [SuperConductor nostr-relay](https://github.com/avlo/superconductor) for a working implementation)_
+2 / 2 : [ NIP-58 Badge Award Event(s)](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) exist- with IdentifierTag- as follows:
 
-and where Badge Award ([Kind: 8, NIP-58](https://github.com/nostr-protocol/nips/blob/master/README.md#event-kinds)) event IdentifierTag exists with (as either [UPVOTE / DOWNVOTE](https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13-L14)) format as follows:
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award UPVOTE</a></summary>
 
 ```java
 {
   ...
   "kind": 8,
-  "pubkey": "AUTHOR_PUBKEY",
+  "pubkey": "<AUTHOR_PUBKEY>",
   "tags": [
-    ["a", "30009:BADGE_DEFINITION_SOURCE-PUBKEY:UPVOTE", "ws://vote-occurence-relay-uri"],
-    ["p", "VOTE_RECIPIENT_PUBKEY"]
+    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:UPVOTE"],
+    ["p", "<VOTE_RECIPIENT_PUBKEY>"]
   ]
   ...
 }     
 ```
+</details>
 
-and / or
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award DOWNVOTE</a></summary>
+
 ```java
 {
   ...
   "kind": 8,
-  "pubkey": "AUTHOR_PUBKEY",
+  "pubkey": "<AUTHOR_PUBKEY>",
   "tags": [
-    ["a", "30009:BADGE_DEFINITION_SOURCE-PUBKEY:DOWNVOTE", "ws://vote-occurence-relay-uri"],
-    ["p", "VOTE_RECIPIENT_PUBKEY"]
+    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:DOWNVOTE"],
+    ["p", "<VOTE_RECIPIENT_PUBKEY>"]
   ]
   ...
 }     
 ```
-For AfterImage to then generate [reputation events](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java#L13).
+</details>
 
-See [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) integration test for additional / implementation details and examples.
+###### _see [SuperConductor nostr-relay](https://github.com/avlo/superconductor) for a compatible relay / reference implementation._
+###### _see [AfterimageReqThenSuperconductorEventIT](src/test/java/com/prosilion/afterimage/service/reactive/AfterimageReqThenSuperconductorEventIT.java) for  integration test examples containing implementation details / code samples._
 
 ----
 
@@ -257,50 +268,39 @@ run with docker logging displayed to console:
 
     localhost:5556/h2-console/
 
-*user: sa*  
-*password: // blank*
+*user: h2dbuser  
+*password: h2dbuserpass
 
 Display all framework table contents (case-sensitive quoted fields/tables when querying):
 
-    select id, pub_key, session_id, challenge from auth;
-    select id, concat(left(event_id_string,10), '...') as event_id_string, kind, nip, created_at, concat(left(pub_key,10), '...') as pub_key, content from event;
+    --select id, pub_key, session_id, challenge from auth;
+    select id, event_id_string, kind, created_at, pub_key, content, concat(left(signature,20), '...') as signature from event;
     select id, event_id, event_tag_id from "event-event_tag-join";
     select id, event_id_string, recommended_relay_url, marker from event_tag;
     select id, event_id, pubkey_id from "event-pubkey_tag-join";
-    select id, event_id from deletion_event;
-    select id, concat(left(public_key,10), '...') as public_key, main_relay_url, pet_name from pubkey_tag;
+    select id, public_key, main_relay_url, pet_name from pubkey_tag;
+    select id, event_id, identifier_tag_id from "event-identifier_tag-join";
+    select id, uuid from identifier_tag;
+    select id, event_id, address_tag_id from "event-address_tag-join";
+    select id, kind, pub_key, uuid, relay_uri, code from address_tag;
+    select id, event_id, reference_tag_id from "event-reference_tag-join";
+    select id, uri from reference_tag;
     select id, event_id, subject_tag_id from "event-subject_tag-join";
     select id, subject from subject_tag;
-    select id, hashtag_tag from hashtag_tag;
-    select id, location from geohash_tag;
-    select id, identifier from identifier_tag;
-    select id, event_id, geohash_tag_id from "event-geohash_tag-join";
     select id, event_id, hash_tag_id from "event-hashtag_tag-join";
-    select id, event_id, generic_tag_id from "event-generic_tag-join";
-    select id, event_id, identifier_tag_id from "event-identifier_tag-join";
+    select id, hashtag_tag from hashtag_tag;
+    select id, event_id, geohash_tag_id from "event-geohash_tag-join";
+    select id, location from geohash_tag;
+    select id, event_id, generic_tag_id  FROM "event-generic_tag-join";
     select id, code from generic_tag;
     select id, generic_tag_id, element_attribute_id from "generic_tag-element_attribute-join";
     select id, name, "value" from element_attribute;
     select id, event_id, price_tag_id from "event-price_tag-join";
-    select id, uri from relays_tag;
-    select id, event_id, relays_id from "event-relays_tag-join";
     select id, number, currency, frequency from price_tag;
+    select id, event_id from deletion_event;
 
 ##### (Optional Use) bundled web-client URLs for convenience/dev-testing/etc
 
 http://localhost:5556/api-tests.html <sup>_(nostr **events** web-client)_</sup>
 
 http://localhost:5556/request-test.html <sup>_(nostr **request** web-client)_</sup>
-<br>
-<hr style="border:2px solid grey">
-
-### Adding new/custom events to AfterImage
-
-For Nostr clients generating canonical Nostr JSON (as defined in [NIP01 spec: Basic protocol flow description, Events, Signatures and Tags](https://nostr-nips.com/nip-01)), AfterImage will automatically recognize those JSON events- including their database storage, retrieval and subscriber notification.  No additional work or customization is necessary.
-<br>
-<hr style="border:2px solid grey">
-
-### Adding new/custom tags to AfterImage
-
-AfterImage supports any _**generic**_ tags automatically.  Otherwise, if custom tag structure is required, simply implement the [`TagPlugin`](https://github.com/avlo/afterimage/blob/master/src/main/java/com/prosilion/afterimage/dto/TagPlugin.java) interface (an example can be seen [here](https://github.com/avlo/afterimage/blob/master/src/main/java/com/prosilion/afterimage/dto/EventTagPlugin.java)) and your tag will automatically get included by AfterImage after rebuilding and redeploying.
-

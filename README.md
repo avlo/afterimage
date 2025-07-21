@@ -8,7 +8,7 @@
    _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
                                                                        _//
 ```
-# AfterImage Nostr-Reputation Authority
+# AfterImage Nostr user/public-key reputation relay, relay mesh network & reputation authority framework
 
 ----
 
@@ -133,5 +133,44 @@ run with docker logging displayed to console:
 
 <hr style="border:2px solid grey">
 
-#### [Development Mode Instructions](DEVELOPMENT.md)
+### Afterimage reputation request
 
+Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) JSON request  with the following filters:
+
+```java
+[
+  "REQ",
+  "<subscription_id>", 
+  {
+    "kinds":[8]
+    '#p': ["<REPUTATION_RECIPIENT_PUBKEY>"],
+    '#d': ['REPUTATION']
+  }
+]
+```
+
+AfterImage applies a [user-defined reputation-calculation function]() (or user-provided custom reputation bean for non-trivial and / or service-based calculations) and returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative [reputation score](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java#L13) in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format as follows:
+
+```java
+{
+  ...
+  "id": "REPUTATION_EVENT_ID",
+  "kind": 8,
+  "pubkey": "<AFTERIMAGE_RELAY-PUBKEY>",
+  "tags": [
+    ["a", "30009:<AFTERIMAGE_RELAY-PUBKEY>:REPUTATION", "ws://<afterimage_relay_url:port>"],
+    ["p", "<REPUTATION_RECIPIENT_PUBKEY>"]
+  ]
+  "content": "<reputation_score>"
+  ...
+}
+```
+
+----
+
+### Reputation permanence
+Afterimage reputation events adhere to [NIP-58 Award Badge Specification](https://github.com/nostr-protocol/nips/blob/master/58.md#badges)- and a such- are immutable and non-transferable.
+
+<hr style="border:2px solid grey">
+
+#### [Development Mode Instructions](DEVELOPMENT.md)
