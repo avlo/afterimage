@@ -6,7 +6,7 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +29,7 @@ public class ReputationBadgeDefinitionConfig {
         "afterimage reputation definition f(x)");
 
     eventPlugin.processIncomingEvent(
-        new GenericEventKindDto(reputationBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
+        new GenericDocumentKindDto(reputationBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
 
     return reputationBadgeDefinitionEvent;
   }

@@ -27,7 +27,7 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -182,7 +182,7 @@ public class ReputationReqMessageServiceIT {
     log.info("upvotedUserPubKey: {}", upvotedUserPubKey);
 
     GenericEventKindTypeIF upvoteEvent =
-        new GenericEventKindTypeDto(
+        new GenericDocumentKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
                 upvotedUserPubKey,

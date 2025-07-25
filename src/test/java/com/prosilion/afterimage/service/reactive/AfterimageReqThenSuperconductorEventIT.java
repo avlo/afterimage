@@ -23,7 +23,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -83,7 +83,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
     GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
-        new GenericEventKindTypeDto(
+        new GenericDocumentKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
                 upvotedUser.getPublicKey(),
@@ -102,7 +102,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 
     // # --------------------- SC EVENT 2 of 2-------------------
     GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
-        new GenericEventKindTypeDto(
+        new GenericDocumentKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
                 upvotedUser.getPublicKey(),

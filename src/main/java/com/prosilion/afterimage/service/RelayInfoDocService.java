@@ -66,9 +66,6 @@ public class RelayInfoDocService implements RelayInfoDocServiceIF {
 
   @Autowired
   public RelayInfoDocService(
-//      @NonNull EventPluginIF eventPlugin,
-//      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-//      @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
       @Value("${nostr.relay.description}") String descriptionValue,
       @Value("${nostr.relay.name}") String relayNameValue,
       @Value("${nostr.relay.pubkey}") String pubKeyValue,
@@ -84,14 +81,6 @@ public class RelayInfoDocService implements RelayInfoDocServiceIF {
       @Value("${nostr.relay.payments.amount}") String amountValue,
       @Value("${nostr.relay.payments.units}") String unitValue,
       @Value("${nostr.relay.payments.period}") String periodValue) {
-
-////    TODO: relocate below badge definition DB entry creation to better location
-//    eventPlugin.processIncomingEvent(
-//        new GenericEventKindDto(upvoteBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
-//    
-////    TODO: relocate below badge definition DB entry creation to better location
-//    eventPlugin.processIncomingEvent(
-//        new GenericEventKindDto(downvoteBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
 
     this.descriptionValue = descriptionValue;
     this.relayNameValue = relayNameValue;
