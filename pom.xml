@@ -25,7 +25,6 @@
     <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <guava.version>33.2.1-jre</guava.version>
-    <h2.version>2.2.224</h2.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jackson-module-afterburner.version>2.18.3</jackson-module-afterburner.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
@@ -39,7 +38,6 @@
     
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
     <postgresql.version>42.7.3</postgresql.version>
     <subdivisions.version>1.3.0</subdivisions.version>
     <superconductor.version>1.16.1</superconductor.version>
