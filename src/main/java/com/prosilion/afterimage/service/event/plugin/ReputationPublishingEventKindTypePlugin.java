@@ -19,7 +19,7 @@ import com.prosilion.superconductor.base.service.event.CacheIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -91,7 +91,7 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
-    return new GenericEventKindTypeDto(
+    return new GenericDocumentKindTypeDto(
         new BadgeAwardReputationEvent(
             aImgIdentity,
             badgeReceiverPubkey,

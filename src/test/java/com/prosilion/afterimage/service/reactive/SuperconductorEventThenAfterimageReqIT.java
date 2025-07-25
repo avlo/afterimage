@@ -22,7 +22,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -83,7 +83,7 @@ class SuperconductorEventThenAfterimageReqIT
     final Identity authorIdentity = Identity.generateRandomIdentity();
 
     GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
-        new GenericEventKindTypeDto(
+        new GenericDocumentKindTypeDto(
             new BadgeAwardUpvoteEvent(
                 authorIdentity,
                 upvotedUser.getPublicKey(),
@@ -146,7 +146,7 @@ class SuperconductorEventThenAfterimageReqIT
     final Identity authorIdentity = Identity.generateRandomIdentity();
 
     BadgeAwardUpvoteEvent textNoteEvent_1 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(textNoteEvent_1, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(textNoteEvent_1, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
@@ -158,7 +158,7 @@ class SuperconductorEventThenAfterimageReqIT
     log.debug("received 1of2 OkMessage...");
 
     BadgeAwardUpvoteEvent textNoteEvent_2 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF2 = new GenericEventKindTypeDto(textNoteEvent_2, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF2 = new GenericDocumentKindTypeDto(textNoteEvent_2, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 
 //    okMessageSubscriber_1.dispose();
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();

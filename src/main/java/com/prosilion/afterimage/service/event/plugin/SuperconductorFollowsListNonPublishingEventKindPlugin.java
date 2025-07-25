@@ -17,7 +17,7 @@ import com.prosilion.superconductor.base.service.event.CacheIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +93,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind uniqueNewSuperconductorRelays: [{}]", uniqueNewSuperconductorRelays);
 
     GenericEventKindIF relaysListEvent =
-        new GenericEventKindDto(
+        new GenericDocumentKindDto(
             createEvent(
                 aImgIdentity,
                 uniqueNewSuperconductorRelays)).convertBaseEventToGenericEventKindIF();

@@ -13,8 +13,8 @@ import com.prosilion.superconductor.base.service.event.CacheIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindDto;
-import com.prosilion.superconductor.lib.jpa.dto.GenericEventKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class EventKindTypeServiceIT {
         upvotedUser,
         upvoteBadgeDefinitionEvent);
 
-    GenericEventKindTypeDto genericEventKindTypeDto = new GenericEventKindTypeDto(event1, SuperconductorKindType.UPVOTE);
+    GenericDocumentKindTypeDto genericEventKindTypeDto = new GenericDocumentKindTypeDto(event1, SuperconductorKindType.UPVOTE);
 
     GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
 
@@ -78,7 +78,7 @@ class EventKindTypeServiceIT {
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericEventKindTypeDto(downvoteEvent, SuperconductorKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(downvoteEvent, SuperconductorKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
     List<GenericEventKindIF> eventsByKind = cacheIF.getEventsByKind(downvoteBadgeDefinitionEvent.getKind());
@@ -90,7 +90,7 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
 
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
-    eventKindService.processIncomingEvent(new GenericEventKindDto(textNoteEvent).convertBaseEventToGenericEventKindIF());
+    eventKindService.processIncomingEvent(new GenericDocumentKindDto(textNoteEvent).convertBaseEventToGenericEventKindIF());
 
     List<GenericEventKindIF> eventsByKind = cacheIF.getEventsByKind(textNoteEvent.getKind());
     eventsByKind.forEach(System.out::println);
