@@ -6,14 +6,14 @@ import com.prosilion.afterimage.InvalidTagException;
 import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.GenericEventKindIF;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.MetadataEvent;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.CacheIF;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
@@ -32,16 +32,16 @@ import org.springframework.lang.NonNull;
 @Slf4j
 public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPublishingEventKindPlugin {
   private final EventKindTypeServiceIF eventKindTypeService;
-  private final CacheIF cacheIF;
+  private final CacheServiceIF cacheServiceIF;
   private final Identity aImgIdentity;
 
   public SuperconductorFollowsListNonPublishingEventKindPlugin(
       @NonNull EventKindPluginIF<Kind> eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
-      @NonNull CacheIF cacheIF,
+      @NonNull CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.cacheIF = cacheIF;
+    this.cacheServiceIF = cacheServiceIF;
     this.eventKindTypeService = eventKindTypeService;
     this.aImgIdentity = aImgIdentity;
   }
@@ -60,7 +60,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
 
   @SneakyThrows
   @Override
-  public void processIncomingEvent(GenericEventKindIF superconductorRelaysEvent) {
+  public void processIncomingEvent(EventIF superconductorRelaysEvent) {
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processing incoming event: [{}]", superconductorRelaysEvent);
 
     assert superconductorRelaysEvent.getKind().equals(getKind()) : new InvalidKindException(superconductorRelaysEvent.getKind().getName(), List.of(getKind().getName()));
@@ -73,7 +73,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
             URI::toString)
         .collect(Collectors.toSet());
 
-    Set<String> savedRelays = cacheIF.getEventsByKind(getKind())
+    Set<String> savedRelays = cacheServiceIF.getByKind(getKind())
         .stream()
         .map(e ->
             e.getTags()
@@ -92,11 +92,11 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
 
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind uniqueNewSuperconductorRelays: [{}]", uniqueNewSuperconductorRelays);
 
-    GenericEventKindIF relaysListEvent =
+    EventIF relaysListEvent =
         new GenericDocumentKindDto(
             createEvent(
                 aImgIdentity,
-                uniqueNewSuperconductorRelays)).convertBaseEventToGenericEventKindIF();
+                uniqueNewSuperconductorRelays)).convertBaseEventToEventIF();
 
     super.processIncomingEvent(relaysListEvent);
 

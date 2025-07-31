@@ -2,7 +2,7 @@ package com.prosilion.afterimage.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.GenericEventKindIF;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -69,7 +69,7 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
 //    TODO: resolve unused
     for (String unused : superconductorRequestConsolidator.getRelayNames()) {
-      GenericEventKindIF event = eventMessage.getEvent();
+      EventIF event = eventMessage.getEvent();
       eventPlugin.processIncomingEvent(event);
     }
   }

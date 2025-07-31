@@ -2,7 +2,8 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.event.GenericEventKindIF;
+import com.prosilion.nostr.event.EventIF;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKindIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindTypePlugin;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindType
   }
 
   @Override
-  public void processIncomingEvent(@NonNull GenericEventKindIF voteEvent) {
+  public void processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("VoteEventKindTypePlugin processing incoming VOTE EVENT: [{}]", voteEvent);
 //    saves VOTE event without triggering subscriber listener
     super.processIncomingEvent(voteEvent);
