@@ -29,7 +29,7 @@ public class ReputationBadgeDefinitionConfig {
         "afterimage reputation definition f(x)");
 
     eventPlugin.processIncomingEvent(
-        new GenericDocumentKindDto(reputationBadgeDefinitionEvent).convertBaseEventToGenericEventKindIF());
+        new GenericDocumentKindDto(reputationBadgeDefinitionEvent).convertBaseEventToEventIF());
 
     return reputationBadgeDefinitionEvent;
   }

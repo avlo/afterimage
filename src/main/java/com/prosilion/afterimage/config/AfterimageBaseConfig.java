@@ -13,7 +13,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.CacheIF;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
@@ -64,7 +64,7 @@ public abstract class AfterimageBaseConfig {
   EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
-      @NonNull CacheIF cacheIF,
+      @NonNull CacheServiceIF cacheIF,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
     return new ReputationPublishingEventKindTypePlugin(
@@ -101,7 +101,7 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   EventKindPluginIF<Kind> superconductorFollowsListNonPublishingEventKindPlugin(
-      @NonNull CacheIF cacheIF,
+      @NonNull CacheServiceIF cacheIF,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {

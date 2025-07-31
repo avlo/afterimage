@@ -50,23 +50,6 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
         .map(IdentifierTagFilter::getFilterable)
         .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY));
 
-//    AddressTag addressTag = filtersList.stream()
-//        .map(filters ->
-//            filters.getFilterByType(ADDRESS_TAG_FILTER_KEY))
-//        .flatMap(Collection::stream)
-//        .map(AddressTagFilter.class::cast)
-//        .map(AddressTagFilter::getFilterable)
-//        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, ADDRESS_TAG_FILTER_KEY));
-//
-//    Optional.of(
-//            Optional.ofNullable(
-//                    addressTag.getIdentifierTag())
-//                .orElseThrow(() ->
-//                    new InvalidReputationReqJsonException(filtersList, getKindType().getName())).getUuid())
-//        .filter(uuid ->
-//            uuid.equalsIgnoreCase(getKindType().getName())).orElseThrow(() ->
-//            new InvalidReputationReqJsonException(filtersList, getKindType().getName()));
-
     return
         new Filters(
             new KindFilter(Kind.BADGE_AWARD_EVENT),
@@ -75,7 +58,6 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
                 new AddressTag(
                     Kind.BADGE_DEFINITION_EVENT,
                     getAImgIdentity().getPublicKey(),
-//                    addressTag.identifierTag()
                     identifierTag
                 )));
   }
