@@ -7,6 +7,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
@@ -14,7 +15,6 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
@@ -48,13 +48,13 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
   }
 
   @SneakyThrows
-  public void processIncomingEvent(@NonNull GenericEventKindIF voteEvent) {
+  public void processIncomingEvent(@NonNull EventIF voteEvent) {
     GenericEventKindTypeIF calculatedReputationEvent = calculateReputationEvent(voteEvent);
     deletePreviousReputationEventShouldBeSingularEvent(voteEvent);
     super.processIncomingEvent(calculatedReputationEvent);
   }
 
-  private void deletePreviousReputationEventShouldBeSingularEvent(GenericEventKindIF event) throws NostrException {
+  private void deletePreviousReputationEventShouldBeSingularEvent(EventIF event) throws NostrException {
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
@@ -62,7 +62,7 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     existingReputation.forEach(cacheServiceIF::deleteEventEntity);
   }
 
-  private GenericEventKindTypeIF calculateReputationEvent(GenericEventKindIF event) throws NostrException, NoSuchAlgorithmException {
+  private GenericEventKindTypeIF calculateReputationEvent(EventIF event) throws NostrException, NoSuchAlgorithmException {
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 

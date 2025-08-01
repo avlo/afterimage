@@ -7,8 +7,7 @@ import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
-import com.prosilion.nostr.event.GenericEventKindIF;
-import com.prosilion.nostr.event.GenericEventKindTypeIF;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
@@ -21,6 +20,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
@@ -108,7 +108,7 @@ class SuperconductorEventThenAfterimageReqIT
         superconductorEventsSubscriber_1);
 
     log.debug("retrieved afterimage events:");
-    List<GenericEventKindIF> returnedSuperconductorEvents =
+    List<EventIF> returnedSuperconductorEvents =
         getGenericEvents(
             superconductorEventsSubscriber_1.getItems());
 
@@ -132,7 +132,7 @@ class SuperconductorEventThenAfterimageReqIT
     List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
     log.debug("  {}", items_2);
 
-    List<GenericEventKindIF> returnedReqGenericEvents_2 = getGenericEvents(items_2);
+    List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_2);
 
     assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
     assertEquals(returnedReqGenericEvents_2.getFirst().getPublicKey().toHexString(), afterimageInstancePublicKey.toHexString());
@@ -178,7 +178,7 @@ class SuperconductorEventThenAfterimageReqIT
         createSuperconductorReqMessage(subscriberId, upvotedUser.getPublicKey()), superConductorEventsSubscriber_W);
 
 
-    List<GenericEventKindIF> returnedReqGenericEvents = getGenericEvents(
+    List<EventIF> returnedReqGenericEvents = getGenericEvents(
         superConductorEventsSubscriber_W.getItems());
 
     assertEquals(returnedReqGenericEvents.getFirst().getId(), textNoteEvent_1.getId());
@@ -198,7 +198,7 @@ class SuperconductorEventThenAfterimageReqIT
 
     TimeUnit.SECONDS.sleep(1);
 
-    List<GenericEventKindIF> returnedAfterImageEvents = getGenericEvents(
+    List<EventIF> returnedAfterImageEvents = getGenericEvents(
         afterImageEventsSubscriber_V.getItems());
 
     TimeUnit.SECONDS.sleep(1);
@@ -218,7 +218,7 @@ class SuperconductorEventThenAfterimageReqIT
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
   }
 
-  synchronized public static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+  synchronized public static List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)

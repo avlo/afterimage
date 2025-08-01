@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @SpringBootTest
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
@@ -93,6 +95,9 @@ class EventKindTypeServiceIT {
     eventKindService.processIncomingEvent(new GenericDocumentKindDto(textNoteEvent).convertBaseEventToEventIF());
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(textNoteEvent.getKind());
-    eventsByKind.forEach(System.out::println);
+
+    assertEquals(1, eventsByKind.size());
+    EventIF first = eventsByKind.getFirst();
+    assertEquals(first.getKind(), textNoteEvent.getKind());
   }
 }

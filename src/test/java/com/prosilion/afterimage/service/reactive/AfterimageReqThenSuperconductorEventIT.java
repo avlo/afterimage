@@ -8,8 +8,7 @@ import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
-import com.prosilion.nostr.event.GenericEventKindIF;
-import com.prosilion.nostr.event.GenericEventKindTypeIF;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
@@ -22,6 +21,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
@@ -129,7 +129,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
 
 
     List<BaseMessage> returnedSuperconductorBaseMessages = superConductorEventsSubscriber.getItems();
-    List<GenericEventKindIF> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
+    List<EventIF> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
 
     assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_1.getContent())));
     assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_2.getContent())));
@@ -146,7 +146,7 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
     // # --------------------- Aimg EVENTS returned -------------------
     List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber_A.getItems();
 
-    List<GenericEventKindIF> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
+    List<EventIF> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
     log.debug("afterimage returned events:");
     afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
     assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getTags()

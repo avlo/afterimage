@@ -44,7 +44,7 @@ class EventNoOpMessageReactiveIT {
 
     TestSubscriber<OkMessage> okMessageSubscriber = new TestSubscriber<>();
     this.afterImageRelayClient.send(new EventMessage(
-        new GenericDocumentKindDto(genericEvent).convertBaseEventToGenericEventKindIF()), okMessageSubscriber);
+        new GenericDocumentKindDto(genericEvent).convertBaseEventToEventIF()), okMessageSubscriber);
     final String noOpResponse = "application-test.properties afterimage is a nostr-reputation authority relay.  it does not accept events, only requests";
 
     List<OkMessage> items = okMessageSubscriber.getItems();

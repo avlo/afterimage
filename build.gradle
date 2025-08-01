@@ -120,10 +120,10 @@ tasks.register('integrationTest', Test) {
 }
 
 integrationTest {
-    retry {
-        failOnPassedAfterRetry = false
-        maxRetries = 1
-    }
+//    retry {
+//        failOnPassedAfterRetry = false
+//        maxRetries = 1
+//    }
     testLogging {
         showStandardStreams = true
     }

@@ -8,8 +8,7 @@ import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
-import com.prosilion.nostr.event.GenericEventKindIF;
-import com.prosilion.nostr.event.GenericEventKindTypeIF;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -25,12 +24,14 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -201,7 +202,7 @@ public class ReputationReqMessageServiceIT {
 
     log.debug("retrieved afterimage events:");
     List<BaseMessage> items = subscriber.getItems();
-    List<GenericEventKindIF> afterimageEvents = getGenericEvents(items);
+    List<EventIF> afterimageEvents = getGenericEvents(items);
     log.debug("  {}", items);
 //    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
     assertEquals(afterimageEvents.getFirst().getPublicKey(), afterimageInstanceIdentity.getPublicKey());
@@ -209,7 +210,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
-    assertEquals(AfterimageKindType.REPUTATION.getName(), reputationAddressTag.getIdentifierTag().getUuid());
+    assertEquals(AfterimageKindType.REPUTATION.getName(), Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
   }
 
   private @NotNull ReqMessage getReputationReqMessage(PublicKey upvotedUserPubKey) {
@@ -230,7 +231,7 @@ public class ReputationReqMessageServiceIT {
         .map(NoticeMessage.class::cast).findFirst().orElseThrow(AssertionError::new);
   }
 
-  private static List<GenericEventKindIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+  private static List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)

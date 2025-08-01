@@ -3,7 +3,6 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindTypePlugin;
 import lombok.extern.slf4j.Slf4j;
