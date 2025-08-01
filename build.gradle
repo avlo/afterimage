@@ -58,7 +58,7 @@ dependencies {
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
     def awaitility = '4.2.0'
-    def testcontainers = '1.20.6'
+    def testcontainers = '1.21.3'
 
     implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
     implementation 'org.springframework.boot:spring-boot-devtools'
