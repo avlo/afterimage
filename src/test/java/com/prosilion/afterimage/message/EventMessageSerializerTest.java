@@ -21,10 +21,9 @@ import org.springframework.test.json.JsonComparison;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 @Slf4j
 @ActiveProfiles("test")
-public class EventMessageSerializerIT {
+public class EventMessageSerializerTest {
   @Test
   void testEventMessageGenericEventKindTypeEncoder() throws IOException, NostrException {
     EventMessage eventMessage =
