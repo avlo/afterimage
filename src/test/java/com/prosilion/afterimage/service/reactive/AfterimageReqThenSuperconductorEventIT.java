@@ -2,7 +2,6 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
-import com.prosilion.afterimage.service.CommonContainer;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
@@ -24,6 +23,8 @@ import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -32,18 +33,33 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.prosilion.afterimage.service.reactive.SuperconductorEventThenAfterimageReqIT.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
+@Testcontainers
+@EmbeddedRedisStandalone
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
+class AfterimageReqThenSuperconductorEventIT {
+
+  @Container
+  public final static DockerComposeContainer<?> superconductorContainer = new DockerComposeContainer<>(
+      new File("src/test/resources/superconductor-docker-compose-dev_ws.yml"))
+      .withExposedService("superconductor-afterimage", 5555);
+
+  static {
+    superconductorContainer.withLocalCompose(true);
+    superconductorContainer.start();
+  }
+
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
@@ -57,8 +73,8 @@ class AfterimageReqThenSuperconductorEventIT extends CommonContainer {
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-//    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
-//    log.debug("AfterimageReqThenSuperconductorEventIT host: {}", serviceHost);
+    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
+    log.debug("AfterimageReqThenSuperconductorEventIT host: {}", serviceHost);
     log.debug("AfterimageReqThenSuperconductorEventIT hash: {}", superconductorRelayUri.hashCode());
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = afterimageMeshRelayService;
