@@ -135,7 +135,6 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @Primary
   DataLoaderRedisIF dataLoaderRedis(
       @NonNull @Qualifier("eventPlugin") EventPluginIF eventPlugin,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
