@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.json.JsonComparator;
 import org.springframework.test.json.JsonComparison;
@@ -24,8 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @Slf4j
-// TODO: should not require SpringBootTest just to load EventMessage class' EventMessageDeserializer ctor() List<KindTypeIF> kindType.  needs revisit
-@SpringBootTest
 @ActiveProfiles("test")
 public class EventMessageSerializerIT {
   @Test

@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service;
 
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@EmbeddedRedisStandalone
 @ActiveProfiles("test")
 class EventServiceIT {
   private static final Logger log = LoggerFactory.getLogger(EventServiceIT.class);
