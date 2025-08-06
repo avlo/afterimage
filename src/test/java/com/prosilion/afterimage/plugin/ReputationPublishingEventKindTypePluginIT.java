@@ -17,6 +17,7 @@ import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisSta
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -42,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ActiveProfiles("test")
 public class ReputationPublishingEventKindTypePluginIT {
 
+  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+
   private final ReputationPublishingEventKindTypePlugin repPlugin;
   private final RedisCacheService cacheServiceIF;
   private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
@@ -62,6 +65,7 @@ public class ReputationPublishingEventKindTypePluginIT {
     this.votesCount = votesCount;
     this.cacheServiceIF = cacheServiceIF;
     this.repPlugin = reputationPublishingEventKindTypePlugin;
+    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
 
     for (int i = 0; i < votesCount; i++) {
       upvotesList.add(createUpvoteDto(upvoteBadgeDefinitionEvent));
@@ -69,7 +73,7 @@ public class ReputationPublishingEventKindTypePluginIT {
   }
 
   @Test
-  void testProcessIncomingEvent() {
+  void testProcessIncomingEvent() throws NoSuchAlgorithmException {
     List<EventDocumentIF> all = cacheServiceIF.getAll();
     int sizeOfGetAllBeforeDeletions = all.size();
     assertEquals(1, sizeOfGetAllBeforeDeletions);
@@ -83,12 +87,25 @@ public class ReputationPublishingEventKindTypePluginIT {
 
     assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEventEntities().size());
 
-    List<GenericEventKindType> reputationEvents = repPlugin.getAllPubkeyReputationEvents(upvotedUser);
-    assertEquals(1, reputationEvents.size());
-    assertEquals(votesCount.toString(), reputationEvents.getFirst().getContent());
+    GenericEventKindType reputationEvents = repPlugin.getAllPubkeyReputationEvents(upvotedUser).orElseThrow();
+    assertEquals(votesCount.toString(), reputationEvents.getContent());
 
     assertEquals(votesCount, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
+
+//    process another vote- and subsequently- another updated (single) reputation
+    repPlugin.processIncomingEvent(createUpvoteDto(upvoteBadgeDefinitionEvent));
+    assertEquals(votesCount, cacheServiceIF.getAllDeletionEventEntities().size());
+
+    Optional<GenericEventKindType> anotherReputationEvent = repPlugin.getAllPubkeyReputationEvents(upvotedUser);
+    assertEquals(
+        Integer.valueOf(votesCount + 1).toString(),
+        anotherReputationEvent.orElseThrow().getContent());
+
+    assertEquals(votesCount + 1, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals(1, cacheServiceIF.getAll().stream().map(EventDocumentIF::getEventId)
+        .filter(id -> anotherReputationEvent.orElseThrow().getId().equals(id))
+        .toList().size());
   }
 
   private CompletableFuture<Void> processIncomingEventExecutor() throws ExecutionException, InterruptedException {

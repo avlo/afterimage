@@ -55,70 +55,34 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
-    GenericEventKindTypeIF calculatedReputationEvent = calculateReputationEvent(voteReceiverPubkey, voteEvent.getContent());
-
-    deletePreviousReputationCalculationEvent(voteReceiverPubkey);
-
-    super.processIncomingEvent(calculatedReputationEvent);
+    Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
+    previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
+    super.processIncomingEvent(calculateReputationEvent(voteReceiverPubkey, previousReputationEvent, voteEvent.getContent()));
   }
 
-  private GenericEventKindTypeIF calculateReputationEvent(PublicKey voteReceiverPubkey, String voteValue) throws NostrException, NoSuchAlgorithmException {
+  private GenericEventKindTypeIF calculateReputationEvent(
+      PublicKey voteReceiverPubkey,
+      Optional<GenericEventKindType> previousReputationEvent,
+      String voteValue) throws NostrException, NoSuchAlgorithmException {
+
     return createReputationEvent(
         voteReceiverPubkey,
         new BigDecimal(voteValue)
-            .add(
-                getAllVoteEventsForCalculation(voteReceiverPubkey)
-                    .map(
-                        GenericEventKindTypeIF::getContent)
-                    .map(
-                        BigDecimal::new).orElse(BigDecimal.ZERO)));
+            .add(previousReputationEvent
+                .map(GenericEventKindTypeIF::getContent)
+                .map(BigDecimal::new)
+                .orElse(BigDecimal.ZERO)));
   }
 
-  private void deletePreviousReputationCalculationEvent(PublicKey badgeReceiverPubkey) throws NostrException, NoSuchAlgorithmException {
+  @SneakyThrows
+  private void deletePreviousReputationCalculationEvent(GenericEventKindType previousReputationEvent) {
     cacheServiceIF.deleteEventEntity(
         new DeletionEvent(
             aImgIdentity,
-            getAllPubkeyReputationEvents(badgeReceiverPubkey).stream()
-                .map(GenericEventKindType::getId)
-                .map(EventTag::new).toList(), "aImg deletion event"));
+            List.of(new EventTag(previousReputationEvent.getId())), "aImg deletion event"));
   }
 
-  public Optional<GenericEventKindType> getAllVoteEventsForCalculation(PublicKey badgeReceiverPubkey) {
-    String notKindType = AfterimageKindType.REPUTATION.getName();
-
-    return cacheServiceIF
-        .getByKind(Kind.BADGE_AWARD_EVENT).stream().map(e ->
-            cacheServiceIF.getEventByEventId(e.getId()))
-        .filter(eventIF -> eventIF.orElseThrow().getTags()
-            .stream()
-            .filter(PubKeyTag.class::isInstance)
-            .map(PubKeyTag.class::cast)
-            .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey)))
-        .filter(eventIF -> eventIF.orElseThrow().getTags()
-            .stream()
-            .filter(AddressTag.class::isInstance)
-            .map(AddressTag.class::cast)
-            .anyMatch(addressTag ->
-                Optional.ofNullable(
-                        addressTag.getIdentifierTag()).orElseThrow(() ->
-                        new InvalidTagException("NULL", List.of(notKindType)))
-                    .getUuid().equals(notKindType)))
-        .flatMap(Optional::stream)
-        .max(Comparator.comparing(EventIF::getCreatedAt))
-        .map(eventIF ->
-            new GenericEventKindType(
-                new GenericEventKind(
-                    eventIF.getId(),
-                    aImgIdentity.getPublicKey(),
-                    eventIF.getCreatedAt(),
-                    eventIF.getKind(),
-                    eventIF.getTags(),
-                    eventIF.getContent(),
-                    eventIF.getSignature()),
-                getKindType()));
-  }
-
-  public List<GenericEventKindType> getAllPubkeyReputationEvents(PublicKey badgeReceiverPubkey) {
+  public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
 
     return cacheServiceIF
         .getAll().stream()
@@ -136,18 +100,23 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
                 Optional.ofNullable(
                         addressTag.getIdentifierTag()).orElseThrow(() ->
                         new InvalidTagException("NULL", List.of(getKindType().getName())))
-                    .getUuid().equals(AfterimageKindType.REPUTATION.getName())))
-        .map(genericEventKind ->
+                    .getUuid().equals(getKindType().getName())))
+        .max(Comparator.comparing(EventIF::getCreatedAt))
+        .map(eventIF ->
             new GenericEventKindType(
                 new GenericEventKind(
-                    genericEventKind.getId(),
-                    genericEventKind.getPublicKey(),
-                    genericEventKind.getCreatedAt(),
-                    genericEventKind.getKind(),
-                    genericEventKind.getTags(),
-                    genericEventKind.getContent(),
-                    genericEventKind.getSignature()),
-                AfterimageKindType.REPUTATION)).toList();
+                    eventIF.getId(),
+                    aImgIdentity.getPublicKey(),
+                    eventIF.getCreatedAt(),
+                    eventIF.getKind(),
+                    eventIF.getTags(),
+                    eventIF.getContent(),
+                    eventIF.getSignature()),
+                getKindType()));
+  }
+
+  public Optional<GenericEventKindType> getAllPubkeyReputationEvents(PublicKey badgeReceiverPubkey) {
+    return getPreviousReputationEvent(badgeReceiverPubkey);
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
