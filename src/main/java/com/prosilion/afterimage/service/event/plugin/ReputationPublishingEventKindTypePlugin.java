@@ -61,9 +61,9 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingVoteEventByUser).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
-    List<GenericEventKindType> existingVotes = getAllVoteEventsForCalculation(badgeReceiverPubkey);
+    Optional<GenericEventKindType> existingVotes = getAllVoteEventsForCalculation(badgeReceiverPubkey);
 
-    BigDecimal existingRep = existingVotes.stream().max(Comparator.comparing(EventIF::getCreatedAt))
+    BigDecimal existingRep = existingVotes
         .map(GenericEventKindTypeIF::getContent)
         .map(BigDecimal::new).orElse(BigDecimal.ZERO);
 
@@ -89,43 +89,39 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
 //    existingReputation.forEach(cacheServiceIF::deleteEventEntity);
   }
 
-  public List<GenericEventKindType> getAllVoteEventsForCalculation(PublicKey badgeReceiverPubkey) {
+  public Optional<GenericEventKindType> getAllVoteEventsForCalculation(PublicKey badgeReceiverPubkey) {
     String notKindType = AfterimageKindType.REPUTATION.getName();
 
-    List<? extends Optional<? extends EventIF>> badgeAwardEventsByEventId = cacheServiceIF
+    return cacheServiceIF
         .getByKind(Kind.BADGE_AWARD_EVENT).stream().map(e ->
-            cacheServiceIF.getEventByEventId(e.getId())).toList();
-
-    List<? extends Optional<? extends EventIF>> badgeReceiverExistingEvents = badgeAwardEventsByEventId.stream()
-        .filter(genericEventKind -> genericEventKind.orElseThrow().getTags()
+            cacheServiceIF.getEventByEventId(e.getId()))
+        .filter(genericEventKind1 -> genericEventKind1.orElseThrow().getTags()
             .stream()
             .filter(PubKeyTag.class::isInstance)
             .map(PubKeyTag.class::cast)
-            .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey))).toList();
-
-    List<? extends Optional<? extends EventIF>> badgeReceiverExistingVotesRxR = badgeReceiverExistingEvents.stream().filter(genericEventKind -> genericEventKind.orElseThrow().getTags()
-        .stream()
-        .filter(AddressTag.class::isInstance)
-        .map(AddressTag.class::cast)
-        .anyMatch(addressTag ->
-            Optional.ofNullable(
-                    addressTag.getIdentifierTag()).orElseThrow(() ->
-                    new InvalidTagException("NULL", List.of(notKindType)))
-                .getUuid().equals(notKindType))).toList();
-
-    List<GenericEventKindType> existingVotesMapeed = badgeReceiverExistingVotesRxR.stream()
+            .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey)))
+        .filter(genericEventKind1 -> genericEventKind1.orElseThrow().getTags()
+            .stream()
+            .filter(AddressTag.class::isInstance)
+            .map(AddressTag.class::cast)
+            .anyMatch(addressTag ->
+                Optional.ofNullable(
+                        addressTag.getIdentifierTag()).orElseThrow(() ->
+                        new InvalidTagException("NULL", List.of(notKindType)))
+                    .getUuid().equals(notKindType)))
+        .flatMap(Optional::stream)
+        .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(genericEventKind ->
             new GenericEventKindType(
                 new GenericEventKind(
-                    genericEventKind.orElseThrow().getId(),
+                    genericEventKind.getId(),
                     aImgIdentity.getPublicKey(),
-                    genericEventKind.orElseThrow().getCreatedAt(),
-                    genericEventKind.orElseThrow().getKind(),
-                    genericEventKind.orElseThrow().getTags(),
-                    genericEventKind.orElseThrow().getContent(),
-                    genericEventKind.orElseThrow().getSignature()),
-                getKindType())).toList();
-    return existingVotesMapeed;
+                    genericEventKind.getCreatedAt(),
+                    genericEventKind.getKind(),
+                    genericEventKind.getTags(),
+                    genericEventKind.getContent(),
+                    genericEventKind.getSignature()),
+                getKindType()));
   }
 
   public List<GenericEventKindType> getAllPubkeyReputationEvents(PublicKey badgeReceiverPubkey) {
