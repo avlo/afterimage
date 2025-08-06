@@ -52,42 +52,35 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
 
   @SneakyThrows
   public void processIncomingEvent(@NonNull EventIF voteEvent) {
-    GenericEventKindTypeIF calculatedReputationEvent = calculateReputationEvent(voteEvent);
-    deletePreviousReputationEventShouldBeSingularEvent(calculatedReputationEvent);
+    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent).stream()
+        .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
+
+    GenericEventKindTypeIF calculatedReputationEvent = calculateReputationEvent(voteReceiverPubkey, voteEvent.getContent());
+
+    deletePreviousReputationCalculationEvent(voteReceiverPubkey);
+
     super.processIncomingEvent(calculatedReputationEvent);
   }
 
-  private GenericEventKindTypeIF calculateReputationEvent(EventIF incomingVoteEventByUser) throws NostrException, NoSuchAlgorithmException {
-    PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingVoteEventByUser).stream()
-        .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
-
-    Optional<GenericEventKindType> existingVotes = getAllVoteEventsForCalculation(badgeReceiverPubkey);
-
-    BigDecimal existingRep = existingVotes
-        .map(GenericEventKindTypeIF::getContent)
-        .map(BigDecimal::new).orElse(BigDecimal.ZERO);
-
-    BigDecimal updatedRep = new BigDecimal(incomingVoteEventByUser.getContent()).add(existingRep);
-
-    GenericEventKindTypeIF reputationEvent = createReputationEvent(
-        badgeReceiverPubkey,
-        updatedRep);
-
-    return reputationEvent;
+  private GenericEventKindTypeIF calculateReputationEvent(PublicKey voteReceiverPubkey, String voteValue) throws NostrException, NoSuchAlgorithmException {
+    return createReputationEvent(
+        voteReceiverPubkey,
+        new BigDecimal(voteValue)
+            .add(
+                getAllVoteEventsForCalculation(voteReceiverPubkey)
+                    .map(
+                        GenericEventKindTypeIF::getContent)
+                    .map(
+                        BigDecimal::new).orElse(BigDecimal.ZERO)));
   }
 
-  private void deletePreviousReputationEventShouldBeSingularEvent(EventIF event) throws NostrException, NoSuchAlgorithmException {
-    PublicKey badgeReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, event).stream()
-        .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
-
-    List<EventTag> list = getAllPubkeyReputationEvents(badgeReceiverPubkey).stream()
-        .map(GenericEventKindType::getId)
-        .map(EventTag::new).toList();
-
-    DeletionEvent secondDeletionEvent = new DeletionEvent(aImgIdentity, list, "aImg deletion event");
-    cacheServiceIF.deleteEventEntity(secondDeletionEvent);
-
-//    existingReputation.forEach(cacheServiceIF::deleteEventEntity);
+  private void deletePreviousReputationCalculationEvent(PublicKey badgeReceiverPubkey) throws NostrException, NoSuchAlgorithmException {
+    cacheServiceIF.deleteEventEntity(
+        new DeletionEvent(
+            aImgIdentity,
+            getAllPubkeyReputationEvents(badgeReceiverPubkey).stream()
+                .map(GenericEventKindType::getId)
+                .map(EventTag::new).toList(), "aImg deletion event"));
   }
 
   public Optional<GenericEventKindType> getAllVoteEventsForCalculation(PublicKey badgeReceiverPubkey) {
