@@ -17,6 +17,10 @@ import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisSta
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +28,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-//@Slf4j
 @EmbeddedRedisStandalone
 @RedisFlushAll(mode = RedisFlushAll.Mode.AFTER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -44,6 +51,8 @@ public class ReputationPublishingEventKindTypePluginIT {
 
   private final Integer votesCount;
 
+  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+
   @Autowired
   public ReputationPublishingEventKindTypePluginIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
@@ -57,12 +66,45 @@ public class ReputationPublishingEventKindTypePluginIT {
     for (int i = 0; i < votesCount; i++) {
       upvotesList.add(createUpvoteDto(upvoteBadgeDefinitionEvent));
     }
-    System.out.println("!!!!!!!!!!");
-    System.out.println("!!!!!!!!!!");
-    System.out.println("nvotesCount: " + votesCount);
-    System.out.println("nvotesCount: " + votesCount);
-    System.out.println("!!!!!!!!!!");
-    System.out.println("!!!!!!!!!!");
+  }
+
+  @Test
+  void testProcessIncomingEvent() {
+    List<EventDocumentIF> all = cacheServiceIF.getAll();
+    int sizeOfGetAllBeforeDeletions = all.size();
+    assertEquals(1, sizeOfGetAllBeforeDeletions);
+
+    assertEquals(0, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
+    assertEquals(0, cacheServiceIF.getAllDeletionEventEntities().size());
+
+    await().until(() ->
+        processIncomingEventExecutor().isDone());
+
+    assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEventEntities().size());
+
+    List<GenericEventKindType> reputationEvents = repPlugin.getAllPubkeyReputationEvents(upvotedUser);
+    assertEquals(1, reputationEvents.size());
+    assertEquals(votesCount.toString(), reputationEvents.getFirst().getContent());
+
+    assertEquals(votesCount, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
+  }
+
+  private CompletableFuture<Void> processIncomingEventExecutor() throws ExecutionException, InterruptedException {
+    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+            upvotesList.forEach(eventKindTypeIF ->
+                assertAll(() -> repPlugin.processIncomingEvent(eventKindTypeIF)))
+        , executorService);
+
+    future.get();
+
+    await()
+        .timeout(5, SECONDS)
+        .until(future::isDone);
+
+    assertFalse(future.isCompletedExceptionally());
+    return future;
   }
 
   private GenericEventKindTypeIF createUpvoteDto(BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
@@ -73,61 +115,4 @@ public class ReputationPublishingEventKindTypePluginIT {
             upvoteBadgeDefinitionEvent),
         SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
   }
-
-  @Test
-  void testProcessIncomingEvent() {
-//    printLogs(upvotesList);
-    List<EventDocumentIF> all = cacheServiceIF.getAll();
-    int allBeforeDeletions = all.size();
-//    log.info("allBeforeDeletions size: {}", allBeforeDeletions);
-    assertEquals(1, allBeforeDeletions);
-
-    assertEquals(0, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
-
-    assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
-
-    assertEquals(0, cacheServiceIF.getAllDeletionEventEntities().size());
-
-    upvotesList.forEach(repPlugin::processIncomingEvent);
-
-//    log.info("allAfterDeletions size: {}", cacheServiceIF.getAll().size());
-//    TODO: below particularly troubling
-//    assertEquals(allBeforeDeletions + 1, cacheServiceIF.getAll().size());
-
-//    log.info("allDeletionEventEntities size: {}", cacheServiceIF.getAllDeletionEventEntities().size());
-    assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEventEntities().size());
-
-//    log.info("allPubkeyReputationEventsAfterDeltions size: {}", repPlugin.getAllPubkeyReputationEvents(upvotedUser).size());
-    List<GenericEventKindType> reputationEvents = repPlugin.getAllPubkeyReputationEvents(upvotedUser);
-    assertEquals(1, reputationEvents.size());
-    assertEquals(votesCount.toString(), reputationEvents.getFirst().getContent()); 
-    System.out.println("**********");
-    System.out.println("**********");
-    System.out.println("nvotesCount: " + votesCount);
-    System.out.println("nvotesCount: " + votesCount);
-    System.out.println("**********");
-    System.out.println("**********");
-  }
-
-//  private void printLogs(List<? extends EventIF> list) {
-//    log.info("for votesCount [{}]...", votesCount);
-//    log.info("...reputations: ");
-//    list.forEach(upvote -> {
-//      log.info("-----");
-//      log.info("event id:  ");
-//      log.info("  {}", upvote.getId());
-//      log.info("vote author pubkey:  ");
-//      log.info("  {}", upvote.getPublicKey().toString());
-//      log.info("kind:  ");
-//      log.info("  {} : {}", upvote.getKind().getName().toUpperCase(), upvote.getKind().toString());
-////      log.info("kind type:  ");
-////      log.info("  {} : {}", upvote.getKindType(), upvote.getKindType().getKindDefinition().getValue());
-//      log.info("tags:  ");
-//      upvote.getTags().forEach(tag -> log.info("  {}", tag.toString()));
-//      log.info("content:  ");
-//      log.info("  {}", upvote.getContent());
-//      log.info("\n");
-//    });
-//    log.info("end reputations printLog()\n");
-//  }
 }
