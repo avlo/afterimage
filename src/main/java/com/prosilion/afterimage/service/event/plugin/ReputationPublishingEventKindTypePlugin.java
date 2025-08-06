@@ -57,21 +57,27 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
 
     Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
-    super.processIncomingEvent(calculateReputationEvent(voteReceiverPubkey, previousReputationEvent, voteEvent.getContent()));
+
+    BigDecimal score = previousReputationEvent
+        .map(GenericEventKindTypeIF::getContent)
+        .map(BigDecimal::new)
+        .orElse(BigDecimal.ZERO);
+
+    super.processIncomingEvent(
+        calculateReputationEvent(
+            voteReceiverPubkey,
+            score,
+            voteEvent.getContent()));
   }
 
   private GenericEventKindTypeIF calculateReputationEvent(
       PublicKey voteReceiverPubkey,
-      Optional<GenericEventKindType> previousReputationEvent,
+      BigDecimal score,
       String voteValue) throws NostrException, NoSuchAlgorithmException {
 
     return createReputationEvent(
         voteReceiverPubkey,
-        new BigDecimal(voteValue)
-            .add(previousReputationEvent
-                .map(GenericEventKindTypeIF::getContent)
-                .map(BigDecimal::new)
-                .orElse(BigDecimal.ZERO)));
+        new BigDecimal(voteValue).add(score));
   }
 
   @SneakyThrows
