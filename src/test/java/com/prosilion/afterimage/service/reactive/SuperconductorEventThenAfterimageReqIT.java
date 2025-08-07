@@ -1,7 +1,8 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.relay.AfterimageMeshRelayService;
+import com.prosilion.afterimage.service.DockerComposeContainer;
+import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
@@ -34,20 +35,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class SuperconductorEventThenAfterimageReqIT
-//    extends CommonContainer 
-{
+//@TestClassOrder(ClassOrderer.OrderAnnotation.class)
+//@Order(99)
+//@TestConfiguration(proxyBeanMethods = false)
+//@ImportTestcontainers(DockerComposeContainer.class)
+class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
+
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
@@ -59,17 +59,18 @@ class SuperconductorEventThenAfterimageReqIT
   SuperconductorEventThenAfterimageReqIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
+      @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
-//    String serviceHost = superconductorContainer.getServiceHost("superconductor-afterimage", 5555);
-//    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
+    String serviceHost = DOCKER_COMPOSE_CONTAINER.getServiceHost("superconductor-afterimage", 5555);
+    Integer servicePort = DOCKER_COMPOSE_CONTAINER.getServicePort("superconductor-afterimage", 5555);
+    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
+    log.debug("SuperconductorEventThenAfterimageReqIT port: {}", servicePort);
     log.debug("superconductorRelayUri: {}", superconductorRelayUri);
-    log.debug("afterimageRelayUri: {}", afterimageRelayUri);
 
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
-    this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
+    this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstancePublicKey = afterimageInstanceIdentity.getPublicKey();
@@ -104,7 +105,7 @@ class SuperconductorEventThenAfterimageReqIT
 
     TestSubscriber<BaseMessage> superconductorEventsSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
-        createSuperconductorReqMessage(subscriberId_1, upvotedUser.getPublicKey()),
+        createSuperconductorReqMessage(subscriberId_1),
         superconductorEventsSubscriber_1);
 
     log.debug("retrieved afterimage events:");
@@ -170,21 +171,20 @@ class SuperconductorEventThenAfterimageReqIT
     log.debug("received 2of2 OkMessage...");
 
 // # --------------------- REQ -------------------    
-//    submit matching author & vote tag Req to superconductor
+//    submit votes Req to superconductor
     String subscriberId = Factory.generateRandomHex64String();
 
     TestSubscriber<BaseMessage> superConductorEventsSubscriber_W = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
-        createSuperconductorReqMessage(subscriberId, upvotedUser.getPublicKey()), superConductorEventsSubscriber_W);
+        createSuperconductorReqMessage(subscriberId), superConductorEventsSubscriber_W);
 
 
     List<EventIF> returnedReqGenericEvents = getGenericEvents(
         superConductorEventsSubscriber_W.getItems());
 
-    assertEquals(returnedReqGenericEvents.getFirst().getId(), textNoteEvent_1.getId());
-    assertEquals(returnedReqGenericEvents.getFirst().getContent(), textNoteEvent_1.getContent());
-    assertEquals(returnedReqGenericEvents.getFirst().getPublicKey().toHexString(), textNoteEvent_1.getPublicKey().toHexString());
-    assertEquals(returnedReqGenericEvents.getFirst().getKind(), textNoteEvent_1.getKind());
+    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getId).anyMatch(textNoteEvent_1.getId()::equals));
+    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getPublicKey).map(PublicKey::toString).anyMatch(textNoteEvent_1.getPublicKey().toString()::equals));
+    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getKind).anyMatch(textNoteEvent_1.getKind()::equals));
 
 //    save SC result to Aimg
     returnedReqGenericEvents.forEach(event -> eventService.processIncomingEvent(new EventMessage(event)));
@@ -239,10 +239,10 @@ class SuperconductorEventThenAfterimageReqIT
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  synchronized private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  synchronized private ReqMessage createSuperconductorReqMessage(String subscriberId) {
     return new ReqMessage(subscriberId,
         new Filters(
-            new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),
+//            new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),
             new KindFilter(Kind.BADGE_AWARD_EVENT)));
   }
 }

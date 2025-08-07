@@ -36,7 +36,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-//@Import(DataLoaderRedis.class)
 public abstract class AfterimageBaseConfig {
   @Bean
   Identity afterimageInstanceIdentity(@NonNull @Value("${afterimage.key.private}") String privateKey) {

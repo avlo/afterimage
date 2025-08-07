@@ -1,17 +1,18 @@
 services:
   superconductor-afterimage-db:
-#    container_name: superconductor-db-redis-dev_ws
+    #    container_name: superconductor-db-redis-dev_ws
     image: "redis:8.0.0"
-    hostname: redis
-    ports:
-      - "6379:6379"
+#    hostname: localhost
+#    ports:
+#      - "6379:6379"
 #    environment:
 #      - "REDIS_ARGS=--appendonly yes"
-  superconductor-afterimage:  
+  superconductor-afterimage:
     #    container_name: superconductor-app-redis-dev_ws
     image: superconductor-app-redis:1.16.1
-    ports:
-      - "5555:5555"
+#    hostname: localhost
+#    ports:
+#      - "5555:5555"
     links:
       - superconductor-afterimage-db
 #    environment:

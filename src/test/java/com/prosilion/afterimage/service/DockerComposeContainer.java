@@ -1,0 +1,44 @@
+package com.prosilion.afterimage.service;
+
+import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
+import java.io.File;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+@Slf4j
+@Testcontainers
+@EmbeddedRedisStandalone
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
+public abstract class DockerComposeContainer {
+
+  @Container
+  public static final ComposeContainer DOCKER_COMPOSE_CONTAINER;
+
+  static {
+    DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
+        new File("src/test/resources/docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
+        .withExposedService("superconductor-afterimage", 5555)
+        .withRemoveVolumes(true);
+  }
+
+  @BeforeAll
+  static void before() {
+    log.info("calling DOCKER_COMPOSE_CONTAINER.start()....");
+    DOCKER_COMPOSE_CONTAINER.start();
+    log.info("... done DOCKER_COMPOSE_CONTAINER.start()");
+  }
+
+  @AfterAll
+  static void after() {
+    log.info("calling DOCKER_COMPOSE_CONTAINER.stop()....");
+    DOCKER_COMPOSE_CONTAINER.stop();
+    log.info("... done DOCKER_COMPOSE_CONTAINER.stop()");
+  }
+}
