@@ -27,7 +27,6 @@ import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -95,7 +94,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), okMessageSubscriber_1);
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
     List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
@@ -108,7 +107,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
         createSuperconductorReqMessage(subscriberId_1),
         superconductorEventsSubscriber_1);
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
     log.debug("retrieved afterimage events:");
     List<EventIF> returnedSuperconductorEvents =
@@ -131,7 +130,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
         createAfterImageReqMessage(subscriberId_2, upvotedUser.getPublicKey()),
         afterImageEventsSubscriber_A);
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
     log.debug("afterimage returned superconductor events:");
     List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
@@ -157,10 +156,10 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF), okMessageSubscriber_1);
-    TimeUnit.MILLISECONDS.sleep(1500);
+    // TimeUnit.MILLISECONDS.sleep(1500);
 
     List<OkMessage> items1 = okMessageSubscriber_1.getItems();
-    TimeUnit.MILLISECONDS.sleep(1500);
+    // TimeUnit.MILLISECONDS.sleep(1500);
 
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
@@ -171,7 +170,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
 //    okMessageSubscriber_1.dispose();
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF2), okMessageSubscriber_2);
-    TimeUnit.MILLISECONDS.sleep(1500);
+    // TimeUnit.MILLISECONDS.sleep(1500);
 
     List<OkMessage> items = okMessageSubscriber_2.getItems();
     assertEquals(true, items.getFirst().getFlag());
@@ -196,19 +195,19 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
 //    save SC result to Aimg
     returnedReqGenericEvents.forEach(event -> eventService.processIncomingEvent(new EventMessage(event)));
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
 //    query Aimg for (as yet to be impl'd) reputation score event
     TestSubscriber<BaseMessage> afterImageEventsSubscriber_V = new TestSubscriber<>();
     afterimageMeshRelayService.send(
         createAfterImageReqMessage(subscriberId, upvotedUser.getPublicKey()), afterImageEventsSubscriber_V);
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
     List<EventIF> returnedAfterImageEvents = getGenericEvents(
         afterImageEventsSubscriber_V.getItems());
 
-    TimeUnit.SECONDS.sleep(1);
+    // TimeUnit.SECONDS.sleep(1);
 
     log.debug("000000000000000000");
     log.debug("000000000000000000");
