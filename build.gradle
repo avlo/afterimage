@@ -86,7 +86,9 @@ dependencies {
 
     def springBootEmbeddedRedis = '1.0.1'
     testImplementation('io.github.tobi-laa:spring-boot-embedded-redis:' + springBootEmbeddedRedis)
-    testImplementation('io.projectreactor:reactor-test')
+
+    def ioReactorTest = '3.8.0-M5'
+    testImplementation('io.projectreactor:reactor-test:' + ioReactorTest)
 
     def jUnitVersion = '5.13.4'
     testImplementation "org.junit.jupiter:junit-jupiter:" + jUnitVersion

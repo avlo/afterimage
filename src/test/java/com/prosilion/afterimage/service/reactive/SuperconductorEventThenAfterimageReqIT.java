@@ -244,13 +244,13 @@ public class SuperconductorEventThenAfterimageReqIT {
 
     TimeUnit.MILLISECONDS.sleep(250);
 
-    log.info("000000000000000000");
-    log.info("000000000000000000");
-    log.info("{}", returnedAfterImageEvents.size());
-    log.info("------");
-    returnedAfterImageEvents.forEach(a -> log.info(a.getContent() + "\n----------\n"));
-    log.info("000000000000000000");
-    log.info("000000000000000000");
+    log.debug("000000000000000000");
+    log.debug("000000000000000000");
+    log.debug("{}", returnedAfterImageEvents.size());
+    log.debug("------");
+    returnedAfterImageEvents.forEach(a -> log.debug(a.getContent() + "\n----------\n"));
+    log.debug("000000000000000000");
+    log.debug("000000000000000000");
 
 //    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
