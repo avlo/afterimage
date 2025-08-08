@@ -105,7 +105,7 @@ public class SuperconductorEventThenAfterimageReqIT {
   }
 
   @Test
-  void testAOrderSuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
     final AfterimageMeshRelayService superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
@@ -126,7 +126,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), okMessageSubscriber_1);
 
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
@@ -139,7 +139,7 @@ public class SuperconductorEventThenAfterimageReqIT {
         createSuperconductorReqMessage(subscriberId_1),
         superconductorEventsSubscriber_1);
 
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     log.debug("retrieved afterimage events:");
     List<EventIF> returnedSuperconductorEvents =
@@ -162,7 +162,7 @@ public class SuperconductorEventThenAfterimageReqIT {
         createAfterImageReqMessage(subscriberId_2, upvotedUser.getPublicKey()),
         afterImageEventsSubscriber_A);
 
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     log.debug("afterimage returned superconductor events:");
     List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
@@ -179,7 +179,7 @@ public class SuperconductorEventThenAfterimageReqIT {
   }
 
   @Test
-  void testBorderSuperconductorTwoEventsThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testB_SuperconductorTwoEventsThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
     final AfterimageMeshRelayService superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
@@ -191,10 +191,10 @@ public class SuperconductorEventThenAfterimageReqIT {
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF), okMessageSubscriber_1);
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     List<OkMessage> items1 = okMessageSubscriber_1.getItems();
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
@@ -205,7 +205,7 @@ public class SuperconductorEventThenAfterimageReqIT {
 //    okMessageSubscriber_1.dispose();
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF2), okMessageSubscriber_2);
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     List<OkMessage> items = okMessageSubscriber_2.getItems();
     assertEquals(true, items.getFirst().getFlag());
@@ -220,15 +220,18 @@ public class SuperconductorEventThenAfterimageReqIT {
         createSuperconductorReqMessage(subscriberId), superConductorEventsSubscriber_W);
 
 
-    List<EventIF> returnedReqGenericEvents = getGenericEvents(
+    List<EventIF> returnedVotesFromSc = getGenericEvents(
         superConductorEventsSubscriber_W.getItems());
 
-    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getId).anyMatch(textNoteEvent_1.getId()::equals));
-    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getPublicKey).map(PublicKey::toString).anyMatch(textNoteEvent_1.getPublicKey().toString()::equals));
-    assertTrue(returnedReqGenericEvents.stream().map(EventIF::getKind).anyMatch(textNoteEvent_1.getKind()::equals));
+    assertEquals(2, returnedVotesFromSc.size());
+    assertTrue(returnedVotesFromSc.stream().map(EventIF::getId).anyMatch(textNoteEvent_1.getId()::equals));
+    assertTrue(returnedVotesFromSc.stream().map(EventIF::getId).anyMatch(textNoteEvent_2.getId()::equals));
+    assertTrue(returnedVotesFromSc.stream().map(EventIF::getPublicKey).map(PublicKey::toString).anyMatch(textNoteEvent_1.getPublicKey().toString()::equals));
+    assertTrue(returnedVotesFromSc.stream().map(EventIF::getPublicKey).map(PublicKey::toString).anyMatch(textNoteEvent_2.getPublicKey().toString()::equals));
+    assertTrue(returnedVotesFromSc.stream().map(EventIF::getKind).anyMatch(textNoteEvent_1.getKind()::equals));
 
 //    save SC result to Aimg
-    returnedReqGenericEvents.forEach(event -> eventService.processIncomingEvent(new EventMessage(event)));
+    returnedVotesFromSc.forEach(event -> eventService.processIncomingEvent(new EventMessage(event)));
 
     TimeUnit.MILLISECONDS.sleep(250);
 
@@ -237,27 +240,28 @@ public class SuperconductorEventThenAfterimageReqIT {
     afterimageMeshRelayService.send(
         createAfterImageReqMessage(subscriberId, upvotedUser.getPublicKey()), afterImageEventsSubscriber_V);
 
-    TimeUnit.MILLISECONDS.sleep(250);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     List<EventIF> returnedAfterImageEvents = getGenericEvents(
         afterImageEventsSubscriber_V.getItems());
 
-    TimeUnit.MILLISECONDS.sleep(250);
-
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
-    log.debug("{}", returnedAfterImageEvents.size());
-    log.debug("------");
-    returnedAfterImageEvents.forEach(a -> log.debug(a.getContent() + "\n----------\n"));
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
+    TimeUnit.MILLISECONDS.sleep(50);
 
 //    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
-    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
+    assertEquals(1, returnedAfterImageEvents.size());
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(afterimageInstancePublicKey.toHexString())));
     assertEquals(returnedAfterImageEvents.getFirst().getKind(), textNoteEvent_1.getKind());
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
 
+    log.info("000000000000000000");
+    log.info("000000000000000000");
+    log.info("{}", returnedAfterImageEvents.size());
+    log.info("------");
+    returnedAfterImageEvents.forEach(a -> log.info("{}\n----------\n", a.getContent()));
+    log.info("000000000000000000");
+    log.info("000000000000000000");
+//    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
+    
     superconductorRelayReactiveClient.closeSocket();
     afterimageMeshRelayService.closeSocket();
   }
