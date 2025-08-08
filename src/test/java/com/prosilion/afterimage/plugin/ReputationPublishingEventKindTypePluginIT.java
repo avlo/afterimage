@@ -12,7 +12,6 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
-import io.github.tobi.laa.spring.boot.embedded.redis.RedisFlushAll;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -36,12 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @EmbeddedRedisStandalone
-@RedisFlushAll(mode = RedisFlushAll.Mode.AFTER_CLASS)
+//@RedisFlushAll(mode = RedisFlushAll.Mode.AFTER_CLASS)
+//@RedisFlushAll
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 //@DataRedisTest
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
-public class ZReputationPublishingEventKindTypePluginIT {
+public class ReputationPublishingEventKindTypePluginIT {
 
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
@@ -57,7 +57,7 @@ public class ZReputationPublishingEventKindTypePluginIT {
   private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
   @Autowired
-  public ZReputationPublishingEventKindTypePluginIT(
+  public ReputationPublishingEventKindTypePluginIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
       @NonNull RedisCacheService cacheServiceIF,
       @NonNull ReputationPublishingEventKindTypePlugin reputationPublishingEventKindTypePlugin,
