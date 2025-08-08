@@ -158,10 +158,10 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF), okMessageSubscriber_1);
     TimeUnit.MILLISECONDS.sleep(1500);
-    
+
     List<OkMessage> items1 = okMessageSubscriber_1.getItems();
     TimeUnit.MILLISECONDS.sleep(1500);
-    
+
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
 
@@ -225,7 +225,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
   }
 
-  synchronized public static List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+  private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)
@@ -233,7 +233,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
         .toList();
   }
 
-  synchronized private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
     return new ReqMessage(
         subscriberId,
         new Filters(
@@ -246,7 +246,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  synchronized private ReqMessage createSuperconductorReqMessage(String subscriberId) {
+  private ReqMessage createSuperconductorReqMessage(String subscriberId) {
     return new ReqMessage(subscriberId,
         new Filters(
 //            new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),

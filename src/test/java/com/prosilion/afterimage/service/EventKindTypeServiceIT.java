@@ -27,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @EmbeddedRedisStandalone
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {

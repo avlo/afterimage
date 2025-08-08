@@ -227,13 +227,13 @@ public class ReputationReqMessageServiceIT {
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private static NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
+  private NoticeMessage getNoticeMessage(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(NoticeMessage.class::isInstance)
         .map(NoticeMessage.class::cast).findFirst().orElseThrow(AssertionError::new);
   }
 
-  private static List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+  private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
     return returnedBaseMessages.stream()
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)

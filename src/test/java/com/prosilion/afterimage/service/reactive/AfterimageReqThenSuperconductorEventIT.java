@@ -35,7 +35,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
-import static com.prosilion.afterimage.service.reactive.SuperconductorEventThenAfterimageReqIT.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -158,7 +157,15 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("1")));
   }
 
-  synchronized private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
+    return returnedBaseMessages.stream()
+        .filter(EventMessage.class::isInstance)
+        .map(EventMessage.class::cast)
+        .map(EventMessage::getEvent)
+        .toList();
+  }
+
+  private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
     return new ReqMessage(
         subscriberId,
         new Filters(
@@ -171,7 +178,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  synchronized private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
     return new ReqMessage(subscriberId,
         new Filters(
             new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),

@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 //@DataRedisTest
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
-public class ReputationPublishingEventKindTypePluginIT {
+public class ZReputationPublishingEventKindTypePluginIT {
 
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
@@ -57,7 +57,7 @@ public class ReputationPublishingEventKindTypePluginIT {
   private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
   @Autowired
-  public ReputationPublishingEventKindTypePluginIT(
+  public ZReputationPublishingEventKindTypePluginIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
       @NonNull RedisCacheService cacheServiceIF,
       @NonNull ReputationPublishingEventKindTypePlugin reputationPublishingEventKindTypePlugin,
