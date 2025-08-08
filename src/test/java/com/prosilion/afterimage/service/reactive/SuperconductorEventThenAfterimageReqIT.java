@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.service.DockerITComposeContainer;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -24,10 +23,15 @@ import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -35,7 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,10 +52,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-//@TestConfiguration(proxyBeanMethods = false)
-//@ImportTestcontainers(DockerComposeContainer.class)
 @ActiveProfiles("test")
-public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeContainer {
+@Testcontainers
+@EmbeddedRedisStandalone
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+public class SuperconductorEventThenAfterimageReqIT {
+
+  public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
+
+  @Container
+  private static final ComposeContainer DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
+      new File("src/test/resources/docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
+      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
+      .withRemoveVolumes(true);
 
   private final EventServiceIF eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
@@ -54,6 +72,20 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUri;
   private final String afterimageRelayUri;
+
+  @BeforeEach
+  public void setUp() {
+    log.info("BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()....");
+    DOCKER_COMPOSE_CONTAINER.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
+    log.info("... done BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()");
+  }
+
+  @BeforeAll
+  static void beforeAll() throws IOException, InterruptedException, NoSuchAlgorithmException {
+    log.info("BeforeAll DOCKER_COMPOSE_CONTAINER.start()....");
+    DOCKER_COMPOSE_CONTAINER.start();
+    log.info("... done BeforeAll DOCKER_COMPOSE_CONTAINER.start()");
+  }
 
   @Autowired
   public SuperconductorEventThenAfterimageReqIT(
@@ -94,7 +126,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), okMessageSubscriber_1);
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
@@ -107,7 +139,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
         createSuperconductorReqMessage(subscriberId_1),
         superconductorEventsSubscriber_1);
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     log.debug("retrieved afterimage events:");
     List<EventIF> returnedSuperconductorEvents =
@@ -130,7 +162,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
         createAfterImageReqMessage(subscriberId_2, upvotedUser.getPublicKey()),
         afterImageEventsSubscriber_A);
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     log.debug("afterimage returned superconductor events:");
     List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
@@ -141,6 +173,9 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
     assertEquals(returnedReqGenericEvents_2.getFirst().getPublicKey().toHexString(), afterimageInstancePublicKey.toHexString());
     assertEquals(returnedReqGenericEvents_2.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
+
+    superconductorRelayReactiveClient.closeSocket();
+    afterimageMeshRelayService.closeSocket();
   }
 
   @Test
@@ -156,10 +191,10 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF), okMessageSubscriber_1);
-    // TimeUnit.MILLISECONDS.sleep(1500);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     List<OkMessage> items1 = okMessageSubscriber_1.getItems();
-    // TimeUnit.MILLISECONDS.sleep(1500);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
@@ -170,7 +205,7 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
 //    okMessageSubscriber_1.dispose();
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF2), okMessageSubscriber_2);
-    // TimeUnit.MILLISECONDS.sleep(1500);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     List<OkMessage> items = okMessageSubscriber_2.getItems();
     assertEquals(true, items.getFirst().getFlag());
@@ -195,33 +230,36 @@ public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeConta
 //    save SC result to Aimg
     returnedReqGenericEvents.forEach(event -> eventService.processIncomingEvent(new EventMessage(event)));
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
 //    query Aimg for (as yet to be impl'd) reputation score event
     TestSubscriber<BaseMessage> afterImageEventsSubscriber_V = new TestSubscriber<>();
     afterimageMeshRelayService.send(
         createAfterImageReqMessage(subscriberId, upvotedUser.getPublicKey()), afterImageEventsSubscriber_V);
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
     List<EventIF> returnedAfterImageEvents = getGenericEvents(
         afterImageEventsSubscriber_V.getItems());
 
-    // TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(250);
 
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
-    log.debug("{}", returnedAfterImageEvents.size());
-    log.debug("------");
-    returnedAfterImageEvents.forEach(a -> log.debug(a.getContent() + "\n----------\n"));
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
+    log.info("000000000000000000");
+    log.info("000000000000000000");
+    log.info("{}", returnedAfterImageEvents.size());
+    log.info("------");
+    returnedAfterImageEvents.forEach(a -> log.info(a.getContent() + "\n----------\n"));
+    log.info("000000000000000000");
+    log.info("000000000000000000");
 
 //    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(afterimageInstancePublicKey.toHexString())));
     assertEquals(returnedAfterImageEvents.getFirst().getKind(), textNoteEvent_1.getKind());
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(textNoteEvent_1.getKind())));
+
+    superconductorRelayReactiveClient.closeSocket();
+    afterimageMeshRelayService.closeSocket();
   }
 
   private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {

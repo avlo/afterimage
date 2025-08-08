@@ -41,4 +41,8 @@ public class AfterimageMeshRelayService {
   public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
     nostrRelayClient.send(reqMessage, subscriber);
   }
+
+  public void closeSocket() {
+    nostrRelayClient.closeSocket();
+  }
 }

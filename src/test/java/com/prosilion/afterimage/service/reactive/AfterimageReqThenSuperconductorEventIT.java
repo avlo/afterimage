@@ -33,16 +33,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-//@TestConfiguration(proxyBeanMethods = false)
-//@ImportTestcontainers(DockerComposeContainer.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeContainer {
 
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
@@ -155,6 +155,9 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     );
 
     assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("1")));
+
+    superconductorRelayReactiveClient.closeSocket();
+    afterimageMeshRelayService.closeSocket();
   }
 
   private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {

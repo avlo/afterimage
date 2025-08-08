@@ -29,12 +29,4 @@ public abstract class DockerITComposeContainer {
     DOCKER_COMPOSE_CONTAINER.start();
     log.info("... done DOCKER_COMPOSE_CONTAINER.start()");
   }
-
-//  //  @AfterClass
-////  @AfterAll
-//  public static void after() {
-//    log.info("calling DOCKER_COMPOSE_CONTAINER.stop()....");
-//    DOCKER_COMPOSE_CONTAINER.stop();
-//    log.info("... done DOCKER_COMPOSE_CONTAINER.stop()");
-//  }
 }
