@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.service.DockerComposeContainer;
+import com.prosilion.afterimage.service.DockerITComposeContainer;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -31,7 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
+import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.service.reactive.SuperconductorEventThenAfterimageReqIT.getGenericEvents;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,7 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 //@TestConfiguration(proxyBeanMethods = false)
 //@ImportTestcontainers(DockerComposeContainer.class)
-class AfterimageReqThenSuperconductorEventIT extends DockerComposeContainer {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
+public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeContainer {
 
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
@@ -49,19 +53,14 @@ class AfterimageReqThenSuperconductorEventIT extends DockerComposeContainer {
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
-  AfterimageReqThenSuperconductorEventIT(
+  public AfterimageReqThenSuperconductorEventIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    String serviceHost = DOCKER_COMPOSE_CONTAINER.getServiceHost("superconductor-afterimage", 5555);
-    Integer servicePort = DOCKER_COMPOSE_CONTAINER.getServicePort("superconductor-afterimage", 5555);
-    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
-    log.debug("SuperconductorEventThenAfterimageReqIT port: {}", servicePort);
-
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
-    this.afterimageMeshRelayService = afterimageMeshRelayService;
+    this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.eventService = eventService;

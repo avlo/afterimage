@@ -3,10 +3,7 @@ package com.prosilion.afterimage.service;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -14,9 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 @EmbeddedRedisStandalone
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
-public abstract class DockerComposeContainer {
+public abstract class DockerITComposeContainer {
 
   @Container
   public static final ComposeContainer DOCKER_COMPOSE_CONTAINER;
@@ -35,10 +30,11 @@ public abstract class DockerComposeContainer {
     log.info("... done DOCKER_COMPOSE_CONTAINER.start()");
   }
 
-  @AfterAll
-  static void after() {
-    log.info("calling DOCKER_COMPOSE_CONTAINER.stop()....");
-    DOCKER_COMPOSE_CONTAINER.stop();
-    log.info("... done DOCKER_COMPOSE_CONTAINER.stop()");
-  }
+//  //  @AfterClass
+////  @AfterAll
+//  public static void after() {
+//    log.info("calling DOCKER_COMPOSE_CONTAINER.stop()....");
+//    DOCKER_COMPOSE_CONTAINER.stop();
+//    log.info("... done DOCKER_COMPOSE_CONTAINER.stop()");
+//  }
 }

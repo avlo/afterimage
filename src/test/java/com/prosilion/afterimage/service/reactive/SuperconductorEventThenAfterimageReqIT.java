@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.service.DockerComposeContainer;
+import com.prosilion.afterimage.service.DockerITComposeContainer;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -30,58 +30,55 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-//@TestClassOrder(ClassOrderer.OrderAnnotation.class)
-//@Order(99)
+@TestMethodOrder(MethodOrderer.MethodName.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 //@TestConfiguration(proxyBeanMethods = false)
 //@ImportTestcontainers(DockerComposeContainer.class)
-class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
+@ActiveProfiles("test")
+public class SuperconductorEventThenAfterimageReqIT extends DockerITComposeContainer {
 
-  private final AfterimageMeshRelayService superconductorRelayReactiveClient;
-  private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final PublicKey afterimageInstancePublicKey;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final String superconductorRelayUri;
+  private final String afterimageRelayUri;
 
   @Autowired
-  SuperconductorEventThenAfterimageReqIT(
+  public SuperconductorEventThenAfterimageReqIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
-    String serviceHost = DOCKER_COMPOSE_CONTAINER.getServiceHost("superconductor-afterimage", 5555);
-    Integer servicePort = DOCKER_COMPOSE_CONTAINER.getServicePort("superconductor-afterimage", 5555);
-    log.debug("SuperconductorEventThenAfterimageReqIT host: {}", serviceHost);
-    log.debug("SuperconductorEventThenAfterimageReqIT port: {}", servicePort);
-    log.debug("superconductorRelayUri: {}", superconductorRelayUri);
 
-    this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
-    this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstancePublicKey = afterimageInstanceIdentity.getPublicKey();
     this.eventService = eventService;
+    this.superconductorRelayUri = superconductorRelayUri;
+    this.afterimageRelayUri = afterimageRelayUri;
   }
 
   @Test
-  @Order(1)
-  void testSuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testAOrderSuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
+    final AfterimageMeshRelayService superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
+    final AfterimageMeshRelayService afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
 
     GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
         new GenericDocumentKindTypeDto(
@@ -97,6 +94,9 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
 //    submit Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), okMessageSubscriber_1);
+
+    TimeUnit.SECONDS.sleep(1);
+
     List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
 
@@ -107,6 +107,8 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
     superconductorRelayReactiveClient.send(
         createSuperconductorReqMessage(subscriberId_1),
         superconductorEventsSubscriber_1);
+
+    TimeUnit.SECONDS.sleep(1);
 
     log.debug("retrieved afterimage events:");
     List<EventIF> returnedSuperconductorEvents =
@@ -129,6 +131,8 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
         createAfterImageReqMessage(subscriberId_2, upvotedUser.getPublicKey()),
         afterImageEventsSubscriber_A);
 
+    TimeUnit.SECONDS.sleep(1);
+
     log.debug("afterimage returned superconductor events:");
     List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
     log.debug("  {}", items_2);
@@ -141,10 +145,11 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
   }
 
   @Test
-  @Order(2)
-  void testSuperconductorTwoEventsThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testBorderSuperconductorTwoEventsThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
+    final AfterimageMeshRelayService superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
+    final AfterimageMeshRelayService afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
 
     BadgeAwardUpvoteEvent textNoteEvent_1 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
     GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(textNoteEvent_1, SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
@@ -152,9 +157,11 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF), okMessageSubscriber_1);
-    TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(1500);
+    
     List<OkMessage> items1 = okMessageSubscriber_1.getItems();
-    TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(1500);
+    
     assertEquals(true, items1.getFirst().getFlag());
     log.debug("received 1of2 OkMessage...");
 
@@ -164,7 +171,7 @@ class SuperconductorEventThenAfterimageReqIT extends DockerComposeContainer {
 //    okMessageSubscriber_1.dispose();
     TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(genericEventKindIF2), okMessageSubscriber_2);
-    TimeUnit.SECONDS.sleep(1);
+    TimeUnit.MILLISECONDS.sleep(1500);
 
     List<OkMessage> items = okMessageSubscriber_2.getItems();
     assertEquals(true, items.getFirst().getFlag());
