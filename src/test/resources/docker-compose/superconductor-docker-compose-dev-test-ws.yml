@@ -1,0 +1,33 @@
+services:
+  superconductor-db:
+    image: "redis:8.0.0"
+    hostname: localhost
+    ports:
+      - "6379:6379"
+#    environment:
+#      - "REDIS_ARGS=--appendonly yes"
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+    networks:
+      docker-network:
+  superconductor-afterimage:
+    image: avlo/superconductor-app-redis:1.16.1
+    ports:
+      - "5555:5555"
+    depends_on:
+      superconductor-db:
+        condition: service_healthy
+    networks:
+      docker-network:
+    environment:
+      superconductor.auth.active: false
+      SPRING_PROFILES_ACTIVE: dev_ws
+volumes:
+  superconductor-db:
+    driver: local
+networks:
+  docker-network:
+    driver: bridge

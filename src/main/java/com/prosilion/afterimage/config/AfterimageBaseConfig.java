@@ -12,7 +12,10 @@ import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.tag.IdentifierTag;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
 import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -23,8 +26,10 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -112,5 +117,26 @@ public abstract class AfterimageBaseConfig {
         eventKindTypeService,
         cacheIF,
         aImgIdentity);
+  }
+
+  @Bean
+  BadgeDefinitionEvent reputationBadgeDefinitionEvent(
+      @NonNull Identity afterimageInstanceIdentity,
+      @NonNull String afterimageRelayUrl) throws NoSuchAlgorithmException {
+
+    return new BadgeDefinitionEvent(
+        afterimageInstanceIdentity,
+        new IdentifierTag(
+            AfterimageKindType.REPUTATION.getName()),
+        new ReferenceTag(
+            afterimageRelayUrl),
+        "afterimage reputation definition f(x)");
+  }
+
+  @Bean
+  DataLoaderRedisIF dataLoaderRedis(
+      @NonNull @Qualifier("eventPlugin") EventPluginIF eventPlugin,
+      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
+    return new DataLoaderRedis(eventPlugin, reputationBadgeDefinitionEvent);
   }
 }

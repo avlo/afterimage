@@ -1,3 +1,5 @@
+var subscription_id = Array.from({ length: 64 }, () => "0123456789abcdef".charAt(Math.floor(Math.random() * 16))).join('');
+
 $(function () {
     $("#sendrequest").click(() => sendContentRequest());
     $("#reqclose").click(() => sendClose());
@@ -23,7 +25,7 @@ function stringifyJson() {
 function populateRequestJson() {
     return "["
         + "\"REQ\","
-        + "\"" + $("#subscription_id").val() + "\","
+        + "\"" + subscription_id + "\","
         + stringifyJson()
         + "]";
 }
@@ -48,6 +50,6 @@ function sendClose() {
 function populateCloseJson() {
     return "["
         + "\"CLOSE\","
-        + "\"" + $("#subscription_id").val() + "\""
+        + "\"" + subscription_id + "\""
         + "]";
 }

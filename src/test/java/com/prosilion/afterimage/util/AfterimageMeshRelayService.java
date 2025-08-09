@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.relay;
+package com.prosilion.afterimage.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
@@ -15,7 +15,6 @@ import org.springframework.boot.ssl.SslBundles;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-// TODO: below class currently only used by IT's, consider replace w/ relevant alt
 public class AfterimageMeshRelayService {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
@@ -41,5 +40,9 @@ public class AfterimageMeshRelayService {
 
   public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {
     nostrRelayClient.send(reqMessage, subscriber);
+  }
+
+  public void closeSocket() {
+    nostrRelayClient.closeSocket();
   }
 }

@@ -1,3 +1,0 @@
-services:
-  superconductor-afterimage:
-    image: avlo/superconductor:1.13.2

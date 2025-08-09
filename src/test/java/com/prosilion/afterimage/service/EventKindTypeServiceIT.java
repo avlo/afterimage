@@ -15,6 +15,7 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@EmbeddedRedisStandalone
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
   private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
@@ -93,6 +97,9 @@ class EventKindTypeServiceIT {
     eventKindService.processIncomingEvent(new GenericDocumentKindDto(textNoteEvent).convertBaseEventToEventIF());
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(textNoteEvent.getKind());
-    eventsByKind.forEach(System.out::println);
+
+    assertEquals(1, eventsByKind.size());
+    EventIF first = eventsByKind.getFirst();
+    assertEquals(first.getKind(), textNoteEvent.getKind());
   }
 }
