@@ -24,7 +24,7 @@ public abstract class DockerITComposeContainer {
   }
 
   @BeforeAll
-  static void before() {
+  static void beforeAll() {
     log.info("calling DOCKER_COMPOSE_CONTAINER.start()....");
     DOCKER_COMPOSE_CONTAINER.start();
     log.info("... done DOCKER_COMPOSE_CONTAINER.start()");

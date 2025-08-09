@@ -66,17 +66,19 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
   }
 
   @Test
-  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
 
 //    // # --------------------- Aimg EVENT -------------------
 //    // query Aimg for (as yet to be impl'd) reputation score event
 //    //   results should process at end of test once pre-req SC events have completed
-    final String subscriberId_1 = Factory.generateRandomHex64String();
-    TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
+    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(
-        createAfterImageReqMessage(subscriberId_1, upvotedUser.getPublicKey()), afterImageEventsSubscriber_A);
+        createAfterImageReqMessage(
+            Factory.generateRandomHex64String(),
+            upvotedUser.getPublicKey()),
+        reputationRequestSubscriber);
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
@@ -90,9 +92,9 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
             .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
-    TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
-    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), okMessageSubscriber_1);
-    assertEquals(true, okMessageSubscriber_1
+    TestSubscriber<OkMessage> scEventSubmitter_1 = new TestSubscriber<>();
+    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), scEventSubmitter_1);
+    assertEquals(true, scEventSubmitter_1
         .getItems()
         .getFirst()
         .getFlag());
@@ -108,10 +110,10 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
             SuperconductorKindType.UPVOTE)
             .convertBaseEventToGenericEventKindTypeIF();
 
-    TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
-    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_2), okMessageSubscriber_2);
+    TestSubscriber<OkMessage> scEventSubmitter_2 = new TestSubscriber<>();
+    superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_2), scEventSubmitter_2);
 
-    assertEquals(true, okMessageSubscriber_2
+    assertEquals(true, scEventSubmitter_2
         .getItems()
         .getFirst()
         .getFlag());
@@ -120,41 +122,40 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     // # --------------------- SC REQ -------------------
     //    submit matching author & vote tag Req to superconductor
 
-    final String subscriberId_2 = Factory.generateRandomHex64String();
     TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
-        createSuperconductorReqMessage(subscriberId_2, upvotedUser.getPublicKey()), superConductorEventsSubscriber);
+        createSuperconductorReqMessage(Factory.generateRandomHex64String()), superConductorEventsSubscriber);
 
 
-    List<BaseMessage> returnedSuperconductorBaseMessages = superConductorEventsSubscriber.getItems();
-    List<EventIF> returnedSuperconductorEvents = getGenericEvents(returnedSuperconductorBaseMessages);
+    List<BaseMessage> returnedScMessages = superConductorEventsSubscriber.getItems();
+    List<EventIF> returnedScEventIFs = getGenericEvents(returnedScMessages);
 
-    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_1.getContent())));
-    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_2.getContent())));
-    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(badgeAwardUpvoteEvent_1.getPublicKey().toHexString())));
-    assertEquals(returnedSuperconductorEvents.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
-    assertTrue(returnedSuperconductorEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(badgeAwardUpvoteEvent_1.getKind())));
+    assertTrue(returnedScEventIFs.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_1.getContent())));
+    assertTrue(returnedScEventIFs.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_2.getContent())));
+    assertTrue(returnedScEventIFs.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(badgeAwardUpvoteEvent_1.getPublicKey().toHexString())));
+    assertEquals(returnedScEventIFs.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
+    assertTrue(returnedScEventIFs.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(badgeAwardUpvoteEvent_1.getKind())));
 
     //    save SC result to Aimg
     //    should trigger Aimg afterImageEventsSubscriber
-    returnedSuperconductorEvents.forEach(gev ->
-        eventService.processIncomingEvent(new EventMessage(gev)));
+    returnedScEventIFs.forEach(eventIF ->
+        eventService.processIncomingEvent(new EventMessage(eventIF)));
 
 
     // # --------------------- Aimg EVENTS returned -------------------
-    List<BaseMessage> returnedAfterImageReqMessages = afterImageEventsSubscriber_A.getItems();
+    List<BaseMessage> returnedAimgMessages = reputationRequestSubscriber.getItems();
 
-    List<EventIF> afterImageEvents = getGenericEvents(returnedAfterImageReqMessages);
+    List<EventIF> returnedReputationEventIFs = getGenericEvents(returnedAimgMessages);
     log.debug("afterimage returned events:");
-    afterImageEvents.forEach(genericEvent -> log.debug(genericEvent.getId()));
-    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getTags()
+    returnedReputationEventIFs.forEach(eventIF -> log.debug(eventIF.getId()));
+    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF -> eventIF.getTags()
         .stream()
         .filter(PubKeyTag.class::isInstance)
         .map(PubKeyTag.class::cast)
         .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(upvotedUser.getPublicKey())))
     );
 
-    assertTrue(afterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("1")));
+    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF -> eventIF.getContent().equals("2")));
 
     superconductorRelayReactiveClient.closeSocket();
     afterimageMeshRelayService.closeSocket();
@@ -181,10 +182,9 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private ReqMessage createSuperconductorReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+  private ReqMessage createSuperconductorReqMessage(String subscriberId) {
     return new ReqMessage(subscriberId,
         new Filters(
-            new ReferencedPublicKeyFilter(new PubKeyTag(upvotedUserPublicKey)),
             new KindFilter(Kind.BADGE_AWARD_EVENT)));
   }
 }
