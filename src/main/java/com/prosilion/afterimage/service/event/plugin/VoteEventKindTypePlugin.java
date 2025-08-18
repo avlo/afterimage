@@ -11,11 +11,11 @@ import org.springframework.lang.NonNull;
 @Slf4j
 // our SportsCar extends CarDecorator
 public abstract class VoteEventKindTypePlugin extends NonPublishingEventKindTypePlugin {
-  private final EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin;
+  private final EventKindTypePluginIF reputationEventKindTypePlugin;
 
   public VoteEventKindTypePlugin(
-      @NonNull EventKindTypePluginIF<KindTypeIF> eventKindTypePlugin,
-      @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF eventKindTypePlugin,
+      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
     super(eventKindTypePlugin);
     this.reputationEventKindTypePlugin = reputationEventKindTypePlugin;
   }

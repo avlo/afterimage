@@ -9,6 +9,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
@@ -21,9 +22,6 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -82,14 +80,15 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
-    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
-        new GenericDocumentKindTypeDto(
-            new BadgeAwardUpvoteEvent(
-                authorIdentity,
-                upvotedUser.getPublicKey(),
-                upvoteBadgeDefinitionEvent),
-            SuperconductorKindType.UPVOTE)
-            .convertBaseEventToGenericEventKindTypeIF();
+    BadgeAwardUpvoteEvent badgeAwardUpvoteEvent_1 = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUser.getPublicKey(),
+        upvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
+//        new GenericDocumentKindTypeDto(
+//            badgeAwardUpvoteEvent_1,
+//            SuperconductorKindType.UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
     TestSubscriber<OkMessage> scEventSubmitter_1 = new TestSubscriber<>();
@@ -101,14 +100,15 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     log.debug("received 1of2 OkMessage...");
 
     // # --------------------- SC EVENT 2 of 2-------------------
-    GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
-        new GenericDocumentKindTypeDto(
-            new BadgeAwardUpvoteEvent(
-                authorIdentity,
-                upvotedUser.getPublicKey(),
-                upvoteBadgeDefinitionEvent),
-            SuperconductorKindType.UPVOTE)
-            .convertBaseEventToGenericEventKindTypeIF();
+    BadgeAwardUpvoteEvent badgeAwardUpvoteEvent_2 = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUser.getPublicKey(),
+        upvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
+//        new GenericDocumentKindTypeDto(
+//            badgeAwardUpvoteEvent_2,
+//            SuperconductorKindType.UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
 
     TestSubscriber<OkMessage> scEventSubmitter_2 = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_2), scEventSubmitter_2);
@@ -139,7 +139,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     //    save SC result to Aimg
     //    should trigger Aimg afterImageEventsSubscriber
     returnedScEventIFs.forEach(eventIF ->
-        eventService.processIncomingEvent(new EventMessage(eventIF)));
+        eventService.processIncomingEvent(new EventMessage(createGenericEventRecord(eventIF))));
 
 
     // # --------------------- Aimg EVENTS returned -------------------
@@ -186,5 +186,16 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     return new ReqMessage(subscriberId,
         new Filters(
             new KindFilter(Kind.BADGE_AWARD_EVENT)));
+  }
+
+  private GenericEventRecord createGenericEventRecord(EventIF event) {
+    return new GenericEventRecord(
+        event.getId(),
+        event.getPublicKey(),
+        event.getCreatedAt(),
+        event.getKind(),
+        event.getTags(),
+        event.getContent(),
+        event.getSignature());
   }
 }

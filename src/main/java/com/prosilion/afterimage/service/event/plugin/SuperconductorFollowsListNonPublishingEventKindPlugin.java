@@ -13,11 +13,11 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +32,16 @@ import org.springframework.lang.NonNull;
 @Slf4j
 public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPublishingEventKindPlugin {
   private final EventKindTypeServiceIF eventKindTypeService;
-  private final CacheServiceIF cacheServiceIF;
+  private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
   public SuperconductorFollowsListNonPublishingEventKindPlugin(
-      @NonNull EventKindPluginIF<Kind> eventKindPlugin,
+      @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
-      @NonNull CacheServiceIF cacheServiceIF,
+      @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.cacheServiceIF = cacheServiceIF;
+    this.redisCacheServiceIF = redisCacheServiceIF;
     this.eventKindTypeService = eventKindTypeService;
     this.aImgIdentity = aImgIdentity;
   }
@@ -73,7 +73,7 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
             URI::toString)
         .collect(Collectors.toSet());
 
-    Set<String> savedRelays = cacheServiceIF.getByKind(getKind())
+    Set<String> savedRelays = redisCacheServiceIF.getByKind(getKind())
         .stream()
         .map(e ->
             e.getTags()

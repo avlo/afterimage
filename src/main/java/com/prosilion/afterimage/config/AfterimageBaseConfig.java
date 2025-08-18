@@ -16,7 +16,6 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
@@ -26,6 +25,7 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -66,10 +66,10 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin(
+  EventKindTypePluginIF reputationEventKindTypePlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
-      @NonNull CacheServiceIF cacheIF,
+      @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
     return new ReputationPublishingEventKindTypePlugin(
@@ -77,15 +77,15 @@ public abstract class AfterimageBaseConfig {
         new EventKindTypePlugin(
             AfterimageKindType.REPUTATION,
             eventPlugin),
-        cacheIF,
+        redisCacheServiceIF,
         aImgIdentity,
         reputationBadgeDefinitionEvent);
   }
 
   @Bean
-  EventKindTypePluginIF<KindTypeIF> upvoteEventKindTypePlugin(
+  EventKindTypePluginIF upvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
     return new UpvoteEventKindTypePlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.UPVOTE,
@@ -94,9 +94,9 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  EventKindTypePluginIF<KindTypeIF> downvoteEventKindTypePlugin(
+  EventKindTypePluginIF downvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
     return new DownvoteEventKindTypePlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.DOWNVOTE,
@@ -105,8 +105,8 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  EventKindPluginIF<Kind> superconductorFollowsListNonPublishingEventKindPlugin(
-      @NonNull CacheServiceIF cacheIF,
+  EventKindPluginIF superconductorFollowsListNonPublishingEventKindPlugin(
+      @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {
@@ -115,7 +115,7 @@ public abstract class AfterimageBaseConfig {
             Kind.RELAY_LIST_METADATA,
             eventPlugin),
         eventKindTypeService,
-        cacheIF,
+        redisCacheServiceIF,
         aImgIdentity);
   }
 

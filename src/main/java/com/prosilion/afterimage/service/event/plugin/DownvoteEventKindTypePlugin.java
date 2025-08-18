@@ -10,8 +10,8 @@ import org.springframework.lang.NonNull;
 public class DownvoteEventKindTypePlugin extends VoteEventKindTypePlugin {
 
   public DownvoteEventKindTypePlugin(
-      @NonNull EventKindTypePluginIF<KindTypeIF> eventKindTypePlugin,
-      @NonNull EventKindTypePluginIF<KindTypeIF> reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF eventKindTypePlugin,
+      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
     super(eventKindTypePlugin, reputationEventKindTypePlugin);
     log.debug("DownvoteEventKindTypePlugin loaded");
   }

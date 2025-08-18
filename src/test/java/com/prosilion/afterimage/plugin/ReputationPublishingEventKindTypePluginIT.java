@@ -11,7 +11,7 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class ReputationPublishingEventKindTypePluginIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
   private final ReputationPublishingEventKindTypePlugin repPlugin;
-  private final RedisCacheService cacheServiceIF;
+  private final RedisCacheServiceIF cacheServiceIF;
   private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
 
   private final Identity authorIdentity = Identity.generateRandomIdentity();
@@ -57,7 +57,7 @@ public class ReputationPublishingEventKindTypePluginIT {
   @Autowired
   public ReputationPublishingEventKindTypePluginIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
-      @NonNull RedisCacheService cacheServiceIF,
+      @NonNull RedisCacheServiceIF cacheServiceIF,
       @NonNull ReputationPublishingEventKindTypePlugin reputationPublishingEventKindTypePlugin,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
     this.votesCount = votesCount;
@@ -78,12 +78,12 @@ public class ReputationPublishingEventKindTypePluginIT {
 
     assertEquals(0, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
-    assertEquals(0, cacheServiceIF.getAllDeletionEventEntities().size());
+    assertEquals(0, cacheServiceIF.getAllDeletionEvents().size());
 
     await().until(() ->
         processIncomingEventExecutor().isDone());
 
-    assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEventEntities().size());
+    assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEvents().size());
 
     GenericEventKindType reputationEvents = repPlugin.getAllPubkeyReputationEvents(upvotedUser).orElseThrow();
     assertEquals(votesCount.toString(), reputationEvents.getContent());
@@ -93,7 +93,7 @@ public class ReputationPublishingEventKindTypePluginIT {
 
 //    process another vote- and subsequently- another updated (single) reputation
     repPlugin.processIncomingEvent(createUpvoteDto(upvoteBadgeDefinitionEvent));
-    assertEquals(votesCount, cacheServiceIF.getAllDeletionEventEntities().size());
+    assertEquals(votesCount, cacheServiceIF.getAllDeletionEvents().size());
 
     Optional<GenericEventKindType> anotherReputationEvent = repPlugin.getAllPubkeyReputationEvents(upvotedUser);
     assertEquals(

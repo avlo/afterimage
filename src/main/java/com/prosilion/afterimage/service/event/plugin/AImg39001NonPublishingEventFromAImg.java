@@ -2,17 +2,18 @@
 //
 //import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
 //import com.prosilion.nostr.enums.Kind;
-//import com.prosilion.nostr.event.GenericEventKindIF;
+//import com.prosilion.nostr.event.EventIF;
 //import com.prosilion.nostr.filter.Filterable;
 //import com.prosilion.nostr.filter.Filters;
 //import com.prosilion.nostr.filter.event.KindFilter;
 //import com.prosilion.nostr.tag.IdentifierTag;
 //import com.prosilion.nostr.tag.PubKeyTag;
 //import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-//import com.prosilion.superconductor.base.service.event.type.EventEntityService;
 //import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+//import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 //import java.util.List;
 //import java.util.Map;
+//import java.util.Optional;
 //import java.util.stream.Collectors;
 //import lombok.SneakyThrows;
 //import lombok.extern.slf4j.Slf4j;
@@ -21,15 +22,15 @@
 //@Slf4j
 //public class AImg39001NonPublishingEventFromAImg extends NonPublishingEventKindPlugin {
 //  private final AImg30166EventFromAImgTypePlugin aImg30166EventFromAImgTypePlugin;
-//  private final EventEntityService eventEntityService;
+//  private final RedisCacheServiceIF eventEntityService;
 //
 //  public AImg39001NonPublishingEventFromAImg(
-//      @NonNull EventKindPluginIF<Kind> eventKindPlugin,
-//      @NonNull EventEntityService eventEntityService,
+//      @NonNull EventKindPluginIF eventKindPlugin,
+//      @NonNull RedisCacheServiceIF redisCacheService,
 //      @NonNull AImg30166EventFromAImgTypePlugin aImg30166EventFromAImgTypePlugin) {
 //    super(eventKindPlugin);
 //    this.aImg30166EventFromAImgTypePlugin = aImg30166EventFromAImgTypePlugin;
-//    this.eventEntityService = eventEntityService;
+//    this.eventEntityService = redisCacheService;
 //  }
 //
 ////  start with pre-defined Map<String, String> afterimageRelays  
@@ -46,7 +47,7 @@
 //
 //  @SneakyThrows
 //  @Override
-//  public void processIncomingEvent(@NonNull GenericEventKindIF afterimageRelaysEvent) {
+//  public void processIncomingEvent(@NonNull EventIF afterimageRelaysEvent) {
 ///*
 //goal: incoming 39001 event makes aImg aware of other aImg relays (add impl class name here)
 //{
@@ -65,7 +66,7 @@
 ////   a. aImg queries it's DB for existing 30166 EVENT with dTag matching above relay_url
 //    IdentifierTag inomingIdentifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, afterimageRelaysEvent).getFirst();
 //    List<IdentifierTag> existingIdentifierTags = eventEntityService
-//        .getEventsByKind(Kind.RELAY_DISCOVERY)
+//        .getByKind(Kind.RELAY_DISCOVERY)
 //        .stream().map(kind39001Event ->
 //            Filterable.getTypeSpecificTags(IdentifierTag.class, kind39001Event))
 //        .findFirst().orElseThrow();
@@ -81,7 +82,7 @@
 //                PubKeyTag.class, afterimageRelaysEvent).stream()
 //            .collect(Collectors.toMap(pubKeyTag ->
 //                    pubKeyTag.getPublicKey().toHexString(),
-//                PubKeyTag::getMainRelayUrl));
+//                pubKeyTag -> Optional.ofNullable(pubKeyTag.getMainRelayUrl()).orElseThrow()));
 //
 //    new SuperconductorMeshProxy(mapped, getAbstractEventTypePlugin()).setUpReputationReqFlux(
 //        new Filters(

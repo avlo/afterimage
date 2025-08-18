@@ -24,10 +24,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -184,16 +181,17 @@ public class ReputationReqMessageServiceIT {
     log.info("authorIdentity: {}", authorIdentity.getPublicKey());
     log.info("upvotedUserPubKey: {}", upvotedUserPubKey);
 
-    GenericEventKindTypeIF upvoteEvent =
-        new GenericDocumentKindTypeDto(
-            new BadgeAwardUpvoteEvent(
-                authorIdentity,
-                upvotedUserPubKey,
-                upvoteBadgeDefinitionEvent),
-            SuperconductorKindType.UPVOTE)
-            .convertBaseEventToGenericEventKindTypeIF();
+    BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUserPubKey,
+        upvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF upvoteEvent =
+//        new GenericDocumentKindTypeDto(
+//            event,
+//            SuperconductorKindType.UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
 
-    eventService.processIncomingEvent(new EventMessage(upvoteEvent));
+    eventService.processIncomingEvent(new EventMessage(event));
 
 //    submit Req for above event to Aimg
 
