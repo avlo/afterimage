@@ -3,7 +3,6 @@ package com.prosilion.afterimage.config;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
 import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
@@ -20,7 +19,6 @@ public class DataLoaderRedis implements DataLoaderRedisIF {
 
   @Override
   public void run(String... args) {
-    eventPlugin.processIncomingEvent(
-        new GenericDocumentKindDto(reputationBadgeDefinitionEvent).convertBaseEventToEventIF());
+    eventPlugin.processIncomingEvent(reputationBadgeDefinitionEvent);
   }
 }

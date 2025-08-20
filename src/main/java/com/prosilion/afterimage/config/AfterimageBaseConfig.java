@@ -112,7 +112,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull EventPluginIF eventPlugin) {
     return new SuperconductorFollowsListNonPublishingEventKindPlugin(
         new EventKindPlugin(
-            Kind.RELAY_LIST_METADATA,
+            Kind.SEARCH_RELAYS_LIST,
             eventPlugin),
         eventKindTypeService,
         redisCacheServiceIF,

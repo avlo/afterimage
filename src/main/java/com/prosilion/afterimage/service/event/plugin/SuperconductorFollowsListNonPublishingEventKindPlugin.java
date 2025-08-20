@@ -7,16 +7,16 @@ import com.prosilion.afterimage.relay.SuperconductorMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.event.MetadataEvent;
+import com.prosilion.nostr.event.SearchRelaysListEvent;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.tag.ReferenceTag;
+import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.net.URI;
 import java.util.List;
@@ -65,12 +65,11 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
 
     assert superconductorRelaysEvent.getKind().equals(getKind()) : new InvalidKindException(superconductorRelaysEvent.getKind().getName(), List.of(getKind().getName()));
 
-    Set<String> userSubmittedSuperconductorRelays = Filterable.getTypeSpecificTags(ReferenceTag.class, superconductorRelaysEvent)
+    Set<String> userSubmittedSuperconductorRelays = Filterable.getTypeSpecificTags(RelayTag.class, superconductorRelaysEvent)
         .stream()
-        .map(
-            ReferenceTag::getUri)
-        .map(
-            URI::toString)
+        .map(RelayTag::getRelay)
+        .map(Relay::getUri)
+        .map(URI::toString)
         .collect(Collectors.toSet());
 
     Set<String> savedRelays = redisCacheServiceIF.getByKind(getKind())
@@ -78,8 +77,9 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
         .map(e ->
             e.getTags()
                 .stream()
-                .map(ReferenceTag.class::cast)
-                .map(ReferenceTag::getUri)
+                .map(RelayTag.class::cast)
+                .map(RelayTag::getRelay)
+                .map(Relay::getUri)
                 .map(URI::toString).toList())
         .flatMap(List::stream).collect(Collectors.toSet());
 
@@ -92,13 +92,10 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
 
     log.debug("SuperConductorRelayEnlistmentNonPublishingEventTypePlugin processIncomingNonPublishingEventKind uniqueNewSuperconductorRelays: [{}]", uniqueNewSuperconductorRelays);
 
-    EventIF relaysListEvent =
-        new GenericDocumentKindDto(
-            createEvent(
-                aImgIdentity,
-                uniqueNewSuperconductorRelays)).convertBaseEventToEventIF();
-
-    super.processIncomingEvent(relaysListEvent);
+    super.processIncomingEvent(
+        createEvent(
+            aImgIdentity,
+            uniqueNewSuperconductorRelays));
 
     Map<String, String> mapped =
         uniqueNewSuperconductorRelays.stream()
@@ -114,10 +111,11 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
   //  TODO: fix sneaky
   @SneakyThrows
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewSuperconductorRelays) {
-    log.debug("SuperConductorRelayEnlistmentEventTypePlugin processing incoming Kind.RELAY_LIST_METADATA 10002 event");
-    return new MetadataEvent(
+    log.debug("SuperConductorRelayEnlistmentEventTypePlugin processing incoming Kind.SEARCH_RELAYS_LIST 10007 event");
+    return new SearchRelaysListEvent(
         identity,
-        uniqueNewSuperconductorRelays.stream().map(ReferenceTag::new).toList(),
+        uniqueNewSuperconductorRelays.stream().map(relayString ->
+            new RelayTag(new Relay(relayString))).toList(),
         "Kind.RELAY_LIST_METADATA");
   }
 
@@ -128,8 +126,8 @@ public class SuperconductorFollowsListNonPublishingEventKindPlugin extends NonPu
 
   @Override
   public Kind getKind() {
-    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getKind of Kind.RELAY_LIST_METADATA");
-    return Kind.RELAY_LIST_METADATA;
+    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getKind of Kind.SEARCH_RELAYS_LIST");
+    return Kind.SEARCH_RELAYS_LIST;
   }
 
   public static String generateRandomHex64String() {
