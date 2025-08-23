@@ -15,10 +15,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ReqKindService implements ReqKindServiceIF {
-  private final Map<Kind, ReqKindPluginIF<Kind>> reqKindPluginsMap;
+  private final Map<Kind, ReqKindPluginIF> reqKindPluginsMap;
 
   @Autowired
-  public ReqKindService(@NonNull List<ReqKindPluginIF<Kind>> reqKindPlugins) {
+  public ReqKindService(@NonNull List<ReqKindPluginIF> reqKindPlugins) {
     this.reqKindPluginsMap = reqKindPlugins.stream()
         .collect(
             Collectors.toMap(

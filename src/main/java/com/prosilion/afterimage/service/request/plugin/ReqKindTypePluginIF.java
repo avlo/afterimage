@@ -7,7 +7,7 @@ import com.prosilion.nostr.filter.Filters;
 import java.util.List;
 import lombok.NonNull;
 
-public interface ReqKindTypePluginIF<KindTypeIF> {
+public interface ReqKindTypePluginIF {
   Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException;
   Kind getKind();
   KindTypeIF getKindType();

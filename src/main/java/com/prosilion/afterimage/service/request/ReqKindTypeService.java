@@ -19,49 +19,44 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ReqKindTypeService implements ReqKindTypeServiceIF {
-  private final Map<Kind, Map<KindTypeIF, ReqKindTypePluginIF<KindTypeIF>>> reqKindTypePluginMap;
+  private final Map<Kind, Map<KindTypeIF, ReqKindTypePluginIF>> reqKindTypePluginMap;
 
   @Autowired
-  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF<KindTypeIF>> reqKindTypePlugins) {
+  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF> reqKindTypePlugins) {
     reqKindTypePluginMap = reqKindTypePlugins.stream()
         .filter(Objects::nonNull)
-        .collect(Collectors.groupingBy(ReqKindTypePluginIF<KindTypeIF>::getKind, Collectors.toMap(
-            ReqKindTypePluginIF<KindTypeIF>::getKindType, Function.identity())));
+        .collect(Collectors.groupingBy(ReqKindTypePluginIF::getKind, Collectors.toMap(
+            ReqKindTypePluginIF::getKindType, Function.identity())));
   }
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
-// TODO: refactor when testing complete    
-    List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
-    Kind kind = getReqKindPlugin(filtersList, list);
-
-    Map<KindTypeIF, ReqKindTypePluginIF<KindTypeIF>> value = Optional.ofNullable(
-        reqKindTypePluginMap.get(kind)).orElseThrow(() ->
-        new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()));
-
+    final Kind kind = getReqKindPlugin(filtersList, reqKindTypePluginMap.keySet().stream().toList());
     validateReferencedPubkeyTag(filtersList);
 
-//    String uuid = validateAddressTag(filtersList, getKindTypes());
-    String uuid = validateIdentifierTag(filtersList, getKindTypes());
-
-    KindTypeIF reqKindTypePlugin = getKindTypes().stream().filter(k -> k.getName().equalsIgnoreCase(uuid)).findFirst().orElseThrow();
-
-    Filters filters = value.get(reqKindTypePlugin).processIncomingRequest(filtersList);
-    return filters;
+    return
+        Optional
+            .ofNullable(
+                reqKindTypePluginMap.get(kind)).orElseThrow(() ->
+                new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()))
+            .get(getKindTypes().stream().filter(kindTypeIF ->
+                kindTypeIF.getName().equalsIgnoreCase(
+                    validateIdentifierTag(
+                        filtersList,
+                        getKindTypes()))).findFirst().orElseThrow())
+            .processIncomingRequest(filtersList);
   }
 
   @Override
   public List<Kind> getKinds() {
-    List<Kind> list = reqKindTypePluginMap.keySet().stream().toList();
-    return list;
+    return reqKindTypePluginMap.keySet().stream().toList();
   }
 
   @Override
   public List<KindTypeIF> getKindTypes() {
-    List<KindTypeIF> list = reqKindTypePluginMap.values().stream()
+    return reqKindTypePluginMap.values().stream()
         .map(Map::keySet)
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
-    return list;
   }
 }
