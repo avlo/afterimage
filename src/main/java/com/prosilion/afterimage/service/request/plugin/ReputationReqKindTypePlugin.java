@@ -11,7 +11,6 @@ import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.util.Collection;
 import java.util.List;
@@ -34,31 +33,26 @@ public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
-        .map(filters ->
-            filters.getFilterByType(REF_PUBKEY_FILTER_KEY))
-        .flatMap(Collection::stream)
-        .map(ReferencedPublicKeyFilter.class::cast)
-        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY));
-
-    IdentifierTag identifierTag = filtersList.stream()
-        .map(filters ->
-            filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
-        .flatMap(Collection::stream)
-        .map(IdentifierTagFilter.class::cast)
-        .map(IdentifierTagFilter::getFilterable)
-        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY));
-
     return
         new Filters(
             new KindFilter(Kind.BADGE_AWARD_EVENT),
-            referencedPublicKeyFilter,
+            filtersList.stream()
+                .map(filters1 ->
+                    filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
+                .flatMap(Collection::stream)
+                .map(ReferencedPublicKeyFilter.class::cast)
+                .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY)),
             new AddressTagFilter(
                 new AddressTag(
                     Kind.BADGE_DEFINITION_EVENT,
                     getAImgIdentity().getPublicKey(),
-                    identifierTag
-                )));
+                    filtersList.stream()
+                        .map(filters ->
+                            filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
+                        .flatMap(Collection::stream)
+                        .map(IdentifierTagFilter.class::cast)
+                        .map(IdentifierTagFilter::getFilterable)
+                        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY)))));
   }
 
   @Override
