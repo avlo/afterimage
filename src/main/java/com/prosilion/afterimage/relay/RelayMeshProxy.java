@@ -19,37 +19,37 @@ import org.springframework.lang.NonNull;
 import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
-public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
-  private final ReactiveRequestConsolidator superconductorRequestConsolidator;
+public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
+  private final ReactiveRequestConsolidator relayRequestConsolidator;
   private final EventPluginIF eventPlugin;
 
   private Subscription subscription;
   private final String subscriptionId = generateRandomHex64String();
 
-  public SuperconductorMeshProxy(
-      @NonNull Map<String, String> superconductorRelays,
+  public RelayMeshProxy(
+      @NonNull Map<String, String> relaysNameUrlMap,
       @NonNull EventPluginIF eventPlugin) {
-    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
+    this.relayRequestConsolidator = new ReactiveRequestConsolidator();
     this.eventPlugin = eventPlugin;
-    addRelay(superconductorRelays);
-    log.debug("SuperconductorMeshProxy ctor() connecting to relays: [{}]", superconductorRelays);
+    addRelay(relaysNameUrlMap);
+    log.debug("RelayMeshProxy ctor() connecting to relays: [{}]", relaysNameUrlMap);
   }
 
-  public SuperconductorMeshProxy(
+  public RelayMeshProxy(
       @NonNull String relayName,
       @NonNull String relayUrl,
       @NonNull EventPluginIF eventPlugin) {
-    this.superconductorRequestConsolidator = new ReactiveRequestConsolidator();
+    this.relayRequestConsolidator = new ReactiveRequestConsolidator();
     this.eventPlugin = eventPlugin;
     addRelay(relayName, relayUrl);
   }
 
   public void addRelay(@NonNull Map<String, String> relays) {
-    relays.forEach(superconductorRequestConsolidator::addRelay);
+    relays.forEach(relayRequestConsolidator::addRelay);
   }
 
-  public void setUpReputationReqFlux(Filters filters) throws JsonProcessingException, NostrException {
-    superconductorRequestConsolidator.send(
+  public void setUpRequestFlux(Filters filters) throws JsonProcessingException, NostrException {
+    relayRequestConsolidator.send(
         new ReqMessage(subscriptionId, filters),
         this);
   }
@@ -68,7 +68,7 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   private void processIncoming(EventMessage eventMessage) {
 //    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
 //    TODO: resolve unused
-    for (String unused : superconductorRequestConsolidator.getRelayNames()) {
+    for (String unused : relayRequestConsolidator.getRelayNames()) {
       EventIF event = eventMessage.getEvent();
       eventPlugin.processIncomingEvent(event);
     }
@@ -88,11 +88,11 @@ public class SuperconductorMeshProxy extends BaseSubscriber<BaseMessage> {
   }
 
   public void addRelay(@NonNull String name, @NonNull String uri) {
-    superconductorRequestConsolidator.addRelay(name, uri);
+    relayRequestConsolidator.addRelay(name, uri);
   }
 
   public void removeRelay(@NonNull String name) {
-    superconductorRequestConsolidator.removeRelay(name);
+    relayRequestConsolidator.removeRelay(name);
   }
 
   public static String generateRandomHex64String() {
