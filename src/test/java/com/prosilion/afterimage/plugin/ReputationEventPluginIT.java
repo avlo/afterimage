@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.plugin;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.service.event.plugin.ReputationPublishingEventKindTypePlugin;
+import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
@@ -39,11 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ActiveProfiles("test")
-public class ReputationPublishingEventKindTypePluginIT {
+public class ReputationEventPluginIT {
 
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 
-  private final ReputationPublishingEventKindTypePlugin repPlugin;
+  private final ReputationEventPlugin repPlugin;
   private final RedisCacheServiceIF cacheServiceIF;
   private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
 
@@ -55,14 +55,14 @@ public class ReputationPublishingEventKindTypePluginIT {
   private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
   @Autowired
-  public ReputationPublishingEventKindTypePluginIT(
+  public ReputationEventPluginIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
       @NonNull RedisCacheServiceIF cacheServiceIF,
-      @NonNull ReputationPublishingEventKindTypePlugin reputationPublishingEventKindTypePlugin,
+      @NonNull ReputationEventPlugin reputationEventPlugin,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
     this.votesCount = votesCount;
     this.cacheServiceIF = cacheServiceIF;
-    this.repPlugin = reputationPublishingEventKindTypePlugin;
+    this.repPlugin = reputationEventPlugin;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
 
     for (int i = 0; i < votesCount; i++) {

@@ -7,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class DownvoteEventKindTypePlugin extends VoteEventKindTypePlugin {
+public class DownvoteEventPlugin extends AbstractVoteEventPlugin {
 
-  public DownvoteEventKindTypePlugin(
+  public DownvoteEventPlugin(
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
     super(eventKindTypePlugin, reputationEventKindTypePlugin);

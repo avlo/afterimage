@@ -9,6 +9,8 @@ import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.FollowSetsEvent;
+import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
@@ -25,20 +27,23 @@ import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class ReputationPublishingEventKindTypePlugin extends PublishingEventKindTypePlugin {
+public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
-  public ReputationPublishingEventKindTypePlugin(
+  public ReputationEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -55,29 +60,54 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent).stream()
         .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
+//    REPUTATION:
     Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
-    BigDecimal score = previousReputationEvent
+    BigDecimal previousScore = previousReputationEvent
         .map(GenericEventKindTypeIF::getContent)
         .map(BigDecimal::new)
         .orElse(BigDecimal.ZERO);
 
-    super.processIncomingEvent(
-        calculateReputationEvent(
-            voteReceiverPubkey,
-            score,
-            voteEvent.getContent()));
+    GenericEventKindTypeIF updatedReputationEvent = calculateReputationEvent(
+        voteReceiverPubkey,
+        previousScore,
+        voteEvent.getContent());
+
+    super.processIncomingEvent(updatedReputationEvent);
+
+//    FOLLOW SETS:
+    Optional<GenericEventKind> previousFollowSetsEvent = getPreviousFollowSetsEvent(voteReceiverPubkey);
+    previousFollowSetsEvent.ifPresent(this::deletePreviousFollowsSetsEvent);
+
+    List<EventTag> previousEventTags = previousFollowSetsEvent
+        .map(GenericEventKind::getTags).orElse(new ArrayList<>())
+        .stream()
+        .filter(EventTag.class::isInstance)
+        .map(EventTag.class::cast)
+        .toList();
+
+    EventIF followSetsEvent = createFollowSetsEvent(
+        voteReceiverPubkey,
+        Stream.concat(
+                previousEventTags.stream(),
+                Stream.of(
+                    new EventTag(voteEvent.getId())))
+            .collect(Collectors.toList()),
+        updatedReputationEvent.getContent());
+
+    super.processIncomingEvent(followSetsEvent);
+    log.debug("pause for debug");
   }
 
   private GenericEventKindTypeIF calculateReputationEvent(
       PublicKey voteReceiverPubkey,
-      BigDecimal score,
+      BigDecimal previousScore,
       String voteValue) throws NostrException, NoSuchAlgorithmException {
 
     return createReputationEvent(
         voteReceiverPubkey,
-        new BigDecimal(voteValue).add(score));
+        new BigDecimal(voteValue).add(previousScore));
   }
 
   @SneakyThrows
@@ -85,19 +115,13 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
     redisCacheServiceIF.deleteEvent(
         new DeletionEvent(
             aImgIdentity,
-            List.of(new EventTag(previousReputationEvent.getId())), "aImg deletion event"));
+            List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
   public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
-
     return redisCacheServiceIF
-        .getAll().stream()
-        .filter(eventIF -> eventIF.getKind().equals(Kind.BADGE_AWARD_EVENT))
-        .filter(eventIF -> eventIF.getTags()
-            .stream()
-            .filter(PubKeyTag.class::isInstance)
-            .map(PubKeyTag.class::cast)
-            .anyMatch(pubKeyTag -> pubKeyTag.getPublicKey().equals(badgeReceiverPubkey)))
+        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
+        .stream()
         .filter(eventIF -> eventIF.getTags()
             .stream()
             .filter(AddressTag.class::isInstance)
@@ -133,6 +157,42 @@ public class ReputationPublishingEventKindTypePlugin extends PublishingEventKind
             reputationBadgeDefinitionEvent,
             score),
         AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
+  }
+
+  public Optional<GenericEventKind> getPreviousFollowSetsEvent(PublicKey badgeReceiverPubkey) {
+    return redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
+        .stream()
+        .max(Comparator.comparing(EventIF::getCreatedAt))
+        .map(eventIF ->
+            new GenericEventKind(
+                eventIF.getId(),
+                eventIF.getPublicKey(),
+                eventIF.getCreatedAt(),
+                eventIF.getKind(),
+                eventIF.getTags(),
+                eventIF.getContent(),
+                eventIF.getSignature()));
+  }
+
+  @SneakyThrows
+  private void deletePreviousFollowsSetsEvent(GenericEventKind previousReputationEvent) {
+    redisCacheServiceIF.deleteEvent(
+        new DeletionEvent(
+            aImgIdentity,
+            List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous FOLLOW_SETS event"));
+  }
+
+  private EventIF createFollowSetsEvent(@NonNull PublicKey voteReceiverPubkey, @NonNull List<EventTag> eventTags, @NonNull String score) throws NostrException, NoSuchAlgorithmException {
+    GenericEventRecord genericEventRecord = new FollowSetsEvent(
+        aImgIdentity,
+        Stream.concat(
+                Stream.of(
+                    new PubKeyTag(voteReceiverPubkey)),
+                eventTags.stream())
+            .collect(Collectors.toList()),
+        score).getGenericEventRecord();
+    return genericEventRecord;
   }
 
   @Override

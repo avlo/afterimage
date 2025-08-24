@@ -18,11 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AImg30000ReputationSetsFromAImgTypePlugin extends NonPublishingEventKindPlugin {
+public class AfterimageFollowSetsEventPlugin extends NonPublishingEventKindPlugin { // kind 30_000 "p"
   private final Identity aImgIdentity;
   private final RedisCacheServiceIF redisCacheServiceIF;
 
-  public AImg30000ReputationSetsFromAImgTypePlugin(
+  public AfterimageFollowSetsEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {
@@ -33,7 +33,7 @@ public class AImg30000ReputationSetsFromAImgTypePlugin extends NonPublishingEven
 
   @Override
   public void processIncomingEvent(@NonNull EventIF relayDiscoveryEvent) {
-    log.debug("RelayDiscoveryEventTypePlugin processing incoming Kind.RELAY_DISCOVERY 30166 : [{}]", relayDiscoveryEvent);
+    log.debug("{}} processing incoming Kind.FOLLOW_SETS 30_000 : [{}]", getClass().getSimpleName(), relayDiscoveryEvent);
 /*{
   "kind": 30166,
   "tags": [
@@ -85,6 +85,7 @@ public class AImg30000ReputationSetsFromAImgTypePlugin extends NonPublishingEven
 
   @Override
   public Kind getKind() {
-    return Kind.RELAY_DISCOVERY; // 30166
+    log.debug("{} getKind of Kind.FOLLOW_SETS 30_000", getClass().getSimpleName());
+    return Kind.FOLLOW_SETS; // 30_000
   }
 }

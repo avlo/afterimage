@@ -21,12 +21,12 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ReputationReqKindTypePlugin extends ReqKindTypePlugin {
+public class ReputationRequestPlugin extends ReqKindTypePlugin {
   public static final String REF_PUBKEY_FILTER_KEY = ReferencedPublicKeyFilter.FILTER_KEY;
   public static final String IDENTIFIER_TAG_FILTER_KEY = IdentifierTagFilter.FILTER_KEY;
 
   @Autowired
-  public ReputationReqKindTypePlugin(@NonNull Identity aImgIdentity) {
+  public ReputationRequestPlugin(@NonNull Identity aImgIdentity) {
     super(AfterimageKindType.REPUTATION, aImgIdentity);
     log.debug("loaded ReputationReqKindTypePlugin bean");
   }

@@ -2,10 +2,10 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
-import com.prosilion.afterimage.service.event.plugin.DownvoteEventKindTypePlugin;
-import com.prosilion.afterimage.service.event.plugin.ReputationPublishingEventKindTypePlugin;
-import com.prosilion.afterimage.service.event.plugin.SuperconductorFollowsListPlugin;
-import com.prosilion.afterimage.service.event.plugin.UpvoteEventKindTypePlugin;
+import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.SuperconductorFollowsListEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.UpvoteEventPlugin;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
@@ -72,7 +72,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    return new ReputationPublishingEventKindTypePlugin(
+    return new ReputationEventPlugin(
         notifierService,
         new EventKindTypePlugin(
             AfterimageKindType.REPUTATION,
@@ -86,7 +86,7 @@ public abstract class AfterimageBaseConfig {
   EventKindTypePluginIF upvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
-    return new UpvoteEventKindTypePlugin(
+    return new UpvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.UPVOTE,
             eventPlugin),
@@ -97,7 +97,7 @@ public abstract class AfterimageBaseConfig {
   EventKindTypePluginIF downvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
-    return new DownvoteEventKindTypePlugin(
+    return new DownvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.DOWNVOTE,
             eventPlugin),
@@ -110,7 +110,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {
-    return new SuperconductorFollowsListPlugin(
+    return new SuperconductorFollowsListEventPlugin(
         new EventKindPlugin(
             Kind.SEARCH_RELAYS_LIST,
             eventPlugin),

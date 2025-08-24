@@ -26,12 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public abstract class AbstractRelayAnnouncementPlugin extends NonPublishingEventKindPlugin {
+public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
   private final EventKindServiceIF eventKindServiceIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
-  public AbstractRelayAnnouncementPlugin(
+  public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull EventKindServiceIF eventKindServiceIF,

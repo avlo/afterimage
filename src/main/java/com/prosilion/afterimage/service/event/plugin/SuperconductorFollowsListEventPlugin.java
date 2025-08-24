@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class SuperconductorFollowsListPlugin extends AbstractRelayAnnouncementPlugin {
-  public SuperconductorFollowsListPlugin(
+public class SuperconductorFollowsListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // kind 10_007
+  public SuperconductorFollowsListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -41,7 +41,7 @@ public class SuperconductorFollowsListPlugin extends AbstractRelayAnnouncementPl
   //  TODO: fix sneaky
   @SneakyThrows
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewSuperconductorRelays) {
-    log.debug("SuperConductorRelayEnlistmentEventTypePlugin processing incoming Kind.SEARCH_RELAYS_LIST 10007 event");
+    log.debug("{} processing incoming Kind.SEARCH_RELAYS_LIST 10007 event", getClass().getSimpleName());
     return new SearchRelaysListEvent(
         identity,
         uniqueNewSuperconductorRelays.stream().map(relayString ->
@@ -50,13 +50,13 @@ public class SuperconductorFollowsListPlugin extends AbstractRelayAnnouncementPl
   }
 
   Filters getFilters() {
-    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getFilters() of Kind.BADGE_AWARD_EVENT");
-    return new Filters(new KindFilter(Kind.BADGE_AWARD_EVENT));
+    log.debug("{} getFilters() of Kind.BADGE_AWARD_EVENT", getClass().getSimpleName());
+    return new Filters(new KindFilter(Kind.BADGE_AWARD_EVENT)); // kind 8
   }
 
   @Override
   public Kind getKind() {
-    log.debug("SuperConductorRelayEnlistmentEventTypePlugin getKind of Kind.SEARCH_RELAYS_LIST");
-    return Kind.SEARCH_RELAYS_LIST;
+    log.debug("{} getKind of Kind.SEARCH_RELAYS_LIST", getClass().getSimpleName());
+    return Kind.SEARCH_RELAYS_LIST; // kind 10_007
   }
 }

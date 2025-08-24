@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AfterimageRelaySetsPlugin extends AbstractRelayAnnouncementPlugin {
-  public AfterimageRelaySetsPlugin(
+public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEventPlugin { // kind 30_002 "relays"
+  public AfterimageRelaySetsEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindServiceIF eventKindServiceIF,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -42,7 +42,7 @@ public class AfterimageRelaySetsPlugin extends AbstractRelayAnnouncementPlugin {
   @SneakyThrows
   @Override
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewAImgRelays) {
-    log.debug("Aimg30002AimgMeshRelaySetsNonPublishingEvent processing incoming Kind.RELAY_SETS 30002 event");
+    log.debug("{} processing incoming Kind.RELAY_SETS 30_002 event", getClass().getSimpleName());
     return new RelaySetsEvent(
         identity,
         uniqueNewAImgRelays.stream().map(relayString ->
@@ -52,13 +52,13 @@ public class AfterimageRelaySetsPlugin extends AbstractRelayAnnouncementPlugin {
 
   @Override
   Filters getFilters() {
-    log.debug("Aimg30002AimgMeshRelaySetsNonPublishingEvent getFilters() of Kind.FOLLOW_SETS");
-    return new Filters(new KindFilter(Kind.FOLLOW_SETS));
+    log.debug("{} getFilters() of Kind.FOLLOW_SETS", getClass().getSimpleName());
+    return new Filters(new KindFilter(Kind.FOLLOW_SETS)); // kind 30_000 "p"
   }
 
   @Override
   public Kind getKind() {
-    log.debug("Aimg30002AimgMeshRelaySetsNonPublishingEvent getKind of Kind.RELAY_SETS");
-    return Kind.RELAY_SETS;
+    log.debug("{} getKind of Kind.RELAY_SETS", getClass().getSimpleName());
+    return Kind.RELAY_SETS; // kind 30_002 "relays"
   }
 }
