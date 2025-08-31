@@ -64,7 +64,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
   }
 
   @Test
-  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException {
+  void  testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
 

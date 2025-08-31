@@ -12,7 +12,6 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -27,17 +26,14 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
-  private final EventKindServiceIF eventKindServiceIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull EventKindServiceIF eventKindServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.eventKindServiceIF = eventKindServiceIF;
     this.redisCacheServiceIF = redisCacheServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
@@ -78,7 +74,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
                 Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, List.of(getKind().getName()))))),
-        eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
+        super::processIncomingEvent).setUpRequestFlux(getFilters());
   }
 
   abstract BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewRelays);
