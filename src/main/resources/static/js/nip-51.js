@@ -1,6 +1,6 @@
 $(function () {
     $("#send10007").click(() => createEvent(generate10007NostrEvent()));
-    $("#send39001").click(() => createEvent(generate39001NostrEvent()));
+    $("#send30002").click(() => createEvent(generate30002NostrEvent()));
 });
 
 function generate10007NostrEvent() {
@@ -19,16 +19,16 @@ function generate10007NostrEvent() {
     };
 }
 
-function generate39001NostrEvent() {
+function generate30002NostrEvent() {
     const tags = [
-        ['p', $("#39001-pubkey").val(), $("#afterimage_url").val(), ws]
+        ['relay', $("#afterimage_url").val()]
     ];
 
     return {
         id: '',
-        kind: Number($("#39001-kind").val()),
+        kind: Number($("#30002-kind").val()),
         created_at: new Date().getMilliseconds(),
-        content: 'AfterImage Follows List Event',
+        content: 'AfterImage Relay Sets Event',
         tags: tags,
         pubkey: '',
         sig: ''

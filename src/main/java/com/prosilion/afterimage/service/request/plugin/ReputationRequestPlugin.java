@@ -27,7 +27,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Autowired
   public ReputationRequestPlugin(@NonNull Identity aImgIdentity) {
-    super(AfterimageKindType.REPUTATION, aImgIdentity);
+    super(aImgIdentity);
     log.debug("loaded ReputationReqKindTypePlugin bean");
   }
 
@@ -35,7 +35,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
     return
         new Filters(
-            new KindFilter(Kind.BADGE_AWARD_EVENT),
+            new KindFilter(getKind()),
             filtersList.stream()
                 .map(filters1 ->
                     filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
