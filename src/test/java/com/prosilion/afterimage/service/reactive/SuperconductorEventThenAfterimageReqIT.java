@@ -103,7 +103,6 @@ public class SuperconductorEventThenAfterimageReqIT {
   }
 
   @Test
-//  @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
     final AfterimageMeshRelayService afterimageSubscriberCheckClient = new AfterimageMeshRelayService(afterimageRelayUri);
     final Identity upvotedUser = Identity.generateRandomIdentity();

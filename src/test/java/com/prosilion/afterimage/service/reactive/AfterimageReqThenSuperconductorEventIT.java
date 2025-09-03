@@ -68,9 +68,8 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
 
-//    // # --------------------- Aimg EVENT -------------------
-//    // query Aimg for (as yet to be impl'd) reputation score event
-//    //   results should process at end of test once pre-req SC events have completed
+//    // # --------------------- Aimg REQ -------------------
+//    //   results should process at end of test once SC vote events have completed
     TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
     afterimageMeshRelayService.send(
         createAfterImageReqMessage(
@@ -125,7 +124,6 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
     TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
     superconductorRelayReactiveClient.send(
         createSuperconductorReqMessage(Factory.generateRandomHex64String()), superConductorEventsSubscriber);
-
 
     List<BaseMessage> returnedScMessages = superConductorEventsSubscriber.getItems();
     List<EventIF> returnedScEventIFs = getGenericEvents(returnedScMessages);
