@@ -67,7 +67,8 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
-    super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays));
+    BaseEvent uniqueNewRelaysEvent = createEvent(aImgIdentity, uniqueNewRelays);
+    super.processIncomingEvent(uniqueNewRelaysEvent);
 
     new RelayMeshProxy(
         uniqueNewRelays.stream().collect(

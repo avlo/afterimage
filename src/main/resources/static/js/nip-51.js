@@ -11,7 +11,7 @@ function generate10007NostrEvent() {
     return {
         id: '',
         kind: Number($("#10007-kind").val()),
-        created_at: new Date().getMilliseconds(),
+        created_at: Math.floor(Date.now() / 1000),
         content: 'SuperConductor Follows List Event',
         tags: tags,
         pubkey: '',
@@ -27,7 +27,7 @@ function generate30002NostrEvent() {
     return {
         id: '',
         kind: Number($("#30002-kind").val()),
-        created_at: new Date().getMilliseconds(),
+        created_at: Math.floor(Date.now() / 1000),
         content: 'AfterImage Relay Sets Event',
         tags: tags,
         pubkey: '',

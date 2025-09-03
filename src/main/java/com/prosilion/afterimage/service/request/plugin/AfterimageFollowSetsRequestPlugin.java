@@ -17,7 +17,11 @@ public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // k
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) {
+    log.debug("0000000000000000000");
+    log.debug("0000000000000000000");
     log.debug("{} processing incoming Kind.FOLLOW_SETS 30_000 event", getClass().getSimpleName());
+    log.debug("0000000000000000000");
+    log.debug("0000000000000000000");
     return new Filters(new KindFilter(getKind()));
   }
 

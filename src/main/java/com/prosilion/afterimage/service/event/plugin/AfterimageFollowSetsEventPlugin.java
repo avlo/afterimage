@@ -32,8 +32,8 @@ public class AfterimageFollowSetsEventPlugin extends NonPublishingEventKindPlugi
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF relayDiscoveryEvent) {
-    log.debug("{}} processing incoming Kind.FOLLOW_SETS 30_000 : [{}]", getClass().getSimpleName(), relayDiscoveryEvent);
+  public void processIncomingEvent(@NonNull EventIF followSetsEvent) {
+    log.debug("{}} processing incoming Kind.FOLLOW_SETS 30_000 : [{}]", getClass().getSimpleName(), followSetsEvent);
 /*{
   "kind": 30166,
   "tags": [
@@ -52,7 +52,7 @@ public class AfterimageFollowSetsEventPlugin extends NonPublishingEventKindPlugi
   ]}*/
 
 //	if aImg already has 30166 EVENT containing same dTag (aka, relay_url), that means we already have that relay_url (and all it's votes) registered, so return (do nothing)
-    IdentifierTag inomingIdentifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, relayDiscoveryEvent).getFirst();
+    IdentifierTag inomingIdentifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, followSetsEvent).getFirst();
     List<IdentifierTag> existingIdentifierTags = redisCacheServiceIF
         .getByKind(Kind.RELAY_DISCOVERY)
         .stream().map(kind30166Event ->
@@ -66,7 +66,7 @@ public class AfterimageFollowSetsEventPlugin extends NonPublishingEventKindPlugi
 //	otherwise, aImg doesn't yet have 30166 EVENT containing same dTag, so:
 //	 	 for each unique aTag's pubKey
     Map<String, List<String>> pubKeyVotesMap = Filterable.getTypeSpecificTags(
-            AddressTag.class, relayDiscoveryEvent).stream()
+            AddressTag.class, followSetsEvent).stream()
         .collect(
             Collectors.toMap(addressTag -> addressTag.getPublicKey().toHexString(),
                 addressTag -> Collections.singletonList(Optional.ofNullable(addressTag.getIdentifierTag()).orElseThrow().getUuid())));
