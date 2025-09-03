@@ -8,6 +8,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.List;
@@ -19,9 +20,10 @@ import org.springframework.lang.NonNull;
 public class SuperconductorFollowsListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // Kind.SEARCH_RELAYS_LIST 10_007
   public SuperconductorFollowsListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
+      @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPlugin, redisCacheServiceIF, aImgIdentity);
+    super(eventKindPlugin, redisCacheServiceIF, eventKindTypeService, aImgIdentity);
   }
 
 //  start with pre-defined Map<String, String> superconductorRelays

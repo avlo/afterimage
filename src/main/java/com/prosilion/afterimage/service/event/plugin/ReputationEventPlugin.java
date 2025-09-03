@@ -26,6 +26,7 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
+import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.math.BigDecimal;
@@ -123,8 +124,10 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   }
 
   public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
-    return redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
+    List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey);
+    
+    return eventsByKindAndPubKeyTag
         .stream()
         .filter(eventIF -> eventIF.getTags()
             .stream()
