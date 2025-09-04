@@ -296,13 +296,10 @@ public class SuperconductorEventThenAfterimageReqIT {
     assertEquals(returnedAfterImageEvents.getFirst().getKind(), upvote_1.getKind());
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(upvote_1.getKind())));
 
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
-    log.debug("{}", returnedAfterImageEvents.size());
+    log.debug("returnedAfterImageEvents.size() {}", returnedAfterImageEvents.size());
     log.debug("------");
+    log.debug("returnedAfterImageEvents:");
     returnedAfterImageEvents.forEach(a -> log.debug("{}\n----------\n", a.getContent()));
-    log.debug("000000000000000000");
-    log.debug("000000000000000000");
     assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
 
     superconductorRelayReactiveClient.closeSocket();
