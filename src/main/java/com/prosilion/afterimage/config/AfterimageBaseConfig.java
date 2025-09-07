@@ -18,6 +18,7 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
+import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
@@ -128,25 +129,27 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindPluginIF afterimageFollowSetsEventPlugin(
       @NonNull NotifierService notifierService,
-      @NonNull EventPluginIF eventPlugin) {
+      @NonNull EventPluginIF eventPlugin,
+      @NonNull EventKindTypePluginIF reputationEventPlugin) {
     return new AfterimageFollowSetsEventPlugin(
         notifierService,
         new EventKindPlugin(
             Kind.FOLLOW_SETS,
-            eventPlugin));
+            eventPlugin),
+        reputationEventPlugin);
   }
 
   @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull EventKindTypeServiceIF eventKindTypeService,
+      @NonNull List<EventKindPluginIF> eventKindPlugins,
       @NonNull Identity aImgIdentity) {
     return new AfterimageRelaySetsEventPlugin(
         new EventKindPlugin(
             Kind.RELAY_SETS,
             eventPlugin),
-        eventKindTypeService,
+        new EventKindService(eventKindPlugins),
         redisCacheServiceIF,
         aImgIdentity);
   }

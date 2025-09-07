@@ -3,6 +3,7 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,14 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
+  private final EventKindTypePluginIF reputationEventPlugin;
+
   public AfterimageFollowSetsEventPlugin(
       @NonNull NotifierService notifierService,
-      @NonNull EventKindPluginIF eventKindPlugin) {
+      @NonNull EventKindPluginIF eventKindPlugin,
+      @NonNull EventKindTypePluginIF reputationEventPlugin) {
     super(notifierService, eventKindPlugin);
+    this.reputationEventPlugin = reputationEventPlugin;
   }
 
   @Override
@@ -34,7 +39,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   "content": current REP score 
 }*/
-    super.processIncomingEvent(followSetsEvent);
+    reputationEventPlugin.processIncomingEvent(followSetsEvent);
   }
 
   @Override

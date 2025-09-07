@@ -9,7 +9,6 @@ import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
-import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.List;
@@ -21,10 +20,10 @@ import org.springframework.lang.NonNull;
 public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEventPlugin { // kind 30_002 "relays"
   public AfterimageRelaySetsEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull EventKindTypeServiceIF eventKindTypeService,
+      @NonNull EventKindServiceIF eventKindServiceIF,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPlugin, redisCacheServiceIF, eventKindTypeService, aImgIdentity);
+    super(eventKindPlugin, redisCacheServiceIF, eventKindServiceIF, aImgIdentity);
   }
 
 //  start with pre-defined Map<String, String> afterimageRelays  
