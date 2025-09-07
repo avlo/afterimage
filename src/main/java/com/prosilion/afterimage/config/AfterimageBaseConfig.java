@@ -18,7 +18,6 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
@@ -69,7 +68,7 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  EventKindTypePluginIF reputationEventKindTypePlugin(
+  EventKindTypePluginIF reputationEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -88,23 +87,27 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindTypePluginIF upvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull Identity aImgIdentity) {
     return new UpvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.UPVOTE,
             eventPlugin),
-        reputationEventKindTypePlugin);
+        reputationEventPlugin,
+        aImgIdentity);
   }
 
   @Bean
   EventKindTypePluginIF downvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventKindTypePlugin) {
+      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull Identity aImgIdentity) {
     return new DownvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.DOWNVOTE,
             eventPlugin),
-        reputationEventKindTypePlugin);
+        reputationEventPlugin,
+        aImgIdentity);
   }
 
   @Bean
@@ -123,6 +126,17 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
+  EventKindPluginIF afterimageFollowSetsEventPlugin(
+      @NonNull NotifierService notifierService,
+      @NonNull EventPluginIF eventPlugin) {
+    return new AfterimageFollowSetsEventPlugin(
+        notifierService,
+        new EventKindPlugin(
+            Kind.FOLLOW_SETS,
+            eventPlugin));
+  }
+
+  @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -133,19 +147,6 @@ public abstract class AfterimageBaseConfig {
             Kind.RELAY_SETS,
             eventPlugin),
         eventKindTypeService,
-        redisCacheServiceIF,
-        aImgIdentity);
-  }
-
-  @Bean
-  EventKindPluginIF afterimageFollowSetsEventPlugin(
-      @NonNull EventPluginIF eventPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull Identity aImgIdentity) {
-    return new AfterimageFollowSetsEventPlugin(
-        new EventKindPlugin(
-            Kind.FOLLOW_SETS,
-            eventPlugin),
         redisCacheServiceIF,
         aImgIdentity);
   }

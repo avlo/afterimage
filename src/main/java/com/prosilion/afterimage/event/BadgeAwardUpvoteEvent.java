@@ -44,8 +44,6 @@ public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
   }
 
   private static AwardEvent getAwardEvent(PublicKey upvotedUser, BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
-    return new Vote(
-        upvotedUser,
-        upvoteBadgeDefinitionEvent).getAwardEvent();
+    return new Vote(upvotedUser, upvoteBadgeDefinitionEvent).getAwardEvent();
   }
 }

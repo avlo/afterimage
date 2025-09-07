@@ -11,7 +11,6 @@ import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
-import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
@@ -31,12 +30,12 @@ import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -60,9 +59,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   }
 
   @SneakyThrows
-  public void processIncomingEvent(@NonNull EventIF voteEvent) {
-    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent).stream()
-        .map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
+  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
+    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEvent)
+        .stream()
+        .map(PubKeyTag::getPublicKey)
+        .findFirst().orElseThrow();
 
 //    REPUTATION:
     Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
@@ -76,32 +77,31 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     GenericEventKindTypeIF updatedReputationEvent = calculateReputationEvent(
         voteReceiverPubkey,
         previousScore,
-        voteEvent.getContent());
+        incomingFollowSetsEvent.getContent());
 
     super.processIncomingEvent(updatedReputationEvent);
 
 //    FOLLOW SETS:
-    Optional<GenericEventKind> previousFollowSetsEvent = getPreviousFollowSetsEvent(voteReceiverPubkey);
-    previousFollowSetsEvent.ifPresent(this::deletePreviousFollowsSetsEvent);
+    Optional<GenericEventKind> existingFollowSetsEvents = getPreviousFollowSetsEvent(voteReceiverPubkey);
 
-    List<BaseTag> previousEventTags = previousFollowSetsEvent
-        .map(GenericEventKind::getTags)
-        .orElse(new ArrayList<>())
-        .stream()
-        .filter(Predicate.not(IdentifierTag.class::isInstance))
-        .toList();
+    if (existingFollowSetsEvents.isEmpty()) {
+      super.processIncomingEvent(incomingFollowSetsEvent);
+      return;
+    }
 
-    List<EventTagAddressTagPair> eventTagAddressTagPairs = IntStream.range(0, previousEventTags.size() / 2)
-        .map(i -> i * 2)
-        .mapToObj(i -> new EventTagAddressTagPair((EventTag) previousEventTags.get(i), (AddressTag) previousEventTags.get(i + 1)))
-        .toList();
+    List<EventTagAddressTagPair> incomingEventTagAddressTagPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
+    List<EventTagAddressTagPair> existingEventTagAddressTagPairs = getEventTagAddressTagPairs(existingFollowSetsEvents.orElseThrow().getTags());
 
-    EventIF followSetsEvent = createFollowSetsEvent(
+    List<EventTagAddressTagPair> nonMatches = incomingEventTagAddressTagPairs.stream()
+        .filter(incomingEventTagAddressTagPair ->
+            !existingEventTagAddressTagPairs.contains(incomingEventTagAddressTagPair)).toList();
+
+    EventIF updatedFollowSetsEvent = createFollowSetsEvent(
         voteReceiverPubkey,
-        eventTagAddressTagPairs,
-        updatedReputationEvent.getContent());
+        Stream.concat(existingEventTagAddressTagPairs.stream(), nonMatches.stream()).toList());
 
-    super.processIncomingEvent(followSetsEvent);
+    deletePreviousReputationCalculationEvent(incomingFollowSetsEvent);
+    super.processIncomingEvent(updatedFollowSetsEvent);
     log.debug("pause for debug");
   }
 
@@ -126,7 +126,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
     List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey);
-    
+
     return eventsByKindAndPubKeyTag
         .stream()
         .filter(eventIF -> eventIF.getTags()
@@ -168,7 +168,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
 
   private Optional<GenericEventKind> getPreviousFollowSetsEvent(PublicKey badgeReceiverPubkey) {
     return redisCacheServiceIF
-        .getEventsByKindAndUuid(Kind.FOLLOW_SETS, badgeReceiverPubkey.toString())
+        .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
         .stream()
         .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
@@ -182,21 +182,41 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                 eventIF.getSignature()));
   }
 
-  @SneakyThrows
-  private void deletePreviousFollowsSetsEvent(GenericEventKind previousReputationEvent) {
-    redisCacheServiceIF.deleteEvent(
-        new DeletionEvent(
-            aImgIdentity,
-            List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous FOLLOW_SETS event"));
+  public List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
+    return IntStream.range(0, followSetsEvent
+            .stream()
+            .filter(Predicate.not(IdentifierTag.class::isInstance))
+            .toList().size() / 2)
+        .map(i -> i * 2)
+        .mapToObj(i -> new EventTagAddressTagPair((EventTag) followSetsEvent
+            .stream()
+            .filter(Predicate.not(IdentifierTag.class::isInstance))
+            .toList().get(i), (AddressTag) followSetsEvent
+            .stream()
+            .filter(Predicate.not(IdentifierTag.class::isInstance))
+            .toList().get(i + 1)))
+        .toList();
   }
 
-  private EventIF createFollowSetsEvent(@NonNull PublicKey voteReceiverPubkey, @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs, @NonNull String score) throws NostrException, NoSuchAlgorithmException {
-    GenericEventRecord genericEventRecord = new FollowSetsEvent(
+  @SneakyThrows
+  private EventIF createFollowSetsEvent(
+      @NonNull PublicKey voteReceiverPubkey,
+      @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs) {
+
+    return new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
         eventTagAddressTagPairs,
-        score).getGenericEventRecord();
-    return genericEventRecord;
+//        TODO: replace 999999
+        "99999").getGenericEventRecord();
+  }
+
+  @SneakyThrows
+  private void deletePreviousReputationCalculationEvent(EventIF previousReputationEvent) {
+    redisCacheServiceIF.deleteEvent(
+        new DeletionEvent(
+            aImgIdentity,
+            List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
   @Override
