@@ -15,7 +15,6 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.EventTag;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -33,7 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -182,22 +180,6 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                 eventIF.getSignature()));
   }
 
-  public List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
-    return IntStream.range(0, followSetsEvent
-            .stream()
-            .filter(Predicate.not(IdentifierTag.class::isInstance))
-            .toList().size() / 2)
-        .map(i -> i * 2)
-        .mapToObj(i -> new EventTagAddressTagPair((EventTag) followSetsEvent
-            .stream()
-            .filter(Predicate.not(IdentifierTag.class::isInstance))
-            .toList().get(i), (AddressTag) followSetsEvent
-            .stream()
-            .filter(Predicate.not(IdentifierTag.class::isInstance))
-            .toList().get(i + 1)))
-        .toList();
-  }
-
   @SneakyThrows
   private EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
@@ -209,6 +191,29 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         eventTagAddressTagPairs,
 //        TODO: replace 999999
         "99999").getGenericEventRecord();
+  }
+
+  private List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
+    List<EventTag> eventTags = followSetsEvent
+        .stream()
+        .filter(EventTag.class::isInstance)
+        .map(EventTag.class::cast)
+        .toList();
+
+    List<AddressTag> addressTags = followSetsEvent
+        .stream()
+        .filter(AddressTag.class::isInstance)
+        .map(AddressTag.class::cast)
+        .toList();
+
+    assert eventTags.size() == addressTags.size();
+
+    List<EventTagAddressTagPair> pairs = IntStream.range(0, eventTags.size())
+        .mapToObj(i -> new EventTagAddressTagPair(
+            eventTags.get(i),
+            addressTags.get(i)))
+        .toList();
+    return pairs;
   }
 
   @SneakyThrows
