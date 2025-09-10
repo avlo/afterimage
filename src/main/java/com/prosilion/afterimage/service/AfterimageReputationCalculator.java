@@ -69,7 +69,7 @@ public class AfterimageReputationCalculator {
   }
 
   private BigDecimal translateEvent(String event) {
-    return switch (event) {
+    return switch (event.toUpperCase()) {
       case "UPVOTE" -> new BigDecimal("1");
       default -> new BigDecimal("-1");
     };
