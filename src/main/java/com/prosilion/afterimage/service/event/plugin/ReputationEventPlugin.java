@@ -1,12 +1,9 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.InvalidTagException;
-import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.NostrException;
+import com.prosilion.afterimage.service.AfterimageReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -24,11 +21,7 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.math.BigDecimal;
-import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -40,19 +33,19 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
+  private final AfterimageReputationCalculator reputationCalculator;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   public ReputationEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
+      @NonNull AfterimageReputationCalculator afterimageReputationCalculator) {
     super(notifierService, eventKindTypePlugin);
     this.redisCacheServiceIF = redisCacheServiceIF;
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.reputationCalculator = afterimageReputationCalculator;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -67,15 +60,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
-    BigDecimal previousScore = previousReputationEvent
-        .map(GenericEventKindTypeIF::getContent)
-        .map(BigDecimal::new)
-        .orElse(BigDecimal.ZERO);
-
-    GenericEventKindTypeIF updatedReputationEvent = calculateReputationEvent(
-        voteReceiverPubkey,
-        previousScore,
-        incomingFollowSetsEvent.getContent());
+    GenericEventKindTypeIF updatedReputationEvent =
+        reputationCalculator.calculateUpdatedReputationEvent(
+            voteReceiverPubkey,
+            previousReputationEvent,
+            incomingFollowSetsEvent);
 
     super.processIncomingEvent(updatedReputationEvent);
 
@@ -103,16 +92,6 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     log.debug("pause for debug");
   }
 
-  private GenericEventKindTypeIF calculateReputationEvent(
-      PublicKey voteReceiverPubkey,
-      BigDecimal previousScore,
-      String voteValue) throws NostrException, NoSuchAlgorithmException {
-
-    return createReputationEvent(
-        voteReceiverPubkey,
-        new BigDecimal(voteValue).add(previousScore));
-  }
-
   @SneakyThrows
   private void deletePreviousReputationCalculationEvent(GenericEventKindType previousReputationEvent) {
     redisCacheServiceIF.deleteEvent(
@@ -121,11 +100,9 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
-  public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
-    List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey);
-
-    return eventsByKindAndPubKeyTag
+  private Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
+    return redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
         .stream()
         .filter(eventIF -> eventIF.getTags()
             .stream()
@@ -141,7 +118,8 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             new GenericEventKindType(
                 new GenericEventKind(
                     eventIF.getId(),
-                    aImgIdentity.getPublicKey(),
+//                    aImgIdentity.getPublicKey(),
+                    eventIF.getPublicKey(),
                     eventIF.getCreatedAt(),
                     eventIF.getKind(),
                     eventIF.getTags(),
@@ -150,19 +128,9 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                 getKindType()));
   }
 
-  public Optional<GenericEventKindType> getAllPubkeyReputationEvents(@NonNull PublicKey badgeReceiverPubkey) {
-    return getPreviousReputationEvent(badgeReceiverPubkey);
-  }
-
-  private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
-    return new GenericDocumentKindTypeDto(
-        new BadgeAwardReputationEvent(
-            aImgIdentity,
-            badgeReceiverPubkey,
-            reputationBadgeDefinitionEvent,
-            score),
-        AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
-  }
+//  public Optional<GenericEventKindType> getAllPubkeyReputationEvents(@NonNull PublicKey badgeReceiverPubkey) {
+//    return getPreviousReputationEvent(badgeReceiverPubkey);
+//  }
 
   private Optional<GenericEventKind> getPreviousFollowSetsEvent(PublicKey badgeReceiverPubkey) {
     return redisCacheServiceIF
@@ -184,13 +152,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   private EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs) {
-
     return new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
         eventTagAddressTagPairs,
-//        TODO: replace 999999
-        "99999").getGenericEventRecord();
+        reputationCalculator.getClass().getName()).getGenericEventRecord();
   }
 
   private List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
