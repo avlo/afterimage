@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
@@ -51,6 +52,7 @@ public class ReputationReqMessageServiceIT {
   private final EventServiceIF eventService;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final BadgeDefinitionEvent downvoteBadgeDefinitionEvent;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
 
   @Autowired
@@ -58,12 +60,14 @@ public class ReputationReqMessageServiceIT {
       @NonNull EventServiceIF eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
+    this.downvoteBadgeDefinitionEvent = downvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
   }
 
@@ -181,19 +185,19 @@ public class ReputationReqMessageServiceIT {
     log.info("authorIdentity: {}", authorIdentity.getPublicKey());
     log.info("upvotedUserPubKey: {}", upvotedUserPubKey);
 
-    BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(
+    BadgeAwardUpvoteEvent event_1 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUserPubKey,
         upvoteBadgeDefinitionEvent);
 //    GenericEventKindTypeIF upvoteEvent =
 //        new GenericDocumentKindTypeDto(
-//            event,
+//            event_1,
 //            SuperconductorKindType.UPVOTE)
 //            .convertBaseEventToGenericEventKindTypeIF();
 
-    eventService.processIncomingEvent(new EventMessage(event));
+    eventService.processIncomingEvent(new EventMessage(event_1));
 
-//    submit Req for above event to Aimg
+//    submit Req for above event_1 to Aimg
 
     ReqMessage reputationReqMessage = getReputationReqMessage(upvotedUserPubKey);
 
@@ -204,13 +208,53 @@ public class ReputationReqMessageServiceIT {
     List<BaseMessage> items = subscriber.getItems();
     List<EventIF> afterimageEvents = getGenericEvents(items);
     log.debug("  {}", items);
-//    assertEquals(afterimageEvents.getFirst().getId(), upvoteEvent.getId());
+//    assertEquals(afterimageEvents_3.getFirst().getId(), upvoteEvent.getId());
     assertEquals(afterimageEvents.getFirst().getPublicKey(), afterimageInstanceIdentity.getPublicKey());
     AddressTag reputationAddressTag = Filterable.getTypeSpecificTags(AddressTag.class, afterimageEvents.getFirst()).getFirst();
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
     assertEquals(AfterimageKindType.REPUTATION.getName(), Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
+
+    BadgeAwardUpvoteEvent event_2 = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUserPubKey,
+        upvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF upvoteEvent =
+//        new GenericDocumentKindTypeDto(
+//            event_1,
+//            SuperconductorKindType.UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
+
+    eventService.processIncomingEvent(new EventMessage(event_2));
+
+    BadgeAwardDownvoteEvent event_3 = new BadgeAwardDownvoteEvent(
+        authorIdentity,
+        upvotedUserPubKey,
+        downvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF upvoteEvent =
+//        new GenericDocumentKindTypeDto(
+//            event_1,
+//            SuperconductorKindType.UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
+
+    eventService.processIncomingEvent(new EventMessage(event_3));
+
+    ReqMessage reputationReqMessage_3 = getReputationReqMessage(upvotedUserPubKey);
+    TestSubscriber<BaseMessage> subscriber_3 = new TestSubscriber<>();
+    afterimageMeshRelayService.send(reputationReqMessage_3, subscriber_3);
+
+    log.debug("retrieved afterimage events:");
+    List<BaseMessage> items_3 = subscriber_3.getItems();
+    List<EventIF> afterimageEvents_3 = getGenericEvents(items_3);
+    log.debug("  {}", items_3);
+//    assertEquals(afterimageEvents_3.getFirst().getId(), upvoteEvent.getId());
+    assertEquals(afterimageEvents_3.getFirst().getPublicKey(), afterimageInstanceIdentity.getPublicKey());
+    AddressTag reputationAddressTag_3 = Filterable.getTypeSpecificTags(AddressTag.class, afterimageEvents_3.getFirst()).getFirst();
+
+    assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag_3.getKind());
+    assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag_3.getPublicKey());
+    assertEquals(AfterimageKindType.REPUTATION.getName(), Optional.ofNullable(reputationAddressTag_3.getIdentifierTag()).orElseThrow().getUuid());
   }
 
   private @NotNull ReqMessage getReputationReqMessage(PublicKey upvotedUserPubKey) {

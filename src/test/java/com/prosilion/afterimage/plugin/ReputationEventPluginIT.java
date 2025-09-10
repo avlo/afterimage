@@ -1,13 +1,13 @@
 //package com.prosilion.afterimage.plugin;
 //
 //import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-//import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 //import com.prosilion.nostr.enums.Kind;
 //import com.prosilion.nostr.event.BadgeDefinitionEvent;
 //import com.prosilion.nostr.user.Identity;
 //import com.prosilion.nostr.user.PublicKey;
 //import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 //import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
+//import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 //import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 //import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 //import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
@@ -43,7 +43,7 @@
 //
 //  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
 //
-//  private final ReputationEventPlugin repPlugin;
+//  private final EventKindTypePluginIF repPlugin;
 //  private final RedisCacheServiceIF cacheServiceIF;
 //  private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
 //
@@ -58,7 +58,7 @@
 //  public ReputationEventPluginIT(
 //      @NonNull @Value("${votesCount}") Integer votesCount,
 //      @NonNull RedisCacheServiceIF cacheServiceIF,
-//      @NonNull ReputationEventPlugin reputationEventPlugin,
+//      @NonNull EventKindTypePluginIF reputationEventPlugin,
 //      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
 //    this.votesCount = votesCount;
 //    this.cacheServiceIF = cacheServiceIF;
