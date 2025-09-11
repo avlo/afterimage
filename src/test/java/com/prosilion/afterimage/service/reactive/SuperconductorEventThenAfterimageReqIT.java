@@ -60,7 +60,7 @@ public class SuperconductorEventThenAfterimageReqIT {
 
   @Container
   private static final ComposeContainer DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
-      new File("src/test/resources/docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
+      new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
       .withRemoveVolumes(true);
 

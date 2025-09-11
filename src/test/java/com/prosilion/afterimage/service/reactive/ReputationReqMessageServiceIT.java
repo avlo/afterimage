@@ -189,16 +189,9 @@ public class ReputationReqMessageServiceIT {
         authorIdentity,
         upvotedUserPubKey,
         upvoteBadgeDefinitionEvent);
-//    GenericEventKindTypeIF upvoteEvent =
-//        new GenericDocumentKindTypeDto(
-//            event_1,
-//            SuperconductorKindType.UPVOTE)
-//            .convertBaseEventToGenericEventKindTypeIF();
-
     eventService.processIncomingEvent(new EventMessage(event_1));
 
 //    submit Req for above event_1 to Aimg
-
     ReqMessage reputationReqMessage = getReputationReqMessage(upvotedUserPubKey);
 
     TestSubscriber<BaseMessage> subscriber = new TestSubscriber<>();
@@ -220,24 +213,12 @@ public class ReputationReqMessageServiceIT {
         authorIdentity,
         upvotedUserPubKey,
         upvoteBadgeDefinitionEvent);
-//    GenericEventKindTypeIF upvoteEvent =
-//        new GenericDocumentKindTypeDto(
-//            event_1,
-//            SuperconductorKindType.UPVOTE)
-//            .convertBaseEventToGenericEventKindTypeIF();
-
     eventService.processIncomingEvent(new EventMessage(event_2));
 
     BadgeAwardDownvoteEvent event_3 = new BadgeAwardDownvoteEvent(
         authorIdentity,
         upvotedUserPubKey,
         downvoteBadgeDefinitionEvent);
-//    GenericEventKindTypeIF upvoteEvent =
-//        new GenericDocumentKindTypeDto(
-//            event_1,
-//            SuperconductorKindType.UPVOTE)
-//            .convertBaseEventToGenericEventKindTypeIF();
-
     eventService.processIncomingEvent(new EventMessage(event_3));
 
     ReqMessage reputationReqMessage_3 = getReputationReqMessage(upvotedUserPubKey);

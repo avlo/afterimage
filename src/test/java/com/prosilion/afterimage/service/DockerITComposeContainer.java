@@ -18,7 +18,7 @@ public abstract class DockerITComposeContainer {
 
   static {
     DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
-        new File("src/test/resources/docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
+        new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
         .withExposedService("superconductor-afterimage", 5555)
         .withRemoveVolumes(true);
   }
