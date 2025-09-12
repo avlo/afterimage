@@ -87,7 +87,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         voteReceiverPubkey,
         Stream.concat(existingEventTagAddressTagPairs.stream(), nonMatches.stream()).toList());
 
-    deletePreviousReputationCalculationEvent(incomingFollowSetsEvent);
+    deletePreviousReputationCalculationEvent(existingFollowSetsEvents.orElseThrow());
     super.processIncomingEvent(updatedFollowSetsEvent);
     log.debug("pause for debug");
   }
@@ -100,7 +100,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
-  private Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
+  public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
     return redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
         .stream()
