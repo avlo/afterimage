@@ -149,7 +149,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   }
 
   @SneakyThrows
-  private EventIF createFollowSetsEvent(
+  public EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs) {
     return new FollowSetsEvent(
@@ -159,7 +159,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         reputationCalculator.getClass().getName()).getGenericEventRecord();
   }
 
-  private List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
+  public List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
     List<EventTag> eventTags = followSetsEvent
         .stream()
         .filter(EventTag.class::isInstance)
