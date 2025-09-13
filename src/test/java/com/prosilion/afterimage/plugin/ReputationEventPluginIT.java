@@ -94,7 +94,7 @@ public class ReputationEventPluginIT {
     GenericEventKindType reputationEvents = repPlugin.getExistingReputationEvent(upvotedUser).orElseThrow();
     assertEquals(votesCount.toString(), reputationEvents.getContent());
 
-    assertEquals(votesCount * 2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals(votesCount, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
 
 //    process another vote- and subsequently- another updated (single) reputation
@@ -106,7 +106,7 @@ public class ReputationEventPluginIT {
         Integer.valueOf(votesCount + 1).toString(),
         anotherReputationEvent.orElseThrow().getContent());
 
-    assertEquals((votesCount + 1) * 2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals((votesCount + 1), cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getAll().stream().map(EventDocumentIF::getEventId)
         .filter(id -> anotherReputationEvent.orElseThrow().getId().equals(id))
         .toList().size());
