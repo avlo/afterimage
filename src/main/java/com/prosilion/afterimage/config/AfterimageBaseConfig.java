@@ -89,26 +89,26 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindTypePluginIF upvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
     return new UpvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.UPVOTE,
             eventPlugin),
-        reputationEventPlugin,
+        afterimageFollowSetsEventPlugin,
         aImgIdentity);
   }
 
   @Bean
   EventKindTypePluginIF downvoteEventKindTypePlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
     return new DownvoteEventPlugin(
         new EventKindTypePlugin(
             SuperconductorKindType.DOWNVOTE,
             eventPlugin),
-        reputationEventPlugin,
+        afterimageFollowSetsEventPlugin,
         aImgIdentity);
   }
 
@@ -131,12 +131,16 @@ public abstract class AfterimageBaseConfig {
   EventKindPluginIF afterimageFollowSetsEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
+      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull Identity aImgIdentity,
       @NonNull EventKindTypePluginIF reputationEventPlugin) {
     return new AfterimageFollowSetsEventPlugin(
         notifierService,
         new EventKindPlugin(
             Kind.FOLLOW_SETS,
             eventPlugin),
+        redisCacheServiceIF,
+        aImgIdentity,
         reputationEventPlugin);
   }
 

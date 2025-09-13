@@ -1,7 +1,9 @@
 package com.prosilion.afterimage.plugin;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.service.AfterimageReputationCalculator;
+import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
@@ -13,7 +15,10 @@ import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
+import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
@@ -22,11 +27,14 @@ import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisSta
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ActiveProfiles("test")
 public class RelaySetsEventOrderIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin;
   private final ReputationEventPlugin reputationEventPlugin;
   private final RedisCacheServiceIF cacheServiceIF;
   private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
@@ -61,10 +70,12 @@ public class RelaySetsEventOrderIT {
   public RelaySetsEventOrderIT(
       @NonNull @Value("${votesCount}") Integer votesCount,
       @NonNull RedisCacheServiceIF cacheServiceIF,
+      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull EventKindTypePluginIF reputationEventPlugin,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
     this.votesCount = votesCount;
     this.cacheServiceIF = cacheServiceIF;
+    this.afterimageFollowSetsEventPlugin = (AfterimageFollowSetsEventPlugin) afterimageFollowSetsEventPlugin;
     this.reputationEventPlugin = (ReputationEventPlugin) reputationEventPlugin;
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
 
@@ -74,19 +85,90 @@ public class RelaySetsEventOrderIT {
   }
 
   @Test
+  void testEventTagAddressTagPairsOrderAfterSaved() throws NoSuchAlgorithmException {
+    List<EventTagAddressTagPair> pairs_1 = createPairs(1);
+    FollowSetsEvent followSetsEvent_1 = createFollowSetsEvent(pairs_1);
+
+    afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_1);
+
+    Optional<GenericEventKind> savedFollowSetsEvent_1 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
+    Optional<GenericEventKindType> savedReputationEvent_1 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    assertEquals("1", savedReputationEvent_1.orElseThrow().getContent());
+
+    List<EventTagAddressTagPair> pairs_2 = createPairs(1);
+    FollowSetsEvent followSetsEvent_2 = createFollowSetsEvent(Stream.concat(pairs_1.stream(), pairs_2.stream()).toList());
+
+    afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_2);
+
+    Optional<GenericEventKind> savedFollowSetsEvent_2 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
+    Optional<GenericEventKindType> savedReputationEvent_2 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    assertEquals("2", savedReputationEvent_2.orElseThrow().getContent());
+  }
+
+  private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) throws NoSuchAlgorithmException {
+    FollowSetsEvent followSetsEvent_1 = new FollowSetsEvent(
+        authorIdentity,
+        upvotedUser,
+        pairs,
+        AfterimageReputationCalculator.class.getName());
+    return followSetsEvent_1;
+  }
+
+  private List<EventTagAddressTagPair> createPairs(int size) {
+    int startIndex = 0;
+    List<EventTag> eventTags = IntStream.range(startIndex, size)
+        .mapToObj(i ->
+            new EventTag(Factory.generateRandomHex64String(), "aImgUrl"))
+        .toList();
+
+    List<AddressTag> addressTags = IntStream.range(startIndex, size)
+        .mapToObj(i -> new AddressTag(
+            Kind.BADGE_AWARD_EVENT,
+            authorIdentity.getPublicKey(),
+            new IdentifierTag(getKindType(i).getName())))
+        .toList();
+
+    List<EventTagAddressTagPair> expectedPairsOrder = IntStream.range(startIndex, size)
+        .mapToObj(i -> new EventTagAddressTagPair(
+            eventTags.get(i),
+            addressTags.get(i)))
+        .toList();
+
+    return expectedPairsOrder;
+  }
+
+  private SuperconductorKindType getKindType(int i) {
+    if (i % 2 == 0)
+      return SuperconductorKindType.UPVOTE;
+    return SuperconductorKindType.DOWNVOTE;
+  }
+
+  @Test
   void testEventTagAddressTagPairsOrder() throws NoSuchAlgorithmException {
+    EventTag firstEventTag = new EventTag(
+        Factory.generateRandomHex64String(),
+        "aImgUrl");
+    AddressTag firstAddressTag = new AddressTag(
+        Kind.BADGE_AWARD_EVENT,
+        authorIdentity.getPublicKey(),
+        new IdentifierTag(AfterimageKindType.REPUTATION.getName()));
+
+    int startIndex = 0;
     int size = 8;
 
-    List<EventTag> eventTags = IntStream.range(0, size)
-        .mapToObj(i -> new EventTag(Factory.generateRandomHex64String(), "aImgUrl")).toList();
+    List<EventTag> eventTags = IntStream.range(startIndex, size)
+        .mapToObj(i ->
+            new EventTag(Factory.generateRandomHex64String(), "aImgUrl"))
+        .toList();
 
-    List<AddressTag> addressTags = IntStream.range(0, size)
+    List<AddressTag> addressTags = IntStream.range(startIndex, size)
         .mapToObj(i -> new AddressTag(
             Kind.valueOf(i),
             authorIdentity.getPublicKey(),
-            new IdentifierTag(String.valueOf(i)))).toList();
+            new IdentifierTag(String.valueOf(i))))
+        .toList();
 
-    List<EventTagAddressTagPair> expectedPairsOrder = IntStream.range(0, size)
+    List<EventTagAddressTagPair> expectedPairsOrder = IntStream.range(startIndex, size)
         .mapToObj(i -> new EventTagAddressTagPair(
             eventTags.get(i),
             addressTags.get(i)))
@@ -98,9 +180,9 @@ public class RelaySetsEventOrderIT {
         expectedPairsOrder,
         AfterimageReputationCalculator.class.getName());
 
-    List<EventTagAddressTagPair> actualPairsOrder = reputationEventPlugin.getEventTagAddressTagPairs(followSetsEvent.getTags());
+    List<EventTagAddressTagPair> actualPairsOrder = afterimageFollowSetsEventPlugin.getEventTagAddressTagPairs(followSetsEvent.getTags());
 
-    for (int i = 0; i < actualPairsOrder.size(); i++) {
+    for (int i = startIndex; i < actualPairsOrder.size(); i++) {
       EventTagAddressTagPair expectedEventTagAddressTagPair = expectedPairsOrder.get(i);
       EventTagAddressTagPair actualEventTagAddressTagPair = actualPairsOrder.get(i);
       assertEquals(expectedEventTagAddressTagPair.getTags(), actualEventTagAddressTagPair.getTags());
@@ -112,7 +194,7 @@ public class RelaySetsEventOrderIT {
   private CompletableFuture<Void> processIncomingEventExecutor() throws ExecutionException, InterruptedException {
     CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
             upvotesList.forEach(eventKindTypeIF ->
-                assertAll(() -> reputationEventPlugin.processIncomingEvent(eventKindTypeIF)))
+                assertAll(() -> afterimageFollowSetsEventPlugin.processIncomingEvent(eventKindTypeIF)))
         , executorService);
 
     future.get();

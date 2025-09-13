@@ -72,6 +72,11 @@ public class ReputationEventPluginIT {
   }
 
   @Test
+  void testRelaySetsOrder() {
+
+  }
+
+  @Test
   void testProcessIncomingEvent() throws NoSuchAlgorithmException {
     List<EventDocumentIF> all = cacheServiceIF.getAll();
     int sizeOfGetAllBeforeDeletions = all.size();
@@ -86,22 +91,22 @@ public class ReputationEventPluginIT {
 
     assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEvents().size());
 
-    GenericEventKindType reputationEvents = repPlugin.getPreviousReputationEvent(upvotedUser).orElseThrow();
+    GenericEventKindType reputationEvents = repPlugin.getExistingReputationEvent(upvotedUser).orElseThrow();
     assertEquals(votesCount.toString(), reputationEvents.getContent());
 
-    assertEquals(votesCount*2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals(votesCount * 2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getByKind(Kind.BADGE_DEFINITION_EVENT).size());
 
 //    process another vote- and subsequently- another updated (single) reputation
     repPlugin.processIncomingEvent(createUpvoteDto(upvoteBadgeDefinitionEvent));
     assertEquals(votesCount, cacheServiceIF.getAllDeletionEvents().size());
 
-    Optional<GenericEventKindType> anotherReputationEvent = repPlugin.getPreviousReputationEvent(upvotedUser);
+    Optional<GenericEventKindType> anotherReputationEvent = repPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals(
         Integer.valueOf(votesCount + 1).toString(),
         anotherReputationEvent.orElseThrow().getContent());
 
-    assertEquals((votesCount + 1)*2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
+    assertEquals((votesCount + 1) * 2, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
     assertEquals(1, cacheServiceIF.getAll().stream().map(EventDocumentIF::getEventId)
         .filter(id -> anotherReputationEvent.orElseThrow().getId().equals(id))
         .toList().size());

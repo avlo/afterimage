@@ -11,6 +11,7 @@ import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindTypePlugin;
 import java.util.List;
@@ -21,15 +22,15 @@ import org.springframework.lang.NonNull;
 @Slf4j
 // our SportsCar extends CarDecorator
 public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindTypePlugin {
-  private final EventKindTypePluginIF reputationEventPlugin;
+  private final EventKindPluginIF afterimageFollowSetsEventPlugin;
   private final Identity aImgIdentity;
 
   public AbstractVoteEventPlugin(
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
-      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
     super(eventKindTypePlugin);
-    this.reputationEventPlugin = reputationEventPlugin;
+    this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -56,12 +57,12 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
         new EventTag(voteEvent.getId()),
         addressTag);
 
-    EventIF updatedFollowSetsEvent = createFollowSetsEvent(
+    EventIF newFollowSetsEvent = createFollowSetsEvent(
         voteReceiverPubkey,
         eventTagAddressTagPair);
 
     log.debug("send vote to reputationEventPlugin for rep calculation");
-    reputationEventPlugin.processIncomingEvent(updatedFollowSetsEvent);
+    afterimageFollowSetsEventPlugin.processIncomingEvent(newFollowSetsEvent);
   }
 
   @SneakyThrows

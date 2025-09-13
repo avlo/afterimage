@@ -6,11 +6,8 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.event.FollowSetsEvent;
-import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
@@ -21,19 +18,18 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
+import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
-  private final AfterimageReputationCalculator reputationCalculator;
+  private final AfterimageReputationCalculator calculator;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
@@ -45,51 +41,27 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
       @NonNull AfterimageReputationCalculator afterimageReputationCalculator) {
     super(notifierService, eventKindTypePlugin);
     this.redisCacheServiceIF = redisCacheServiceIF;
-    this.reputationCalculator = afterimageReputationCalculator;
+    this.calculator = afterimageReputationCalculator;
     this.aImgIdentity = aImgIdentity;
   }
 
   @SneakyThrows
-  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
-    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEvent)
+  public void processIncomingEvent(@NonNull EventIF incomingReputationEvent) {
+    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingReputationEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
 
-//    REPUTATION:
-    Optional<GenericEventKindType> previousReputationEvent = getPreviousReputationEvent(voteReceiverPubkey);
+    Optional<GenericEventKindType> previousReputationEvent = getExistingReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
     GenericEventKindTypeIF updatedReputationEvent =
-        reputationCalculator.calculateUpdatedReputationEvent(
+        calculator.calculateUpdatedReputationEvent(
             voteReceiverPubkey,
             previousReputationEvent,
-            incomingFollowSetsEvent);
+            incomingReputationEvent);
 
     super.processIncomingEvent(updatedReputationEvent);
-
-//    FOLLOW SETS:
-    Optional<GenericEventKind> existingFollowSetsEvents = getPreviousFollowSetsEvent(voteReceiverPubkey);
-
-    if (existingFollowSetsEvents.isEmpty()) {
-      super.processIncomingEvent(incomingFollowSetsEvent);
-      return;
-    }
-
-    List<EventTagAddressTagPair> incomingEventTagAddressTagPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
-    List<EventTagAddressTagPair> existingEventTagAddressTagPairs = getEventTagAddressTagPairs(existingFollowSetsEvents.orElseThrow().getTags());
-
-    List<EventTagAddressTagPair> nonMatches = incomingEventTagAddressTagPairs.stream()
-        .filter(incomingEventTagAddressTagPair ->
-            !existingEventTagAddressTagPairs.contains(incomingEventTagAddressTagPair)).toList();
-
-    EventIF updatedFollowSetsEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
-        Stream.concat(existingEventTagAddressTagPairs.stream(), nonMatches.stream()).toList());
-
-    deletePreviousReputationCalculationEvent(existingFollowSetsEvents.orElseThrow());
-    super.processIncomingEvent(updatedFollowSetsEvent);
-    log.debug("pause for debug");
   }
 
   @SneakyThrows
@@ -100,9 +72,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
-  public Optional<GenericEventKindType> getPreviousReputationEvent(PublicKey badgeReceiverPubkey) {
-    return redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
+  public Optional<GenericEventKindType> getExistingReputationEvent(PublicKey badgeReceiverPubkey) {
+    List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey);
+
+    List<EventDocumentIF> eventDocumentIFStream = eventsByKindAndPubKeyTag
         .stream()
         .filter(eventIF -> eventIF.getTags()
             .stream()
@@ -112,8 +86,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                 Optional.ofNullable(
                         addressTag.getIdentifierTag()).orElseThrow(() ->
                         new InvalidTagException("NULL", List.of(getKindType().getName())))
-                    .getUuid().equals(getKindType().getName())))
-        .max(Comparator.comparing(EventIF::getCreatedAt))
+                    .getUuid().equals(getKindType().getName()))).toList();
+    Optional<EventDocumentIF> max = eventDocumentIFStream.stream()
+        .max(Comparator.comparing(EventIF::getCreatedAt));
+
+    return max
         .map(eventIF ->
             new GenericEventKindType(
                 new GenericEventKind(
@@ -126,68 +103,6 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                     eventIF.getContent(),
                     eventIF.getSignature()),
                 getKindType()));
-  }
-
-//  public Optional<GenericEventKindType> getAllPubkeyReputationEvents(@NonNull PublicKey badgeReceiverPubkey) {
-//    return getPreviousReputationEvent(badgeReceiverPubkey);
-//  }
-
-  private Optional<GenericEventKind> getPreviousFollowSetsEvent(PublicKey badgeReceiverPubkey) {
-    return redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
-        .stream()
-        .max(Comparator.comparing(EventIF::getCreatedAt))
-        .map(eventIF ->
-            new GenericEventKind(
-                eventIF.getId(),
-                eventIF.getPublicKey(),
-                eventIF.getCreatedAt(),
-                eventIF.getKind(),
-                eventIF.getTags(),
-                eventIF.getContent(),
-                eventIF.getSignature()));
-  }
-
-  @SneakyThrows
-  public EventIF createFollowSetsEvent(
-      @NonNull PublicKey voteReceiverPubkey,
-      @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs) {
-    return new FollowSetsEvent(
-        aImgIdentity,
-        voteReceiverPubkey,
-        eventTagAddressTagPairs,
-        reputationCalculator.getClass().getName()).getGenericEventRecord();
-  }
-
-  public List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
-    List<EventTag> eventTags = followSetsEvent
-        .stream()
-        .filter(EventTag.class::isInstance)
-        .map(EventTag.class::cast)
-        .toList();
-
-    List<AddressTag> addressTags = followSetsEvent
-        .stream()
-        .filter(AddressTag.class::isInstance)
-        .map(AddressTag.class::cast)
-        .toList();
-
-    assert eventTags.size() == addressTags.size();
-
-    List<EventTagAddressTagPair> pairs = IntStream.range(0, eventTags.size())
-        .mapToObj(i -> new EventTagAddressTagPair(
-            eventTags.get(i),
-            addressTags.get(i)))
-        .toList();
-    return pairs;
-  }
-
-  @SneakyThrows
-  private void deletePreviousReputationCalculationEvent(EventIF previousReputationEvent) {
-    redisCacheServiceIF.deleteEvent(
-        new DeletionEvent(
-            aImgIdentity,
-            List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
   @Override
