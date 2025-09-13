@@ -2,6 +2,7 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.service.AfterimageReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.filter.Filterable;
@@ -70,7 +71,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 }*/
 
     Optional<GenericEventKind> existingFollowSetsEvent = getExistingFollowSetsEvent(voteReceiverPubkey);
-
+    existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
 //    if (existingFollowSetsEvents.isEmpty()) {
 //      reputationEventPlugin.processIncomingEvent(incomingFollowSetsEvent);
 //      return;
@@ -147,6 +148,14 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
             addressTags.get(i)))
         .toList();
     return pairs;
+  }
+
+  @SneakyThrows
+  private void deletePreviousFollowSetsEvent(GenericEventKind previousFollowSetsEvent) {
+    redisCacheServiceIF.deleteEvent(
+        new DeletionEvent(
+            aImgIdentity,
+            List.of(new EventTag(previousFollowSetsEvent.getId())), "aImg delete previous FOLLOW_SETS event"));
   }
 
   @Override
