@@ -3,9 +3,9 @@ services:
     image: "redis:8.0.0"
     hostname: localhost
     ports:
-      - "6379:6379"
-#    environment:
-#      - "REDIS_ARGS=--appendonly yes"
+      - "6378:6379"
+    #    environment:
+    #      - "REDIS_ARGS=--appendonly yes"
     healthcheck:
       test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
       retries: 10
@@ -16,7 +16,7 @@ services:
   superconductor-afterimage:
     image: avlo/superconductor-app-redis:1.16.1
     ports:
-      - "5555:5555"
+      - "5554:5555"
     depends_on:
       superconductor-db:
         condition: service_healthy

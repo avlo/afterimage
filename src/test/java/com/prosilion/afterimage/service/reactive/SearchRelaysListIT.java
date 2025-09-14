@@ -64,17 +64,25 @@ public class SearchRelaysListIT {
       new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
       .withRemoveVolumes(true);
+  
+  @Container
+  private static final ComposeContainer DOCKER_COMPOSE_CONTAINER_2 = new ComposeContainer(
+      new File("src/test/resources/superconductor-docker-compose-2/superconductor-docker-compose-dev-test-ws.yml"))
+      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
+      .withRemoveVolumes(true);
 
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUri;
+  private final String superconductorRelayUri_2;
   private final String afterimageRelayUri;
 
   @BeforeEach
   public void setUp() {
     log.info("BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()....");
     DOCKER_COMPOSE_CONTAINER.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
+    DOCKER_COMPOSE_CONTAINER_2.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
     log.info("... done BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()");
   }
 
@@ -82,12 +90,14 @@ public class SearchRelaysListIT {
   static void beforeAll() {
     log.info("BeforeAll DOCKER_COMPOSE_CONTAINER.start()....");
     DOCKER_COMPOSE_CONTAINER.start();
+    DOCKER_COMPOSE_CONTAINER_2.start();
     log.info("... done BeforeAll DOCKER_COMPOSE_CONTAINER.start()");
   }
 
   @Autowired
   public SearchRelaysListIT(
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
+      @NonNull @Value("${superconductor.relay.url.2}") String superconductorRelayUri_2,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
@@ -97,6 +107,7 @@ public class SearchRelaysListIT {
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUri = superconductorRelayUri;
+    this.superconductorRelayUri_2 = superconductorRelayUri_2;
     this.afterimageRelayUri = afterimageRelayUri;
   }
 
@@ -136,10 +147,16 @@ public class SearchRelaysListIT {
     TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
     new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event), okMessageSubscriber_1);
 
+    TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri_2).send(new EventMessage(event), okMessageSubscriber_2);
+    
     TimeUnit.MILLISECONDS.sleep(50);
 
     List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
+
+    List<OkMessage> items_2 = okMessageSubscriber_2.getItems();
+    assertEquals(true, items_2.getFirst().getFlag());
 
 //  submit search relays list event to aImg w/ SC url, should:
 //    1. get upvote event from SC
@@ -147,7 +164,15 @@ public class SearchRelaysListIT {
     new AfterimageMeshRelayService(afterimageRelayUri)
         .send(
             new EventMessage(
-                createSearchRelaysListEventMessage()),
+                createSearchRelaysListEventMessage(superconductorRelayUri)),
+            new TestSubscriber<>());
+
+    TimeUnit.MILLISECONDS.sleep(1000);
+
+    new AfterimageMeshRelayService(afterimageRelayUri)
+        .send(
+            new EventMessage(
+                createSearchRelaysListEventMessage(superconductorRelayUri_2)),
             new TestSubscriber<>());
 
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -162,10 +187,10 @@ public class SearchRelaysListIT {
     TimeUnit.MILLISECONDS.sleep(100);
 
     log.debug("afterimage returned superconductor events:");
-    List<BaseMessage> items_2 = afterImageEventsSubscriber_A.getItems();
-    log.debug("  {}", items_2);
+    List<BaseMessage> items_3 = afterImageEventsSubscriber_A.getItems();
+    log.debug("  {}", items_3);
 
-    List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_2);
+    List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
 
     assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
     assertEquals(returnedReqGenericEvents_2.getFirst().getPublicKey().toHexString(), afterimageInstanceIdentity.getPublicKey().toHexString());
@@ -195,11 +220,11 @@ public class SearchRelaysListIT {
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private BaseEvent createSearchRelaysListEventMessage() throws NoSuchAlgorithmException {
+  private BaseEvent createSearchRelaysListEventMessage(String uri) throws NoSuchAlgorithmException {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
         "Kind.SEARCH_RELAYS_LIST",
         new RelayTag(
-            new Relay(superconductorRelayUri)));
+            new Relay(uri)));
   }
 }
