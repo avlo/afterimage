@@ -53,7 +53,7 @@
 //@Testcontainers
 //@EmbeddedRedisStandalone
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-//public class FollowSetsEventIT {
+//public class RelaySetsEventIT {
 //
 //  public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
 //  public static final String AFTERIMAGE_TEST = "afterimage-app-dev_ws-test";
@@ -100,7 +100,7 @@
 //  }
 //
 //  @Autowired
-//  public FollowSetsEventIT(
+//  public RelaySetsEventIT(
 //      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
 //      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
 //      @NonNull @Value("${afterimage-docker.relay.url}") String afterimageDockerRelayUri,

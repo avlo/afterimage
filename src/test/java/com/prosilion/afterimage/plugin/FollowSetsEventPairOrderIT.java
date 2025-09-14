@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ActiveProfiles("test")
-public class RelaySetsEventOrderIT {
+public class FollowSetsEventPairOrderIT {
   private final AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin;
   private final ReputationEventPlugin reputationEventPlugin;
 
@@ -46,7 +46,7 @@ public class RelaySetsEventOrderIT {
   private final PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
   @Autowired
-  public RelaySetsEventOrderIT(
+  public FollowSetsEventPairOrderIT(
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull EventKindTypePluginIF reputationEventPlugin) {
     this.afterimageFollowSetsEventPlugin = (AfterimageFollowSetsEventPlugin) afterimageFollowSetsEventPlugin;
