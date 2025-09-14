@@ -1,13 +1,11 @@
 package com.prosilion.afterimage.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.service.AfterimageReputationCalculator;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.tag.AddressTag;
@@ -17,71 +15,42 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @EmbeddedRedisStandalone
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @ActiveProfiles("test")
 public class RelaySetsEventOrderIT {
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin;
   private final ReputationEventPlugin reputationEventPlugin;
-  private final RedisCacheServiceIF cacheServiceIF;
-  private final List<GenericEventKindTypeIF> upvotesList = new ArrayList<>();
 
   private final Identity authorIdentity = Identity.generateRandomIdentity();
   private final PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
-  private final Integer votesCount;
-  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-
   @Autowired
   public RelaySetsEventOrderIT(
-      @NonNull @Value("${votesCount}") Integer votesCount,
-      @NonNull RedisCacheServiceIF cacheServiceIF,
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventPlugin,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
-    this.votesCount = votesCount;
-    this.cacheServiceIF = cacheServiceIF;
+      @NonNull EventKindTypePluginIF reputationEventPlugin) {
     this.afterimageFollowSetsEventPlugin = (AfterimageFollowSetsEventPlugin) afterimageFollowSetsEventPlugin;
     this.reputationEventPlugin = (ReputationEventPlugin) reputationEventPlugin;
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-
-//    for (int i = 0; i < votesCount; i++) {
-//      upvotesList.add(createUpvoteDto(upvoteBadgeDefinitionEvent));
-//    }
   }
 
   @Test
@@ -130,12 +99,11 @@ public class RelaySetsEventOrderIT {
   }
 
   private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) throws NoSuchAlgorithmException {
-    FollowSetsEvent followSetsEvent_1 = new FollowSetsEvent(
+    return new FollowSetsEvent(
         authorIdentity,
         upvotedUser,
         pairs,
         AfterimageReputationCalculator.class.getName());
-    return followSetsEvent_1;
   }
 
   private List<EventTagAddressTagPair> createPairs(int size) {
@@ -152,13 +120,11 @@ public class RelaySetsEventOrderIT {
             new IdentifierTag(getKindType(i).getName())))
         .toList();
 
-    List<EventTagAddressTagPair> expectedPairsOrder = IntStream.range(startIndex, size)
+    return IntStream.range(startIndex, size)
         .mapToObj(i -> new EventTagAddressTagPair(
             eventTags.get(i),
             addressTags.get(i)))
         .toList();
-
-    return expectedPairsOrder;
   }
 
   private SuperconductorKindType getKindType(int i) {
@@ -213,30 +179,5 @@ public class RelaySetsEventOrderIT {
       assertEquals(expectedEventTagAddressTagPair.eventTag(), actualEventTagAddressTagPair.eventTag());
       assertEquals(expectedEventTagAddressTagPair.addressTag(), actualEventTagAddressTagPair.addressTag());
     }
-  }
-
-  private CompletableFuture<Void> processIncomingEventExecutor() throws ExecutionException, InterruptedException {
-    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
-            upvotesList.forEach(eventKindTypeIF ->
-                assertAll(() -> afterimageFollowSetsEventPlugin.processIncomingEvent(eventKindTypeIF)))
-        , executorService);
-
-    future.get();
-
-    await()
-        .timeout(5, SECONDS)
-        .until(future::isDone);
-
-    assertFalse(future.isCompletedExceptionally());
-    return future;
-  }
-
-  private GenericEventKindTypeIF createUpvoteDto(BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
-    return new GenericDocumentKindTypeDto(
-        new BadgeAwardUpvoteEvent(
-            authorIdentity,
-            upvotedUser,
-            upvoteBadgeDefinitionEvent),
-        SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
   }
 }
