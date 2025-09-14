@@ -96,6 +96,29 @@ public class RelaySetsEventOrderIT {
     Optional<GenericEventKind> savedFollowSetsEvent_8 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
     Optional<GenericEventKindType> savedReputationEvent_8 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("6", savedReputationEvent_8.orElseThrow().getContent());
+
+    List<EventTagAddressTagPair> pairs_9 = createPairs(2);
+
+    List<EventTagAddressTagPair> group10 = Stream.concat(group8.stream(), pairs_9.stream()).toList();
+
+    FollowSetsEvent followSetsEvent_10 = createFollowSetsEvent(group10);
+    afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_10);
+
+    Optional<GenericEventKind> savedFollowSetsEvent_10 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
+    Optional<GenericEventKindType> savedReputationEvent_10 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    assertEquals("6", savedReputationEvent_10.orElseThrow().getContent());
+
+    List<EventTagAddressTagPair> pairs_11 = createPairs(10);
+
+    List<EventTagAddressTagPair> group12 = Stream.concat(group10.stream(), pairs_11.stream()).toList();
+
+    FollowSetsEvent followSetsEvent_12 = createFollowSetsEvent(group12);
+    afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_12);
+
+    Optional<GenericEventKind> savedFollowSetsEvent_12 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
+    Optional<GenericEventKindType> savedReputationEvent_12 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    assertEquals("6", savedReputationEvent_12.orElseThrow().getContent());
+    assertEquals("6", savedReputationEvent_12.orElseThrow().getContent());
   }
 
   private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) throws NoSuchAlgorithmException {
