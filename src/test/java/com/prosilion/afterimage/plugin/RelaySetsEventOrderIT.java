@@ -115,6 +115,18 @@ public class RelaySetsEventOrderIT {
     Optional<GenericEventKind> savedFollowSetsEvent_5 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
     Optional<GenericEventKindType> savedReputationEvent_5 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("4", savedReputationEvent_5.orElseThrow().getContent());
+
+    List<EventTagAddressTagPair> pairs_6 = createPairs(1);
+    List<EventTagAddressTagPair> pairs_7 = createPairs(1);
+
+    List<EventTagAddressTagPair> group8 = Stream.concat(Stream.concat(group5.stream(), pairs_6.stream()), pairs_7.stream()).toList();
+
+    FollowSetsEvent followSetsEvent_8 = createFollowSetsEvent(group8);
+    afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_8);
+
+    Optional<GenericEventKind> savedFollowSetsEvent_8 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
+    Optional<GenericEventKindType> savedReputationEvent_8 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    assertEquals("6", savedReputationEvent_8.orElseThrow().getContent());
   }
 
   private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) throws NoSuchAlgorithmException {
