@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class SuperconductorFollowsListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // Kind.SEARCH_RELAYS_LIST 10_007
-  public SuperconductorFollowsListEventPlugin(
+public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // Kind.SEARCH_RELAYS_LIST 10_007
+  public SuperconductorSearchRelaysListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,

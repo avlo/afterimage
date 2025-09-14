@@ -7,7 +7,7 @@ import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPl
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
-import com.prosilion.afterimage.service.event.plugin.SuperconductorFollowsListEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventPlugin;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
@@ -113,12 +113,12 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  EventKindPluginIF superconductorFollowsListEventPlugin(
+  EventKindPluginIF superconductorSearchRelaysListEventPlugin(
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity,
       @NonNull EventPluginIF eventPlugin) {
-    return new SuperconductorFollowsListEventPlugin(
+    return new SuperconductorSearchRelaysListEventPlugin(
         new EventKindPlugin(
             Kind.SEARCH_RELAYS_LIST,
             eventPlugin),
