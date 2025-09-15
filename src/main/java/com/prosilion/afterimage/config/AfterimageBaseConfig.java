@@ -162,7 +162,7 @@ public abstract class AfterimageBaseConfig {
   @Bean
   BadgeDefinitionEvent reputationBadgeDefinitionEvent(
       @NonNull Identity afterimageInstanceIdentity,
-      @NonNull String afterimageRelayUrl) throws NoSuchAlgorithmException {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws NoSuchAlgorithmException {
 
     return new BadgeDefinitionEvent(
         afterimageInstanceIdentity,

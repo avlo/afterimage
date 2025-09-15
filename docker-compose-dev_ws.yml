@@ -9,7 +9,7 @@ services:
       - "REDIS_ARGS=--appendonly yes"
   afterimage-app:
     container_name: afterimage-app-redis-dev_ws
-    image: afterimage-app-redis:1.0.0
+    image: afterimage-nostr-reputation-relay:1.0.0
     ports:
       - "5556:5556"
     links:
