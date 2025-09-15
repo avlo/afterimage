@@ -244,7 +244,25 @@ public class SearchRelaysListIT {
     List<EventIF> returnedReqGenericEvents_3 = getGenericEvents(items_7);
     assertEquals("3", returnedReqGenericEvents_3.getFirst().getContent());
 
-    afterimageRepRequestClient_2.closeSocket();
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_2_2 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri_2).send(new EventMessage(event_2), okMessageSubscriber_sc_2_2);
+
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_2_3 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri_2).send(new EventMessage(event_2), okMessageSubscriber_sc_2_3);
+
+    TestSubscriber<BaseMessage> afterImageEventsSubscriber_9 = new TestSubscriber<>();
+    final AfterimageMeshRelayService afterimageRepRequestClient_3 = new AfterimageMeshRelayService(afterimageRelayUri);
+    afterimageRepRequestClient_3.send(
+        createAfterImageReqMessage(Factory.generateRandomHex64String(), upvotedUser.getPublicKey()),
+        afterImageEventsSubscriber_9);
+
+    List<BaseMessage> items_8 = afterImageEventsSubscriber_9.getItems();
+    log.debug("  {}", items_8);
+
+    List<EventIF> returnedReqGenericEvents_4 = getGenericEvents(items_8);
+    assertEquals("3", returnedReqGenericEvents_4.getFirst().getContent());
+    
+    afterimageRepRequestClient_3.closeSocket();
   }
 
   private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
