@@ -64,7 +64,7 @@ public class SearchRelaysListIT {
       new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
       .withRemoveVolumes(true);
-  
+
   @Container
   private static final ComposeContainer DOCKER_COMPOSE_CONTAINER_2 = new ComposeContainer(
       new File("src/test/resources/superconductor-docker-compose-2/superconductor-docker-compose-dev-test-ws.yml"))
@@ -141,21 +141,26 @@ public class SearchRelaysListIT {
         upvotedUser.getPublicKey(),
         upvoteBadgeDefinitionEvent);
 
+    BadgeAwardUpvoteEvent event_new = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUser.getPublicKey(),
+        upvoteBadgeDefinitionEvent);
+
     assertEquals(event.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
 
 //  submit upvote event to SC
-    TestSubscriber<OkMessage> okMessageSubscriber_1 = new TestSubscriber<>();
-    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event), okMessageSubscriber_1);
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_1 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event), okMessageSubscriber_sc_1);
 
-    TestSubscriber<OkMessage> okMessageSubscriber_2 = new TestSubscriber<>();
-    new AfterimageMeshRelayService(superconductorRelayUri_2).send(new EventMessage(event), okMessageSubscriber_2);
-    
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_2 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri_2).send(new EventMessage(event_new), okMessageSubscriber_sc_2);
+
     TimeUnit.MILLISECONDS.sleep(50);
 
-    List<OkMessage> items_1 = okMessageSubscriber_1.getItems();
+    List<OkMessage> items_1 = okMessageSubscriber_sc_1.getItems();
     assertEquals(true, items_1.getFirst().getFlag());
 
-    List<OkMessage> items_2 = okMessageSubscriber_2.getItems();
+    List<OkMessage> items_2 = okMessageSubscriber_sc_2.getItems();
     assertEquals(true, items_2.getFirst().getFlag());
 
 //  submit search relays list event to aImg w/ SC url, should:
@@ -192,11 +197,54 @@ public class SearchRelaysListIT {
 
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
 
-    assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
+    assertEquals("2", returnedReqGenericEvents_2.getFirst().getContent());
     assertEquals(returnedReqGenericEvents_2.getFirst().getPublicKey().toHexString(), afterimageInstanceIdentity.getPublicKey().toHexString());
     assertEquals(returnedReqGenericEvents_2.getFirst().getKind(), event.getKind());
 
-    afterimageRepRequestClient.closeSocket();
+//    more SC events
+    BadgeAwardUpvoteEvent event_2 = new BadgeAwardUpvoteEvent(
+        authorIdentity,
+        upvotedUser.getPublicKey(),
+        upvoteBadgeDefinitionEvent);
+
+    assertEquals(event_2.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
+
+//  submit upvote event to SC
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_1_2 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event_2), okMessageSubscriber_sc_1_2);
+
+    TestSubscriber<OkMessage> okMessageSubscriber_sc_1_3 = new TestSubscriber<>();
+    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event_2), okMessageSubscriber_sc_1_3);
+
+    TimeUnit.MILLISECONDS.sleep(1000);
+
+    List<OkMessage> items_4 = okMessageSubscriber_sc_1_2.getItems();
+    assertEquals(true, items_4.getFirst().getFlag());
+
+    TimeUnit.MILLISECONDS.sleep(100);
+
+    List<OkMessage> items_5 = okMessageSubscriber_sc_1_3.getItems();
+    assertEquals(true, items_5.getFirst().getFlag());
+
+    TimeUnit.MILLISECONDS.sleep(100);
+
+    log.debug("afterimage returned superconductor events:");
+    List<BaseMessage> items_6 = afterImageEventsSubscriber_A.getItems();
+    log.debug("  {}", items_6);
+
+    TestSubscriber<BaseMessage> afterImageEventsSubscriber_B = new TestSubscriber<>();
+    final AfterimageMeshRelayService afterimageRepRequestClient_2 = new AfterimageMeshRelayService(afterimageRelayUri);
+    afterimageRepRequestClient_2.send(
+        createAfterImageReqMessage(Factory.generateRandomHex64String(), upvotedUser.getPublicKey()),
+        afterImageEventsSubscriber_B);
+
+    List<BaseMessage> items_7 = afterImageEventsSubscriber_B.getItems();
+    log.debug("  {}", items_7);
+
+    List<EventIF> returnedReqGenericEvents_3 = getGenericEvents(items_7);
+    assertEquals("3", returnedReqGenericEvents_3.getFirst().getContent());
+
+    afterimageRepRequestClient_2.closeSocket();
   }
 
   private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
