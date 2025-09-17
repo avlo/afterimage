@@ -37,39 +37,23 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
   @Override
   public void processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("VoteEventKindTypePlugin processing incoming VOTE EVENT: [{}]", voteEvent);
-
-    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
-        .stream()
-        .map(PubKeyTag::getPublicKey)
-        .findFirst().orElseThrow();
-
-//    saves VOTE event without triggering subscriber listener
-//    TODO: since below vote will now only get added to FollowSets during reputationEventPlugin (below), no longer required to save it.  
-//          thus, revisit use of extending NonPublishingEventKindTypePlugin 
-//    super.processIncomingEvent(voteEvent);
-//    log.debug("vote saved to db");
-
-    AddressTag addressTag = Filterable.getTypeSpecificTags(AddressTag.class, voteEvent)
-        .stream()
-        .findFirst().orElseThrow();
-
-    EventTagAddressTagPair eventTagAddressTagPair = new EventTagAddressTagPair(
-        new EventTag(voteEvent.getId()),
-        addressTag);
-
-    EventIF newFollowSetsEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
-        eventTagAddressTagPair);
-
-    log.debug("send vote to reputationEventPlugin for rep calculation");
-    afterimageFollowSetsEventPlugin.processIncomingEvent(newFollowSetsEvent);
+    afterimageFollowSetsEventPlugin.processIncomingEvent(
+        createFollowSetsEvent(
+            Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
+                .stream()
+                .map(PubKeyTag::getPublicKey)
+                .findFirst().orElseThrow(),
+            new EventTagAddressTagPair(
+                new EventTag(voteEvent.getId()),
+                Filterable.getTypeSpecificTags(AddressTag.class, voteEvent)
+                    .stream()
+                    .findFirst().orElseThrow())));
   }
 
   @SneakyThrows
   private EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull EventTagAddressTagPair eventTagAddressTagPairs) {
-
     return new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,

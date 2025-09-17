@@ -14,11 +14,9 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
 import java.util.List;
@@ -55,13 +53,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     Optional<GenericEventKindType> previousReputationEvent = getExistingReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
-    GenericEventKindTypeIF updatedReputationEvent =
+    super.processIncomingEvent(
         calculator.calculateUpdatedReputationEvent(
             voteReceiverPubkey,
             previousReputationEvent,
-            incomingReputationEvent);
-
-    super.processIncomingEvent(updatedReputationEvent);
+            incomingReputationEvent));
   }
 
   @SneakyThrows
@@ -73,12 +69,10 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   }
 
   public Optional<GenericEventKindType> getExistingReputationEvent(PublicKey badgeReceiverPubkey) {
-    List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey);
-
-    List<EventDocumentIF> eventDocumentIFStream = eventsByKindAndPubKeyTag
+    return redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
         .stream()
-        .filter(eventIF -> eventIF.getTags()
+        .filter(eventIF1 -> eventIF1.getTags()
             .stream()
             .filter(AddressTag.class::isInstance)
             .map(AddressTag.class::cast)
@@ -86,11 +80,8 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
                 Optional.ofNullable(
                         addressTag.getIdentifierTag()).orElseThrow(() ->
                         new InvalidTagException("NULL", List.of(getKindType().getName())))
-                    .getUuid().equals(getKindType().getName()))).toList();
-    Optional<EventDocumentIF> max = eventDocumentIFStream.stream()
-        .max(Comparator.comparing(EventIF::getCreatedAt));
-
-    return max
+                    .getUuid().equals(getKindType().getName()))).toList().stream()
+        .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
             new GenericEventKindType(
                 new GenericEventKind(

@@ -16,16 +16,14 @@ import org.springframework.lang.NonNull;
 public class Reputation {
   private final AwardEvent awardEvent;
 
-  public Reputation(
-      @NonNull PublicKey upvotedUser,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    AddressTag addressTag = new AddressTag(
-        Kind.BADGE_DEFINITION_EVENT,
-        reputationBadgeDefinitionEvent.getPublicKey(),
-        reputationBadgeDefinitionEvent.getIdentifierTag(),
-        new Relay(reputationBadgeDefinitionEvent.getReferenceTag().getUri().toString()));
-
-    awardEvent = new AwardEvent(addressTag, new PubKeyTag(upvotedUser));
+  public Reputation(@NonNull PublicKey upvotedUser, @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
+    awardEvent = new AwardEvent(
+        new AddressTag(
+            Kind.BADGE_DEFINITION_EVENT,
+            reputationBadgeDefinitionEvent.getPublicKey(),
+            reputationBadgeDefinitionEvent.getIdentifierTag(),
+            new Relay(reputationBadgeDefinitionEvent.getReferenceTag().getUri().toString())),
+        new PubKeyTag(upvotedUser));
   }
 }
 

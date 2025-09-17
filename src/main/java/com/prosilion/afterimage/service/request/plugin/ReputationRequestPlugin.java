@@ -33,7 +33,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    return
+    return 
         new Filters(
             new KindFilter(getKind()),
             filtersList.stream()

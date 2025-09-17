@@ -5,6 +5,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
+import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
@@ -17,7 +18,6 @@ import com.prosilion.superconductor.base.service.event.service.plugin.EventKindP
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
 import java.util.List;
@@ -85,26 +85,22 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         .filter(incomingEventTagAddressTagPair ->
             !existingPairs.contains(incomingEventTagAddressTagPair)).toList();
 
-    EventIF updatedFollowSetsEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
-        Stream.concat(existingPairs.stream(), nonMatches.stream()).toList());
-    super.processIncomingEvent(updatedFollowSetsEvent);
+    super.processIncomingEvent(
+        createFollowSetsEvent(
+            voteReceiverPubkey,
+            Stream.concat(existingPairs.stream(), nonMatches.stream()).toList()));
 
-    EventIF xorFollowSetsEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
-        nonMatches);
-    reputationEventPlugin.processIncomingEvent(xorFollowSetsEvent);
+    reputationEventPlugin.processIncomingEvent(
+        createFollowSetsEvent(
+            voteReceiverPubkey,
+            nonMatches));
   }
 
   public Optional<GenericEventKind> getExistingFollowSetsEvent(PublicKey badgeReceiverPubkey) {
-    List<EventDocumentIF> eventsByKindAndPubKeyTag = redisCacheServiceIF
-        .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey);
-
-    Optional<EventDocumentIF> max = eventsByKindAndPubKeyTag
+    return redisCacheServiceIF
+        .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
         .stream()
-        .max(Comparator.comparing(EventIF::getCreatedAt));
-
-    return max
+        .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
             new GenericEventKind(
                 eventIF.getId(),
@@ -142,12 +138,11 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
     assert eventTags.size() == addressTags.size();
 
-    List<FollowSetsEvent.EventTagAddressTagPair> pairs = IntStream.range(0, eventTags.size())
-        .mapToObj(i -> new FollowSetsEvent.EventTagAddressTagPair(
+    return IntStream.range(0, eventTags.size())
+        .mapToObj(i -> new EventTagAddressTagPair(
             eventTags.get(i),
             addressTags.get(i)))
         .toList();
-    return pairs;
   }
 
   @SneakyThrows

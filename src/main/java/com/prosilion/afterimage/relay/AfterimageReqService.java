@@ -30,15 +30,12 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
-// TODO: refactor when testing complete    
-    List<Filters> filtersList = validateFiltersExist(reqMessage.getFiltersList());
-
-    ReqMessage reqMessage1 = new ReqMessage(
+    reqService.processIncoming(new ReqMessage(
         reqMessage.getSubscriptionId(),
         reqKindService.getKinds().stream()
             .anyMatch(kind ->
                 kind.equals(
-                    filtersList.stream()
+                    validateFiltersExist(reqMessage.getFiltersList()).stream()
                         .map(filters ->
                             filters.getFilterByType(KindFilter.FILTER_KEY))
                         .flatMap(Collection::stream)
@@ -47,9 +44,7 @@ public class AfterimageReqService implements ReqServiceIF {
                         .findAny().orElseThrow(() ->
                             new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
             processReqKindService(reqMessage) :
-            processReqKindTypeService(reqMessage));
-
-    reqService.processIncoming(reqMessage1, sessionId);
+            processReqKindTypeService(reqMessage)), sessionId);
   }
 
   private Filters processReqKindTypeService(ReqMessage reqMessage) {

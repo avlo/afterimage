@@ -20,17 +20,14 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
   List<KindTypeIF> getKindTypes();
 
   default String validateIdentifierTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
-// TODO: refactor when testing complete
     List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();
 
-    Filterable filterable = userProvidedKindTypes.stream()
+    IdentifierTag userProvidedIdentifierTag = userProvidedKindTypes.stream()
         .flatMap(filters ->
             filters.getFilterByType(IdentifierTagFilter.FILTER_KEY).stream())
         .findFirst().orElseThrow(() ->
             new EmptyFiltersException(
-                userProvidedKindTypes, "IdentifierTag"));
-
-    IdentifierTag userProvidedIdentifierTag = filterable.getFilterable();
+                userProvidedKindTypes, "IdentifierTag")).getFilterable();
 
     String userProvidedUuid = Optional.ofNullable(userProvidedIdentifierTag.getUuid()).orElseThrow(() ->
         new InvalidTagException(userProvidedIdentifierTag.getUuid(), acceptableKindTypeStrings));

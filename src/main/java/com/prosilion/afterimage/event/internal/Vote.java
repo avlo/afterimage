@@ -16,12 +16,12 @@ public class Vote {
   private final AwardEvent awardEvent;
 
   public Vote(@NonNull PublicKey upvotedUser, @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
-    AddressTag addressTag = new AddressTag(
-        Kind.BADGE_DEFINITION_EVENT,
-        upvoteBadgeDefinitionEvent.getPublicKey(),
-        upvoteBadgeDefinitionEvent.getIdentifierTag());
-
-    awardEvent = new AwardEvent(addressTag, new PubKeyTag(upvotedUser));
+    awardEvent = new AwardEvent(
+        new AddressTag(
+            Kind.BADGE_DEFINITION_EVENT,
+            upvoteBadgeDefinitionEvent.getPublicKey(),
+            upvoteBadgeDefinitionEvent.getIdentifierTag()),
+        new PubKeyTag(upvotedUser));
   }
 }
 
