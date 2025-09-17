@@ -73,6 +73,7 @@ public class RelaySetsIT {
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUri;
+  private final String superconductorDockerRelayUri;
   private final String afterimageDockerRelayUri;
   private final String afterimageRelayUri;
 
@@ -95,6 +96,7 @@ public class RelaySetsIT {
   @Autowired
   public RelaySetsIT(
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
+      @NonNull @Value("${superconductor.docker.relay.url}") String superconductorDockerRelayUri,
       @NonNull @Value("${afterimage-docker.relay.url}") String afterimageDockerRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
@@ -104,6 +106,7 @@ public class RelaySetsIT {
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUri = superconductorRelayUri;
+    this.superconductorDockerRelayUri = superconductorDockerRelayUri;
     this.afterimageDockerRelayUri = afterimageDockerRelayUri;
     this.afterimageRelayUri = afterimageRelayUri;
   }
@@ -165,7 +168,7 @@ public class RelaySetsIT {
     afterimageMeshRelayService
         .send(
             new EventMessage(
-                createSearchRelaysListEventMessage(superconductorRelayUri)),
+                createSearchRelaysListEventMessage(superconductorDockerRelayUri)),
             okMessageSubscriber_aImg_1);
 
     List<OkMessage> items_aImg = okMessageSubscriber_aImg_1.getItems();
@@ -248,10 +251,9 @@ public class RelaySetsIT {
   }
 
   private BaseEvent createSearchRelaysListEventMessage(String uri) throws NoSuchAlgorithmException {
-    String tempUrl = "ws://superconductor-afterimage:5555";
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
-        Stream.of(tempUrl).map(relayString ->
+        Stream.of(uri).map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.SEARCH_RELAYS_LIST");
   }
