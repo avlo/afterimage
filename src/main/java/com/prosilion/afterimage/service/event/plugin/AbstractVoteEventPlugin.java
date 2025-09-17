@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
+import com.prosilion.afterimage.service.AfterimageReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.EventIF;
@@ -8,6 +9,7 @@ import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -57,6 +59,8 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
     return new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
+        new IdentifierTag(
+            AfterimageReputationCalculator.class.getCanonicalName()),
         List.of(eventTagAddressTagPairs),
 //        TODO: replace 999999
         "99999").getGenericEventRecord();

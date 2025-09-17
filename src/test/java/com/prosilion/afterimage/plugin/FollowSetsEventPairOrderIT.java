@@ -125,6 +125,8 @@ public class FollowSetsEventPairOrderIT {
     return new FollowSetsEvent(
         authorIdentity,
         upvotedUser,
+        new IdentifierTag(
+            AfterimageReputationCalculator.class.getCanonicalName()),
         pairs,
         AfterimageReputationCalculator.class.getName());
   }
@@ -190,6 +192,8 @@ public class FollowSetsEventPairOrderIT {
     FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         authorIdentity,
         upvotedUser,
+        new IdentifierTag(
+            AfterimageReputationCalculator.class.getCanonicalName()),
         expectedPairsOrder,
         AfterimageReputationCalculator.class.getName());
 

@@ -1,8 +1,8 @@
 package com.prosilion.afterimage.config;
 
+import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.relay.AfterimageReqService;
-import com.prosilion.afterimage.service.AfterimageReputationCalculator;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
@@ -75,7 +75,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull AfterimageReputationCalculator afterimageReputationCalculator) {
+      @NonNull List<ReputationCalculatorIF> reputationCalculatorIFS) {
     return new ReputationEventPlugin(
         notifierService,
         new EventKindTypePlugin(
@@ -83,7 +83,7 @@ public abstract class AfterimageBaseConfig {
             eventPlugin),
         redisCacheServiceIF,
         aImgIdentity,
-        afterimageReputationCalculator);
+        reputationCalculatorIFS);
   }
 
   @Bean

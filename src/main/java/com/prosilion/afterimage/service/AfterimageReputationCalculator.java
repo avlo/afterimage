@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service;
 
+import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
@@ -17,8 +18,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public class AfterimageReputationCalculator {
+@Component
+public class AfterimageReputationCalculator implements ReputationCalculatorIF {
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final Identity aImgIdentity;
 
@@ -73,5 +76,10 @@ public class AfterimageReputationCalculator {
       case "UPVOTE" -> new BigDecimal("1");
       default -> new BigDecimal("-1");
     };
+  }
+
+  @Override
+  public String getFullyQualifiedCalculatorName() {
+    return getClass().getName();
   }
 }
