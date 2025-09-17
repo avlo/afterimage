@@ -1,18 +1,44 @@
 services:
+#  SC Redis
+  superconductor-db:
+    image: "redis:8.0.0"
+    hostname: superconductor_db
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+#  networks:
+#    - docker_network
+#      SC
+  superconductor-afterimage:
+    image: avlo/superconductor-app-redis:1.17.0
+    ports:
+      - "5555:5555"
+    depends_on:
+      superconductor-db:
+        condition: service_healthy
+#    networks:
+#      - docker_network
+    environment:
+      superconductor.auth.active: false
+      SPRING_PROFILES_ACTIVE: dev_ws
+#      aImg Redis
   afterimage-db:
     image: "redis:8.0.0"
-    hostname: localhost
+    hostname: afterimage_db
     ports:
       - "6381:6379"
-    #    environment:
-    #      - "REDIS_ARGS=--appendonly yes"
     healthcheck:
       test: [ "CMD", "redis-cli" ,"ping", "afterimage-db" ]
       retries: 10
       interval: 3s
       timeout: 30s
-    networks:
-      docker-network:
+#    networks:
+#      - docker_network
+# aImg         
   afterimage-app:
     image: afterimage-nostr-reputation-relay:1.0.0
     ports:
@@ -20,14 +46,16 @@ services:
     depends_on:
       afterimage-db:
         condition: service_healthy
-    networks:
-      docker-network:
+#    networks:
+#      - docker_network
     environment:
       superconductor.auth.active: false
       SPRING_PROFILES_ACTIVE: dev_ws      
 volumes:
+  superconductor-db:
+    driver: local  
   afterimage-db:
     driver: local
-networks:
-  docker-network:
-    driver: bridge
+#networks:
+#  docker_network:
+#  driver: bridge

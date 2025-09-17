@@ -1,16 +1,15 @@
 package com.prosilion.afterimage.config;
 
-import jakarta.validation.constraints.NotEmpty;
 import java.util.Arrays;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-// TODO: remove below 
-@Profile("!test")
+@Slf4j
 public class AfterimageCommandLineArgs {
   private final ApplicationArguments args;
 
@@ -20,20 +19,15 @@ public class AfterimageCommandLineArgs {
   }
 
   @Bean
-  @NotEmpty
-  public String afterimageRelayUrl() {
-//    Optional.of(System.getProperty("server.port"))
-//        .orElseThrow(() ->
-//            new IllegalArgumentException("server.port parameter not found")
-//        );
-
-    return Arrays.stream(args.getSourceArgs())
+  public String afterimageRelayUrl(@Value("${afterimage.relay.url}") String afterimageRelayUrl) {
+    String url = Arrays.stream(args.getSourceArgs())
         .filter(s -> s.contains("afterimage.relay.url"))
         .findFirst()
         .map(s -> Arrays.stream(s.split("="))
             .toList().get(1))
-        .orElseThrow(() ->
-            new IllegalArgumentException("afterimage.relay.url parameter not found")
-        );
+        .orElse(afterimageRelayUrl);
+
+    log.debug("{} afterimageRelayUrl [{}]", getClass().getSimpleName(), url);
+    return url;
   }
 }
