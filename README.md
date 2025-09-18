@@ -141,7 +141,28 @@ run with docker logging displayed to console:
 
 <hr style="border:2px solid grey">
 
-### Afterimage reputation request
+### Monitoring nostr-relays for reputation-input events
+Upon receiving a [NIP-51 Search Relays](https://github.com/nostr-protocol/nips/blob/master/51.md#standard-lists) JSON event containing one or more nost-relays:
+
+
+```java
+{
+  ...
+  "kind": 10007,
+  "tags": [
+    ["relay", "<NOSTR_RELAY_1_URL>"],
+    ["relay", "<NOSTR_RELAY_2_URL>"],
+    ...
+    ["relay", "<NOSTR_RELAY_N_URL>"],
+  ]        
+  ...
+}
+```
+AfterImage monitors those relays for [NIP-58 Badge Award](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) events as input to its reputation function.    
+
+<hr style="border:2px solid grey">
+
+### Submitting a user reputation request
 
 Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) JSON request  with the following filters:
 
@@ -157,7 +178,7 @@ Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-proto
 ]
 ```
 
-AfterImage applies a [user-provided reputation calculator](src/main/java/com/prosilion/afterimage/calculator/UnitReputationCalculator.java) and returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative reputation score (in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format) as follows:
+AfterImage applies a [user-provided reputation calculation](src/main/java/com/prosilion/afterimage/calculator/UnitReputationCalculator.java), which returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative reputation score (in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format) as follows:
 
 ```java
 {
