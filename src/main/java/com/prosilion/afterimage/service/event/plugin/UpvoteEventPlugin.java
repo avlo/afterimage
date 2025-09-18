@@ -21,7 +21,7 @@ public class UpvoteEventPlugin extends AbstractVoteEventPlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    log.debug("UpvoteEventKindTypePlugin getKindTypeIF returning SuperconductorKindType.UPVOTE");
-    return SuperconductorKindType.UPVOTE;
+    log.debug("UpvoteEventKindTypePlugin getKindTypeIF returning SuperconductorKindType.UNIT_UPVOTE");
+    return SuperconductorKindType.UNIT_UPVOTE;
   }
 }

@@ -1,6 +1,5 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.calculator;
 
-import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
@@ -21,11 +20,12 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AfterimageReputationCalculator implements ReputationCalculatorIF {
+public class UnitReputationCalculator implements ReputationCalculatorIF {
+  private static final String UNIT_UPVOTE = "UNIT_UPVOTE";
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final Identity aImgIdentity;
 
-  public AfterimageReputationCalculator(@NonNull Identity aImgIdentity, @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
+  public UnitReputationCalculator(@NonNull Identity aImgIdentity, @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.aImgIdentity = aImgIdentity;
   }
@@ -67,13 +67,16 @@ public class AfterimageReputationCalculator implements ReputationCalculatorIF {
             aImgIdentity,
             badgeReceiverPubkey,
             reputationBadgeDefinitionEvent,
+            List.of(
+                new IdentifierTag(
+                    getFullyQualifiedCalculatorName())),
             score),
         AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
   }
 
   private BigDecimal translateEvent(String event) {
     return switch (event.toUpperCase()) {
-      case "UPVOTE" -> new BigDecimal("1");
+      case UNIT_UPVOTE -> new BigDecimal("1");
       default -> new BigDecimal("-1");
     };
   }

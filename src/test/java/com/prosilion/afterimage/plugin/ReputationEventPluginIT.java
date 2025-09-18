@@ -134,6 +134,6 @@ public class ReputationEventPluginIT {
             authorIdentity,
             upvotedUser,
             upvoteBadgeDefinitionEvent),
-        SuperconductorKindType.UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+        SuperconductorKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
   }
 }

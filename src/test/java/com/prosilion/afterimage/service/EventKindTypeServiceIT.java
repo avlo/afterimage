@@ -66,7 +66,7 @@ class EventKindTypeServiceIT {
         upvotedUser,
         upvoteBadgeDefinitionEvent);
 
-    GenericDocumentKindTypeDto genericEventKindTypeDto = new GenericDocumentKindTypeDto(event1, SuperconductorKindType.UPVOTE);
+    GenericDocumentKindTypeDto genericEventKindTypeDto = new GenericDocumentKindTypeDto(event1, SuperconductorKindType.UNIT_UPVOTE);
 
     GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
 
@@ -82,7 +82,7 @@ class EventKindTypeServiceIT {
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(downvoteEvent, SuperconductorKindType.DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(downvoteEvent, SuperconductorKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(downvoteBadgeDefinitionEvent.getKind());

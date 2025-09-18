@@ -1,8 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.InvalidReputationCalculatorException;
 import com.prosilion.afterimage.InvalidTagException;
-import com.prosilion.afterimage.MissingIdentifierTagException;
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
@@ -11,7 +9,6 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -22,19 +19,15 @@ import com.prosilion.superconductor.base.service.event.type.PublishingEventKindT
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
-  private final Map<String, ReputationCalculatorIF> calculatorMap;
+  private final ReputationCalculatorIF calculatorIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
@@ -43,15 +36,10 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull List<ReputationCalculatorIF> calculatorIFS) {
+      @NonNull ReputationCalculatorIF calculatorIF) {
     super(notifierService, eventKindTypePlugin);
     this.redisCacheServiceIF = redisCacheServiceIF;
-    this.calculatorMap = calculatorIFS.stream()
-        .collect(
-            Collectors.toMap(
-                ReputationCalculatorIF::getFullyQualifiedCalculatorName,
-                Function.identity(),
-                (prev, next) -> next, HashMap::new));
+    this.calculatorIF = calculatorIF;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -65,20 +53,11 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     Optional<GenericEventKindType> previousReputationEvent = getExistingReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
-    IdentifierTag identifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, incomingReputationEvent)
-        .stream()
-        .findFirst().orElseThrow(MissingIdentifierTagException::new);
-
     super.processIncomingEvent(
-        Optional.ofNullable(
-                calculatorMap.get(
-                    identifierTag.getUuid()))
-            .orElseThrow(() ->
-                new InvalidReputationCalculatorException(identifierTag.getUuid(), calculatorMap.keySet().stream().toList()))
-            .calculateUpdatedReputationEvent(
-                voteReceiverPubkey,
-                previousReputationEvent,
-                incomingReputationEvent));
+        calculatorIF.calculateUpdatedReputationEvent(
+            voteReceiverPubkey,
+            previousReputationEvent,
+            incomingReputationEvent));
   }
 
   @SneakyThrows

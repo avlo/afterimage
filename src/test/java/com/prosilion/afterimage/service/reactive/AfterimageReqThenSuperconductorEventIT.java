@@ -86,7 +86,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
 //        new GenericDocumentKindTypeDto(
 //            badgeAwardUpvoteEvent_1,
-//            SuperconductorKindType.UPVOTE)
+//            SuperconductorKindType.UNIT_UPVOTE)
 //            .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
@@ -106,7 +106,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
 //        new GenericDocumentKindTypeDto(
 //            badgeAwardUpvoteEvent_2,
-//            SuperconductorKindType.UPVOTE)
+//            SuperconductorKindType.UNIT_UPVOTE)
 //            .convertBaseEventToGenericEventKindTypeIF();
 
     TestSubscriber<OkMessage> scEventSubmitter_2 = new TestSubscriber<>();

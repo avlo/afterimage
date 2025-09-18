@@ -19,7 +19,7 @@ public class BadgeAwardDownvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF>
       @NonNull PublicKey downvotedUser,
       @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent) throws NostrException, NoSuchAlgorithmException {
     super(
-        SuperconductorKindType.DOWNVOTE,
+        SuperconductorKindType.UNIT_DOWNVOTE,
         identity,
         new Vote(
             downvotedUser,
@@ -33,7 +33,7 @@ public class BadgeAwardDownvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF>
       @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
       @NonNull List<BaseTag> tags) throws NostrException, NoSuchAlgorithmException {
     super(
-        SuperconductorKindType.DOWNVOTE,
+        SuperconductorKindType.UNIT_DOWNVOTE,
         identity,
         new Vote(
             downvotedUser, downvoteBadgeDefinitionEvent).getAwardEvent(),

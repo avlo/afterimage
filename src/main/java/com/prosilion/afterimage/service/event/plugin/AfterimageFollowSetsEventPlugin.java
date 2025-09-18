@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.service.AfterimageReputationCalculator;
+import com.prosilion.afterimage.calculator.UnitReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -121,9 +121,9 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         aImgIdentity,
         voteReceiverPubkey,
         new IdentifierTag(
-            AfterimageReputationCalculator.class.getCanonicalName()),
+            UnitReputationCalculator.class.getCanonicalName()),
         eventTagAddressTagPairs,
-        AfterimageReputationCalculator.class.getSimpleName()).getGenericEventRecord();
+        UnitReputationCalculator.class.getSimpleName()).getGenericEventRecord();
   }
 
   public List<FollowSetsEvent.EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {

@@ -59,7 +59,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
 
 1 / 2 : [ NIP-58 Badge Definition Event(s)](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) exist, as follows
 
-<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Definition UPVOTE</a></summary>
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Definition UNIT_UPVOTE</a></summary>
 
 ```java
 {
@@ -67,7 +67,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
   "pubkey": "<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>",
   "kind": 30009,
   "tags": [
-    ["d","UPVOTE"],
+    ["d","UNIT_UPVOTE"],
     ...
   ],
   "content": "+1"
@@ -75,7 +75,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
 ```
 </details>
 
-<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L14">Badge Definition DOWNVOTE</a></summary>
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L14">Badge Definition UNIT_DOWNVOTE</a></summary>
 
 ```java
 {
@@ -83,7 +83,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
   "pubkey": "<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>",
   "kind": 30009,
   "tags": [
-    ["d","DOWNVOTE"],
+    ["d","UNIT_DOWNVOTE"],
     ...
   ],
   "content": "+1"
@@ -93,7 +93,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
 
 2 / 2 : [ NIP-58 Badge Award Event(s)](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) exist- with IdentifierTag- as follows:
 
-<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award UPVOTE</a></summary>
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award UNIT_UPVOTE</a></summary>
 
 ```java
 {
@@ -101,7 +101,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
   "kind": 8,
   "pubkey": "<AUTHOR_PUBKEY>",
   "tags": [
-    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:UPVOTE"],
+    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:UNIT_UPVOTE"],
     ["p", "<VOTE_RECIPIENT_PUBKEY>"]
   ]
   ...
@@ -109,7 +109,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
 ```
 </details>
 
-<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award DOWNVOTE</a></summary>
+<details><summary>Kind: 30009 - <a href="https://github.com/avlo/superconductor/blob/d2448b2e8dc071ee0a34642785d3384d2ca1a9d6/base/src/main/java/com/prosilion/superconductor/base/service/event/type/SuperconductorKindType.java#L13">Badge Award UNIT_DOWNVOTE</a></summary>
 
 ```java
 {
@@ -117,7 +117,7 @@ AfterImage integration tests require an active nostr-relay connection (configura
   "kind": 8,
   "pubkey": "<AUTHOR_PUBKEY>",
   "tags": [
-    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:DOWNVOTE"],
+    ["a", "30009:<BADGE_DEFINITION_SOURCE_RELAY-PUBKEY>:UNIT_DOWNVOTE"],
     ["p", "<VOTE_RECIPIENT_PUBKEY>"]
   ]
   ...

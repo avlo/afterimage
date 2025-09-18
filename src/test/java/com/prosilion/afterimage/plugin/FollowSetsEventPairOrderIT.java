@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.service.AfterimageReputationCalculator;
+import com.prosilion.afterimage.calculator.UnitReputationCalculator;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.util.Factory;
@@ -126,9 +126,9 @@ public class FollowSetsEventPairOrderIT {
         authorIdentity,
         upvotedUser,
         new IdentifierTag(
-            AfterimageReputationCalculator.class.getCanonicalName()),
+            UnitReputationCalculator.class.getCanonicalName()),
         pairs,
-        AfterimageReputationCalculator.class.getName());
+        UnitReputationCalculator.class.getName());
   }
 
   private List<EventTagAddressTagPair> createPairs(int size) {
@@ -154,8 +154,8 @@ public class FollowSetsEventPairOrderIT {
 
   private SuperconductorKindType getKindType(int i) {
     if (i % 2 == 0)
-      return SuperconductorKindType.UPVOTE;
-    return SuperconductorKindType.DOWNVOTE;
+      return SuperconductorKindType.UNIT_UPVOTE;
+    return SuperconductorKindType.UNIT_DOWNVOTE;
   }
 
   @Test
@@ -193,9 +193,9 @@ public class FollowSetsEventPairOrderIT {
         authorIdentity,
         upvotedUser,
         new IdentifierTag(
-            AfterimageReputationCalculator.class.getCanonicalName()),
+            UnitReputationCalculator.class.getCanonicalName()),
         expectedPairsOrder,
-        AfterimageReputationCalculator.class.getName());
+        UnitReputationCalculator.class.getName());
 
     List<EventTagAddressTagPair> actualPairsOrder = afterimageFollowSetsEventPlugin.getEventTagAddressTagPairs(followSetsEvent.getTags());
 

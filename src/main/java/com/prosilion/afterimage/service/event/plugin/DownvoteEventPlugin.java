@@ -21,7 +21,7 @@ public class DownvoteEventPlugin extends AbstractVoteEventPlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    log.debug("DownvoteEventKindTypePlugin getKindTypeIF returning SuperconductorKindType.DOWNVOTE");
-    return SuperconductorKindType.DOWNVOTE;
+    log.debug("DownvoteEventKindTypePlugin getKindTypeIF returning SuperconductorKindType.UNIT_DOWNVOTE");
+    return SuperconductorKindType.UNIT_DOWNVOTE;
   }
 }

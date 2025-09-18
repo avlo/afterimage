@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.service.AfterimageReputationCalculator;
+import com.prosilion.afterimage.calculator.UnitReputationCalculator;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.user.Identity;
 import org.springframework.context.annotation.Bean;
@@ -11,10 +11,10 @@ import org.springframework.lang.NonNull;
 public class ReputationCalculatorConfig {
 
   @Bean
-  public AfterimageReputationCalculator afterimageReputationCalculator(
+  public UnitReputationCalculator afterimageReputationCalculator(
       @NonNull Identity aImgIdentity,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
-    return new AfterimageReputationCalculator(aImgIdentity, reputationBadgeDefinitionEvent);
+    return new UnitReputationCalculator(aImgIdentity, reputationBadgeDefinitionEvent);
   }
 }
 
