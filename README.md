@@ -8,7 +8,15 @@
    _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
                                                                        _//
 ```
-# AfterImage Nostr user/public-key reputation relay, relay mesh network & reputation authority framework
+# Java Nostr-Reputation Relay & Reputation-Authority Framework
+### Core functions:
+- user vote-occurrence listener 
+- customizable user-reputation calculator
+- user reputation relay/server
+- reputation mesh-network
+
+### Secondary function:
+- extensible reputation-authority framework
 
 ----
 
