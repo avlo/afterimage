@@ -29,7 +29,7 @@ _(note: Confirmed compatible with Docker 27.0.3 and Docker Compose version v2.28
 ----
 
 #### Download Superconductor Docker Image from [hub.docker](https://hub.docker.com/repository/docker/avlo/afterimage-app/tags)
-    $ docker pull avlo/afterimage:0.0.1
+    $ docker pull avlo/afterimage-nostr-reputation-relay:1.0.0
 
 ----
 
@@ -106,13 +106,13 @@ run with docker logging displayed to console:
 <details>
   <summary>WSS/HTTPS</summary>
 
-    docker compose -f docker-compose-prod_wss.yml stop afterimage afterimage-db
+    docker compose -f docker-compose-prod_wss.yml stop afterimage-app afterimage-db
 </details> 
 
 <details>
   <summary>WS/HTTP</summary>  
 
-    docker compose -f docker-compose-prod_ws.yml stop afterimage afterimage-db
+    docker compose -f docker-compose-prod_ws.yml stop afterimage-app afterimage-db
 </details>
 
 ----  
@@ -140,7 +140,7 @@ Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-proto
 ```java
 [
   "REQ",
-  "<subscription_id>", 
+  "<SUBSCRIPTION_ID>", 
   {
     "kinds":[8]
     '#p': ["<REPUTATION_RECIPIENT_PUBKEY>"],
@@ -149,23 +149,21 @@ Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-proto
 ]
 ```
 
-AfterImage applies a [user-defined reputation-calculation function]() (or user-provided custom reputation bean for non-trivial and / or service-based calculations) and returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative [reputation score](src/main/java/com/prosilion/afterimage/enums/AfterimageKindType.java#L13) in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format as follows:
+AfterImage applies a [user-provided reputation calculator](src/main/java/com/prosilion/afterimage/calculator/UnitReputationCalculator.java) and returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative reputation score (in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format) as follows:
 
 ```java
 {
   ...
-  "id": "REPUTATION_EVENT_ID",
   "kind": 8,
-  "pubkey": "<AFTERIMAGE_RELAY-PUBKEY>",
+  "pubkey": "<AFTERIMAGE_RELAY_PUBKEY>",
   "tags": [
-    ["a", "30009:<AFTERIMAGE_RELAY-PUBKEY>:REPUTATION", "ws://<afterimage_relay_url:port>"],
+    ["a", "30009:<AFTERIMAGE_RELAY_PUBKEY>:REPUTATION"],
     ["p", "<REPUTATION_RECIPIENT_PUBKEY>"]
   ]
   "content": "<reputation_score>"
   ...
 }
 ```
-
 ----
 
 ### Reputation permanence
