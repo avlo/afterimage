@@ -11,6 +11,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
+import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UnitReputationCalculator implements ReputationCalculatorIF {
-  private static final String UNIT_UPVOTE = "UNIT_UPVOTE";
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final Identity aImgIdentity;
 
@@ -54,7 +54,7 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
     return previousScore.add(
         calculateReputationLoop(
             voteEvents.stream()
-                .map(this::translateEvent).toList()));
+                .map(this::convertContentToScore).toList()));
   }
 
   private BigDecimal calculateReputationLoop(List<BigDecimal> uuids) {
@@ -74,11 +74,8 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
         AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
   }
 
-  private BigDecimal translateEvent(String event) {
-    return switch (event.toUpperCase()) {
-      case UNIT_UPVOTE -> new BigDecimal("1");
-      default -> new BigDecimal("-1");
-    };
+  private BigDecimal convertContentToScore(String event) {
+    return event.equals(SuperconductorKindType.UNIT_UPVOTE.getName()) ? new BigDecimal("1") : new BigDecimal("-1");
   }
 
   @Override
