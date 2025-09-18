@@ -9,7 +9,6 @@ import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
@@ -30,15 +29,15 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
     this.aImgIdentity = aImgIdentity;
   }
 
-  public GenericEventKindTypeIF calculateUpdatedReputationEvent(
+  public EventIF calculateUpdatedReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
-      @NonNull Optional<GenericEventKindType> previousReputationEvent,
+      @NonNull Optional<EventIF> previousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent) throws NoSuchAlgorithmException {
     return createReputationEvent(
         voteReceiverPubkey,
         calculateReputationEvent(
             previousReputationEvent
-                .map(GenericEventKindTypeIF::getContent)
+                .map(EventIF::getContent)
                 .map(BigDecimal::new)
                 .orElse(BigDecimal.ZERO),
             incomingFollowSetsEvent.getTags().stream()

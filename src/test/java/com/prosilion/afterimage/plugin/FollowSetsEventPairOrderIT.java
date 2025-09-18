@@ -1,11 +1,12 @@
 package com.prosilion.afterimage.plugin;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.calculator.UnitReputationCalculator;
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.tag.AddressTag;
@@ -14,7 +15,6 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
@@ -61,7 +61,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_1);
 
     Optional<GenericEventKind> savedFollowSetsEvent_1 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_1 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_1 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("1", savedReputationEvent_1.orElseThrow().getContent());
 
     List<EventTagAddressTagPair> pairs_2 = createPairs(1);
@@ -70,7 +70,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_2);
 
     Optional<GenericEventKind> savedFollowSetsEvent_2 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_2 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_2 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("2", savedReputationEvent_2.orElseThrow().getContent());
 
     List<EventTagAddressTagPair> pairs_3 = createPairs(1);
@@ -82,7 +82,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_5);
 
     Optional<GenericEventKind> savedFollowSetsEvent_5 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_5 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_5 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("4", savedReputationEvent_5.orElseThrow().getContent());
 
     List<EventTagAddressTagPair> pairs_6 = createPairs(1);
@@ -94,7 +94,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_8);
 
     Optional<GenericEventKind> savedFollowSetsEvent_8 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_8 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_8 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("6", savedReputationEvent_8.orElseThrow().getContent());
 
     List<EventTagAddressTagPair> pairs_9 = createPairs(2);
@@ -105,7 +105,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_10);
 
     Optional<GenericEventKind> savedFollowSetsEvent_10 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_10 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_10 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("6", savedReputationEvent_10.orElseThrow().getContent());
 
     List<EventTagAddressTagPair> pairs_11 = createPairs(10);
@@ -116,7 +116,7 @@ public class FollowSetsEventPairOrderIT {
     afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent_12);
 
     Optional<GenericEventKind> savedFollowSetsEvent_12 = afterimageFollowSetsEventPlugin.getExistingFollowSetsEvent(upvotedUser);
-    Optional<GenericEventKindType> savedReputationEvent_12 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> savedReputationEvent_12 = reputationEventPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals("6", savedReputationEvent_12.orElseThrow().getContent());
     assertEquals("6", savedReputationEvent_12.orElseThrow().getContent());
   }

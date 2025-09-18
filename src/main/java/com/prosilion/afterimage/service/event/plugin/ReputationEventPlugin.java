@@ -50,7 +50,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
 
-    Optional<GenericEventKindType> previousReputationEvent = getExistingReputationEvent(voteReceiverPubkey);
+    Optional<EventIF> previousReputationEvent = getExistingReputationEvent(voteReceiverPubkey);
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
     super.processIncomingEvent(
@@ -61,14 +61,14 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   }
 
   @SneakyThrows
-  private void deletePreviousReputationCalculationEvent(GenericEventKindType previousReputationEvent) {
+  private void deletePreviousReputationCalculationEvent(EventIF previousReputationEvent) {
     redisCacheServiceIF.deleteEvent(
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
-  public Optional<GenericEventKindType> getExistingReputationEvent(PublicKey badgeReceiverPubkey) {
+  public Optional<EventIF> getExistingReputationEvent(PublicKey badgeReceiverPubkey) {
     return redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
         .stream()

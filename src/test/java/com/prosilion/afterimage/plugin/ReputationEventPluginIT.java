@@ -4,9 +4,9 @@ import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKindType;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
@@ -91,7 +91,7 @@ public class ReputationEventPluginIT {
 
     assertEquals((votesCount - 1), cacheServiceIF.getAllDeletionEvents().size());
 
-    GenericEventKindType reputationEvents = repPlugin.getExistingReputationEvent(upvotedUser).orElseThrow();
+    EventIF reputationEvents = repPlugin.getExistingReputationEvent(upvotedUser).orElseThrow();
     assertEquals(votesCount.toString(), reputationEvents.getContent());
 
     assertEquals(votesCount, cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
@@ -101,7 +101,7 @@ public class ReputationEventPluginIT {
     repPlugin.processIncomingEvent(createUpvoteDto(upvoteBadgeDefinitionEvent));
     assertEquals(votesCount, cacheServiceIF.getAllDeletionEvents().size());
 
-    Optional<GenericEventKindType> anotherReputationEvent = repPlugin.getExistingReputationEvent(upvotedUser);
+    Optional<EventIF> anotherReputationEvent = repPlugin.getExistingReputationEvent(upvotedUser);
     assertEquals(
         Integer.valueOf(votesCount + 1).toString(),
         anotherReputationEvent.orElseThrow().getContent());
