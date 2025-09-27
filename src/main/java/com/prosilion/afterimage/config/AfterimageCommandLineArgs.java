@@ -19,7 +19,7 @@ public class AfterimageCommandLineArgs {
   }
 
   @Bean
-  public String afterimageRelayUrl(@Value("${afterimage.relay.url}") String afterimageRelayUrl) {
+  public String afterimageRelayUrl(@Value("${afterimage.relay.url:}") String afterimageRelayUrl) {
     String url = Arrays.stream(args.getSourceArgs())
         .filter(s -> s.contains("afterimage.relay.url"))
         .findFirst()
