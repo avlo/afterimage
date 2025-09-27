@@ -8,12 +8,17 @@
    _// _///  _//     _//   _////   _///   _// _///  _/  _//  _// _///     _//   _////   
                                                                        _//
 ```
-# Java Nostr-Reputation Relay & Reputation-Authority Framework
+# Nostr Public-Key-reputation relay mesh network  
+
+AfterImage is a PublicKey-Reputation <abbr title="AfterImage relays can be made aware of other AfterImage relays, aggregating and transmitting reputations back to the mesh.">nostr relay mesh-network</abbr>.  It listens to nostr-relays for PublicKey [NIP-58 Badge Award](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) (vote / reputation-input / etc) events, then calculates and updates a reputation for every PublicKey it finds, yielding PublicKey-Reputations available for Nostr clients to query.
+
+Reputations are calculated based on customizable reputation formula/function provided by the AfterImage operator.
+
 ### Core functions:
-- user vote-occurrence listener 
-- customizable user-reputation calculator
-- user reputation relay/server
-- reputation mesh-network
+- vote/reputation-input recipient-PublicKey event listener 
+- reputation calculator 
+- reputation relay/server
+- reputation mesh-network / reputation aggregator
 
 ### Secondary function:
 - extensible reputation-authority framework
@@ -141,8 +146,8 @@ run with docker logging displayed to console:
 
 <hr style="border:2px solid grey">
 
-### Monitoring nostr-relays for reputation-input events
-Upon receiving a [NIP-51 Search Relays](https://github.com/nostr-protocol/nips/blob/master/51.md#standard-lists) JSON event containing one or more nost-relays:
+### Providing Nostr relays for reputation-input events (by AfterImage)
+Upon receiving a [NIP-51 Search Relays](https://github.com/nostr-protocol/nips/blob/master/51.md#standard-lists) JSON event containing one or more nostr-relays:
 
 
 ```java
@@ -162,9 +167,9 @@ AfterImage monitors those relays for [NIP-58 Badge Award](https://github.com/nos
 
 <hr style="border:2px solid grey">
 
-### Submitting a user reputation request
+### Public-Key-Reputation submission request (by Nostr Clients)
 
-Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) JSON request  with the following filters:
+Upon receiving a Nostr [NIP-58 Badge Award](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) JSON request with the following request filters:
 
 ```java
 [
@@ -178,7 +183,7 @@ Upon receiving a Nostr [NIP-58 Badge Award Event](https://github.com/nostr-proto
 ]
 ```
 
-AfterImage applies a [user-provided reputation calculation](src/main/java/com/prosilion/afterimage/calculator/UnitReputationCalculator.java), which returns _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative reputation score (in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format) as follows:
+AfterImage then applies a [user-provided reputation calculation](src/main/java/com/prosilion/afterimage/calculator/UnitReputationCalculator.java), returning a _**REPUTATION_RECIPIENT_PUBKEY**_'s cumulative reputation score (in [NIP-58 Badge Definition Event](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-definition-event) format) as follows:
 
 ```java
 {
@@ -193,7 +198,9 @@ AfterImage applies a [user-provided reputation calculation](src/main/java/com/pr
   ...
 }
 ```
-----
+<hr style="border:2px solid grey">
+
+
 
 ### Reputation permanence
 Afterimage reputation events adhere to [NIP-58 Award Badge Specification](https://github.com/nostr-protocol/nips/blob/master/58.md#badges)- and a such- are immutable and non-transferable.
