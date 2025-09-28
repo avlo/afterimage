@@ -1,6 +1,6 @@
 services:
   afterimage-db:
-    container_name: afterimage-db-redis-local-gradle
+    container_name: afterimage-db-redis-local_ws
     image: "redis:8.0.0"
     hostname: localhost
     ports:

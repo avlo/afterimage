@@ -24,64 +24,65 @@
   </form>
   <hr>
 
-  <!--  <div th:if="!${authActive}" class="tabs">-->
-  <div class="tabs">
-    <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabone" checked="checked">
-    <label class="label" for="tabone">SC 10007:SEARCH_RELAYS_LIST</label>
-    <div class="panel">
-      <div class="col-md-6">
-        <form class="form-inline">
-          <div class="form-group">
-            <label for="superconductor_url">SuperConductor URL:</label>
-            <select name="superconductor_url" id="superconductor_url">
-              <option selected value="ws://localhost:5555">5555</option>
-              <option value="ws://localhost:5554">5554</option>
-              <option value="ws://localhost:5553">5553</option>
-            </select>
-          </div>
-          <input type="hidden" id="10007-kind" name="10007-kind" value=10007>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-inline">
-                <div class="center gap">
-                  <button id="send10007" class="btn btn-default" type="submit" disabled="disabled">
-                    Send SC 10007:SEARCH_RELAYS_LIST Event
-                  </button>
+  <div th:if="!${authActive}" class="tabs">
+    <div class="tabs">
+      <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabone" checked="checked">
+      <label class="label" for="tabone">SC 10007:SEARCH_RELAYS_LIST</label>
+      <div class="panel">
+        <div class="col-md-6">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="superconductor_url">SuperConductor URL:</label>
+              <select name="superconductor_url" id="superconductor_url">
+                <option selected value="ws://localhost:5555">5555</option>
+                <option value="ws://localhost:5554">5554</option>
+                <option value="ws://localhost:5553">5553</option>
+              </select>
+            </div>
+            <input type="hidden" id="10007-kind" name="10007-kind" value=10007>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-inline">
+                  <div class="center gap">
+                    <button id="send10007" class="btn btn-default" type="submit" disabled="disabled">
+                      Send SC 10007:SEARCH_RELAYS_LIST Event
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
 
-    <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabtwo">
-    <label class="label" for="tabtwo">AImg 30002:RELAY_SETS</label>
-    <div class="panel">
-      <div class="col-md-6">
-        <form class="form-inline">
-          <div class="form-group">
-            <label for="afterimage_url">AfterImage URL:</label>
-            <select name="afterimage_url" id="afterimage_url">
-              <option value="ws://localhost:5556">5556</option>
-              <option value="ws://localhost:5557">5557</option>
-              <option value="ws://localhost:5558">5558</option>
-              <option value="ws://localhost:5559">5559</option>
-            </select>
-          </div>
-          <input type="hidden" id="30002-kind" name="30002-kind" value=30002>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-inline">
-                <div class="center gap">
-                  <button id="send30002" class="btn btn-default" type="submit" disabled="disabled">
-                    Send AImg 30002:RELAY_SETS Event
-                  </button>
+      <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabtwo">
+      <label class="label" for="tabtwo">AImg 30002:RELAY_SETS</label>
+      <div class="panel">
+        <div class="col-md-6">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="afterimage_url">AfterImage URL:</label>
+              <select name="afterimage_url" id="afterimage_url">
+                <option value="ws://localhost:5556">5556</option>
+                <option value="ws://localhost:5557">5557</option>
+                <option value="ws://localhost:5558">5558</option>
+                <option value="ws://localhost:5559">5559</option>
+              </select>
+            </div>
+            <input type="hidden" id="30002-kind" name="30002-kind" value=30002>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-inline">
+                  <div class="center gap">
+                    <button id="send30002" class="btn btn-default" type="submit" disabled="disabled">
+                      Send AImg 30002:RELAY_SETS Event
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   </div>
