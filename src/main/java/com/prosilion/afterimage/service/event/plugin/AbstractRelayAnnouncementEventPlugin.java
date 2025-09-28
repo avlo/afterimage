@@ -3,7 +3,7 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.InvalidTagException;
-import com.prosilion.afterimage.relay.RelayMeshProxy;
+import com.prosilion.afterimage.service.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
