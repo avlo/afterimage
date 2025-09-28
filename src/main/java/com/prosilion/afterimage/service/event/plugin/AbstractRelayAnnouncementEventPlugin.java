@@ -70,7 +70,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
         uniqueNewRelays.stream().collect(
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
-                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, List.of(getKind().getName()))))),
+                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, getKind().getName())))),
         eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
   }
 

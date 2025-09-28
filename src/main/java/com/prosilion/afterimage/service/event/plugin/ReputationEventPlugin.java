@@ -79,7 +79,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             .anyMatch(addressTag ->
                 Optional.ofNullable(
                         addressTag.getIdentifierTag()).orElseThrow(() ->
-                        new InvalidTagException("NULL", List.of(getKindType().getName())))
+                        new InvalidTagException("NULL", getKindType().getName()))
                     .getUuid().equals(getKindType().getName()))).toList().stream()
         .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
