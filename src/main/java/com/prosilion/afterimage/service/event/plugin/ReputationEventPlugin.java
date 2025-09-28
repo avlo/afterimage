@@ -72,15 +72,13 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     return redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.BADGE_AWARD_EVENT, badgeReceiverPubkey)
         .stream()
-        .filter(eventIF1 -> eventIF1.getTags()
-            .stream()
-            .filter(AddressTag.class::isInstance)
-            .map(AddressTag.class::cast)
-            .anyMatch(addressTag ->
-                Optional.ofNullable(
-                        addressTag.getIdentifierTag()).orElseThrow(() ->
-                        new InvalidTagException("NULL", getKindType().getName()))
-                    .getUuid().equals(getKindType().getName()))).toList().stream()
+        .filter(eventIF1 ->
+            Filterable.getTypeSpecificTagsStream(AddressTag.class, eventIF1)
+                .anyMatch(addressTag ->
+                    Optional.ofNullable(
+                            addressTag.getIdentifierTag()).orElseThrow(() ->
+                            new InvalidTagException("NULL", getKindType().getName()))
+                        .getUuid().equals(getKindType().getName()))).toList().stream()
         .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
             new GenericEventKindType(

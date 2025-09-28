@@ -81,7 +81,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   public abstract Kind getKind();
 
   private static Stream<String> getRelayTag(EventIF eventIF) {
-    return Filterable.getTypeSpecificTags(RelayTag.class, eventIF).stream()
+    return Filterable.getTypeSpecificTagsStream(RelayTag.class, eventIF)
         .map(RelayTag::getRelay)
         .map(Relay::getUri)
         .map(URI::toString);
