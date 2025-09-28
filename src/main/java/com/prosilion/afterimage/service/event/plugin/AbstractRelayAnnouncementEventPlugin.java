@@ -64,17 +64,21 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
-    super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream().toList()));
+    super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream()));
 
     new RelayMeshProxy(
         uniqueNewRelays.stream().collect(
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
                 Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, getKind().getName())))),
-        eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
+        this::processIncomingEventAuth).setUpRequestFlux(getFilters());
   }
 
-  abstract BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewRelays);
+  public void processIncomingEventAuth(@NonNull EventIF relaysEvent) {
+    eventKindServiceIF.processIncomingEvent(relaysEvent);
+  }
+
+  abstract BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewRelays);
 
   abstract Filters getFilters();
 

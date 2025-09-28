@@ -2,6 +2,7 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
@@ -11,7 +12,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.util.List;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -38,14 +39,18 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 //    new SuperconductorMeshProxy<>(afterimageRelays, relayDiscoveryEventTypePlugin).setUpReputationReqFlux();
 //  }
 
+  public void processIncomingEvent(@NonNull EventIF relaysEvent) {
+    super.processIncomingEvent(relaysEvent);
+  }
+
   //  TODO: fix sneaky
   @SneakyThrows
   @Override
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewAImgRelays) {
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewAImgRelays) {
     log.debug("{} processing incoming Kind.RELAY_SETS 30_002 event", getClass().getSimpleName());
     return new RelaySetsEvent(
         identity,
-        uniqueNewAImgRelays.stream().map(relayString ->
+        uniqueNewAImgRelays.map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.RELAY_SETS");
   }

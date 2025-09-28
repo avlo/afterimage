@@ -11,7 +11,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.util.List;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -40,11 +40,11 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
 
   //  TODO: fix sneaky
   @SneakyThrows
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull List<String> uniqueNewSuperconductorRelays) {
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewSuperconductorRelays) {
     log.debug("{} processing incoming Kind.SEARCH_RELAYS_LIST 10007 event", getClass().getSimpleName());
     return new SearchRelaysListEvent(
         identity,
-        uniqueNewSuperconductorRelays.stream().map(relayString ->
+        uniqueNewSuperconductorRelays.map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.SEARCH_RELAYS_LIST");
   }

@@ -12,7 +12,6 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
@@ -61,23 +60,19 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
 //    log.debug("\n\n000000000000000000000000000000");
 //    log.debug("000000000000000000000000000000");
 //    log.debug(value.getClass().getSimpleName() + "\n\n");
-    filterEventMessage(value).ifPresent(this::processIncoming);
+    filterEventMessageEvent(value).ifPresent(this::processIncoming);
   }
 
-  @SneakyThrows
-  private void processIncoming(EventMessage eventMessage) {
-//    log.debug("SuperconductorMeshProxy EventMessage content: {}", eventMessage);
-//    TODO: resolve unused
-    for (String unused : relayRequestConsolidator.getRelayNames()) {
-      EventIF event = eventMessage.getEvent();
-      eventPlugin.processIncomingEvent(event);
-    }
+  private void processIncoming(EventIF eventIF) {
+    relayRequestConsolidator.getRelayNames().forEach(s ->
+        eventPlugin.processIncomingEvent(eventIF));
   }
 
-  private Optional<EventMessage> filterEventMessage(BaseMessage returnedBaseMessage) {
+  private Optional<EventIF> filterEventMessageEvent(BaseMessage returnedBaseMessage) {
     return Optional.of(returnedBaseMessage)
         .filter(EventMessage.class::isInstance)
-        .map(EventMessage.class::cast);
+        .map(EventMessage.class::cast)
+        .map(EventMessage::getEvent);
   }
 
   @Override
