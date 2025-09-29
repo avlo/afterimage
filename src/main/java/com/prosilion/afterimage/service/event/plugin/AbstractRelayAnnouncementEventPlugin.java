@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.InvalidTagException;
@@ -29,17 +30,14 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
-  private final EventKindServiceIF eventKindServiceIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull EventKindServiceIF eventKindServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.eventKindServiceIF = eventKindServiceIF;
     this.redisCacheServiceIF = redisCacheServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
@@ -66,21 +64,14 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
     super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream()));
 
-    new RelayMeshProxy(
-        uniqueNewRelays.stream().collect(
-            Collectors.toMap(unused ->
-                generateRandomHex64String(), relayUri ->
-                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, getKind().getName())))),
-        this::processIncomingEventAuth).setUpRequestFlux(getFilters());
+    processIncomingEventAuth(uniqueNewRelays);
   }
 
-  public void processIncomingEventAuth(@NonNull EventIF relaysEvent) {
-    eventKindServiceIF.processIncomingEvent(relaysEvent);
-  }
+  protected abstract void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException;
 
-  abstract BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewRelays);
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewRelays);
 
-  abstract Filters getFilters();
+  abstract protected Filters getFilters();
 
   public abstract Kind getKind();
 
@@ -91,7 +82,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
         .map(URI::toString);
   }
 
-  private static String generateRandomHex64String() {
+  protected static String generateRandomHex64String() {
     return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
   }
 }
