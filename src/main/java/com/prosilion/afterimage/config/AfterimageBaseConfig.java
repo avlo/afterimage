@@ -3,13 +3,13 @@ package com.prosilion.afterimage.config;
 import com.prosilion.afterimage.InvalidReputationCalculatorException;
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.relay.AfterimageReqService;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventPlugin;
+import com.prosilion.afterimage.service.request.AfterimageReqService;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
@@ -19,7 +19,12 @@ import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.autoconfigure.base.service.message.event.AutoConfigEventMessageServiceIF;
+import com.prosilion.superconductor.autoconfigure.base.service.message.event.EventMessageServiceIF;
+import com.prosilion.superconductor.autoconfigure.base.service.message.event.auth.AutoConfigEventMessageServiceAuthDecorator;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
+import com.prosilion.superconductor.base.service.event.auth.AuthEventKinds;
+import com.prosilion.superconductor.base.service.event.service.AuthKindPersistantServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -30,6 +35,7 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
+import com.prosilion.superconductor.lib.redis.document.AuthDocumentIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -40,6 +46,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
@@ -78,7 +86,7 @@ public abstract class AfterimageBaseConfig {
   ReputationCalculatorIF reputationCalculatorIF(
       @NonNull @Value("${afterimage.calculator.impl}") String calculator,
       @NonNull List<ReputationCalculatorIF> calculatorIFS) {
-    ReputationCalculatorIF reputationCalculatorIF = Optional.ofNullable(
+    return Optional.ofNullable(
             calculatorIFS.stream().collect(
                     Collectors.toMap(
                         ReputationCalculatorIF::getFullyQualifiedCalculatorName,
@@ -87,7 +95,6 @@ public abstract class AfterimageBaseConfig {
                 .get(calculator))
         .orElseThrow(() ->
             new InvalidReputationCalculatorException(calculator, calculatorIFS.stream().map(ReputationCalculatorIF::getFullyQualifiedCalculatorName).collect(Collectors.toList())));
-    return reputationCalculatorIF;
   }
 
   @Bean
@@ -163,6 +170,17 @@ public abstract class AfterimageBaseConfig {
         redisCacheServiceIF,
         aImgIdentity,
         reputationEventPlugin);
+  }
+
+  @Bean
+//  @ConditionalOnExpression("#{'${superconductor.auth.event.kinds}'.isEmpty()}")
+  @ConditionalOnBean(AuthEventKinds.class)
+  @ConditionalOnMissingBean
+  AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
+      @NonNull EventMessageServiceIF eventMessageService,
+      @NonNull AuthKindPersistantServiceIF<AuthDocumentIF, AuthDocumentIF> authDocumentServiceIF) {
+    log.debug("loaded AutoConfigEventMessageServiceAuthDecorator bean (EVENT AUTH)");
+    return new AutoConfigEventMessageServiceAuthDecorator<>(eventMessageService, authDocumentServiceIF);
   }
 
   @Bean
