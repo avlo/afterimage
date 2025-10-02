@@ -12,8 +12,8 @@ import com.prosilion.superconductor.base.service.event.service.EventKindServiceI
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindDto;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
@@ -66,7 +66,7 @@ class EventKindTypeServiceIT {
         upvotedUser,
         upvoteBadgeDefinitionEvent);
 
-    GenericDocumentKindTypeDto genericEventKindTypeDto = new GenericDocumentKindTypeDto(event1, SuperconductorKindType.UNIT_UPVOTE);
+    GenericNosqlEntityKindTypeDto genericEventKindTypeDto = new GenericNosqlEntityKindTypeDto(event1, SuperconductorKindType.UNIT_UPVOTE);
 
     GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
 
@@ -82,7 +82,7 @@ class EventKindTypeServiceIT {
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericDocumentKindTypeDto(downvoteEvent, SuperconductorKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericNosqlEntityKindTypeDto(downvoteEvent, SuperconductorKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(downvoteBadgeDefinitionEvent.getKind());
@@ -94,7 +94,7 @@ class EventKindTypeServiceIT {
     Identity identity = Identity.generateRandomIdentity();
 
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
-    eventKindServiceIF.processIncomingEvent(new GenericDocumentKindDto(textNoteEvent).convertBaseEventToEventIF());
+    eventKindServiceIF.processIncomingEvent(new GenericNosqlEntityKindDto(textNoteEvent).convertBaseEventToEventIF());
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(textNoteEvent.getKind());
 

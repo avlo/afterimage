@@ -10,8 +10,8 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.redis.document.EventDocumentIF;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
+import com.prosilion.superconductor.lib.redis.entity.EventNosqlEntityIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.security.NoSuchAlgorithmException;
@@ -78,7 +78,8 @@ public class ReputationEventPluginIT {
 
   @Test
   void testProcessIncomingEvent() throws NoSuchAlgorithmException {
-    List<EventDocumentIF> all = cacheServiceIF.getAll();
+    List<EventNosqlEntityIF> all = cacheServiceIF.getAll();
+
     int sizeOfGetAllBeforeDeletions = all.size();
     assertEquals(1, sizeOfGetAllBeforeDeletions);
 
@@ -107,7 +108,7 @@ public class ReputationEventPluginIT {
         anotherReputationEvent.orElseThrow().getContent());
 
     assertEquals((votesCount + 1), cacheServiceIF.getByKind(Kind.BADGE_AWARD_EVENT).size());
-    assertEquals(1, cacheServiceIF.getAll().stream().map(EventDocumentIF::getEventId)
+    assertEquals(1, cacheServiceIF.getAll().stream().map(EventNosqlEntityIF::getEventId)
         .filter(id -> anotherReputationEvent.orElseThrow().getId().equals(id))
         .toList().size());
   }
@@ -129,7 +130,7 @@ public class ReputationEventPluginIT {
   }
 
   private GenericEventKindTypeIF createUpvoteDto(BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
-    return new GenericDocumentKindTypeDto(
+    return new GenericNosqlEntityKindTypeDto(
         new BadgeAwardUpvoteEvent(
             authorIdentity,
             upvotedUser,

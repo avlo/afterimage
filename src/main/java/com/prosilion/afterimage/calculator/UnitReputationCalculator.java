@@ -11,7 +11,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import com.prosilion.superconductor.lib.redis.dto.GenericDocumentKindTypeDto;
+import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -61,7 +61,7 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
   }
 
   private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
-    return new GenericDocumentKindTypeDto(
+    return new GenericNosqlEntityKindTypeDto(
         new BadgeAwardReputationEvent(
             aImgIdentity,
             badgeReceiverPubkey,
