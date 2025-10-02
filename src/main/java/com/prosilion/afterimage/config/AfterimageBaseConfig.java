@@ -35,9 +35,7 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import com.prosilion.superconductor.lib.redis.service.auth.AuthKindNosqlEntityService;
 import com.prosilion.superconductor.lib.redis.service.auth.AuthKindNosqlEntityServiceIF;
-import com.prosilion.superconductor.lib.redis.service.auth.AuthNosqlEntityServiceIF;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -174,7 +171,7 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-    @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
+  @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
   AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
       @NonNull EventMessageServiceIF eventMessageService,
       @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
@@ -215,14 +212,6 @@ public abstract class AfterimageBaseConfig {
   @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
   AuthEventKinds authEventKinds(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
     return new AuthEventKinds(authEventKinds.stream().map(Kind::valueOf).toList());
-  }
-
-  @Bean
-  @ConditionalOnBean(AuthEventKinds.class)
-  AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF(
-      @NonNull AuthNosqlEntityServiceIF authNosqlEntityServiceIF,
-      @NonNull AuthEventKinds authEventKinds) {
-    return new AuthKindNosqlEntityService(authNosqlEntityServiceIF, authEventKinds);
   }
 
   @Bean
