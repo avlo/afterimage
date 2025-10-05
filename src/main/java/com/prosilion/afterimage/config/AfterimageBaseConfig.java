@@ -19,11 +19,9 @@ import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.AutoConfigEventMessageServiceIF;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.EventMessageServiceIF;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.auth.AutoConfigEventMessageServiceAuthDecorator;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.auth.AuthEventKinds;
+import com.prosilion.superconductor.base.service.event.auth.EventKindsAuth;
+import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthCondition;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -35,7 +33,6 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import com.prosilion.superconductor.lib.redis.service.auth.AuthKindNosqlEntityServiceIF;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -45,8 +42,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 
@@ -170,14 +167,14 @@ public abstract class AfterimageBaseConfig {
         reputationEventPlugin);
   }
 
-  @Bean
-  @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
-  AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
-      @NonNull EventMessageServiceIF eventMessageService,
-      @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
-    log.debug("loaded AutoConfigEventMessageServiceAuthDecorator bean (EVENT AUTH)");
-    return new AutoConfigEventMessageServiceAuthDecorator<>(eventMessageService, authKindNosqlEntityServiceIF);
-  }
+//  @Bean
+//  @ConditionalOnExpression("#{!'${superconductor.auth.event.kinds}'.isEmpty()}")
+//  AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
+//      @NonNull EventMessageServiceIF eventMessageService,
+//      @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
+//    log.debug("loaded AutoConfigEventMessageServiceAuthDecorator bean (EVENT AUTH)");
+//    return new AutoConfigEventMessageServiceAuthDecorator<>(eventMessageService, authKindNosqlEntityServiceIF);
+//  }
 
   @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
@@ -208,11 +205,11 @@ public abstract class AfterimageBaseConfig {
         "afterimage reputation definition f(x)");
   }
 
-  @Bean
-  @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
-  AuthEventKinds authEventKinds(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
-    return new AuthEventKinds(authEventKinds.stream().map(Kind::valueOf).toList());
-  }
+//  @Bean
+//  @Conditional(EventKindsAuthCondition.class)
+//  EventKindsAuth EventKindsAuth(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
+//    return new EventKindsAuth(authEventKinds.stream().map(Kind::valueOf).toList());
+//  }
 
   @Bean
   DataLoaderRedisIF dataLoaderRedis(
