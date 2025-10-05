@@ -45,8 +45,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 
@@ -171,7 +171,7 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
+  @Conditional(AfterimageAuthEventKindsCondition.class)
   AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
       @NonNull EventMessageServiceIF eventMessageService,
       @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
@@ -209,8 +209,8 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @ConditionalOnExpression("#{!'${afterimage.auth.event.kinds}'.isEmpty()}")
-  AuthEventKinds authEventKinds(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
+  @Conditional(AfterimageAuthEventKindsCondition.class)
+  AuthEventKinds authEventKinds(@Value("#{'${afterimage.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
     return new AuthEventKinds(authEventKinds.stream().map(Kind::valueOf).toList());
   }
 
