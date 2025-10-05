@@ -40,7 +40,7 @@ services:
 #      - docker_network
 # aImg         
   afterimage-app:
-    image: afterimage-nostr-reputation-relay:1.0.0
+    image: afterimage-nostr-reputation-relay:1.1.0
     ports:
       - "5557:5556"
     depends_on:

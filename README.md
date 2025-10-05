@@ -42,7 +42,7 @@ _(note: Confirmed compatible with Docker 27.0.3 and Docker Compose version v2.28
 ----
 
 #### Download Superconductor Docker Image from [hub.docker](https://hub.docker.com/repository/docker/avlo/afterimage-app/tags)
-    $ docker pull avlo/afterimage-nostr-reputation-relay:1.0.0
+    $ docker pull avlo/afterimage-nostr-reputation-relay:1.1.0
 
 ----
 

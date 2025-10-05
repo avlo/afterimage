@@ -5,7 +5,7 @@
 
   <groupId>com.prosilion.afterimage</groupId>
   <artifactId>afterimage-nostr-reputation-relay</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <name>afterimage-nostr-reputation-relay</name>
   <description>AfterImage Reputation Relay</description>
   <packaging>war</packaging>
