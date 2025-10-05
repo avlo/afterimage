@@ -19,9 +19,10 @@ import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
+import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.auth.EventKindsAuth;
-import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthCondition;
+import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -167,15 +168,6 @@ public abstract class AfterimageBaseConfig {
         reputationEventPlugin);
   }
 
-//  @Bean
-//  @ConditionalOnExpression("#{!'${superconductor.auth.event.kinds}'.isEmpty()}")
-//  AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
-//      @NonNull EventMessageServiceIF eventMessageService,
-//      @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
-//    log.debug("loaded AutoConfigEventMessageServiceAuthDecorator bean (EVENT AUTH)");
-//    return new AutoConfigEventMessageServiceAuthDecorator<>(eventMessageService, authKindNosqlEntityServiceIF);
-//  }
-
   @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
@@ -205,11 +197,11 @@ public abstract class AfterimageBaseConfig {
         "afterimage reputation definition f(x)");
   }
 
-//  @Bean
-//  @Conditional(EventKindsAuthCondition.class)
-//  EventKindsAuth EventKindsAuth(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
-//    return new EventKindsAuth(authEventKinds.stream().map(Kind::valueOf).toList());
-//  }
+  @Bean
+  @Conditional(EventKindsAuthCondition.class)
+  EventKindsAuthIF EventKindsAuth(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
+    return new EventKindsAuth(authEventKinds.stream().map(Kind::valueOf).toList());
+  }
 
   @Bean
   DataLoaderRedisIF dataLoaderRedis(
