@@ -19,11 +19,10 @@ import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.AutoConfigEventMessageServiceIF;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.EventMessageServiceIF;
-import com.prosilion.superconductor.autoconfigure.base.service.message.event.auth.AutoConfigEventMessageServiceAuthDecorator;
+import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
+import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.auth.AuthEventKinds;
+import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -35,7 +34,6 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import com.prosilion.superconductor.lib.redis.service.auth.AuthKindNosqlEntityServiceIF;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -171,15 +169,6 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @Conditional(AfterimageAuthEventKindsCondition.class)
-  AutoConfigEventMessageServiceIF autoConfigEventMessageServiceIF(
-      @NonNull EventMessageServiceIF eventMessageService,
-      @NonNull AuthKindNosqlEntityServiceIF authKindNosqlEntityServiceIF) {
-    log.debug("loaded AutoConfigEventMessageServiceAuthDecorator bean (EVENT AUTH)");
-    return new AutoConfigEventMessageServiceAuthDecorator<>(eventMessageService, authKindNosqlEntityServiceIF);
-  }
-
-  @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
@@ -209,9 +198,9 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @Conditional(AfterimageAuthEventKindsCondition.class)
-  AuthEventKinds authEventKinds(@Value("#{'${afterimage.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
-    return new AuthEventKinds(authEventKinds.stream().map(Kind::valueOf).toList());
+  @Conditional(EventKindsAuthCondition.class)
+  EventKindsAuthIF EventKindsAuth(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
+    return new EventKindsAuth(authEventKinds.stream().map(Kind::valueOf).toList());
   }
 
   @Bean
