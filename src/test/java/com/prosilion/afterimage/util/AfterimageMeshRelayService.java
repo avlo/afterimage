@@ -3,6 +3,7 @@ package com.prosilion.afterimage.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.message.CanonicalAuthenticationMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
@@ -36,6 +37,10 @@ public class AfterimageMeshRelayService {
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
     nostrRelayClient.send(eventMessage, subscriber);
+  }
+
+  public void send(@NonNull CanonicalAuthenticationMessage authenticationMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {
+    nostrRelayClient.send(authenticationMessage, subscriber);
   }
 
   public void send(@NonNull ReqMessage reqMessage, @NonNull Subscriber<BaseMessage> subscriber) throws JsonProcessingException, NostrException {

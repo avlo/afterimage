@@ -2,6 +2,10 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.InvalidReputationCalculatorException;
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
+import com.prosilion.afterimage.config.web.EventApiAuthUi;
+import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
+import com.prosilion.afterimage.config.web.ReqApiAuthUi;
+import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
@@ -21,8 +25,13 @@ import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
+import com.prosilion.superconductor.autoconfigure.base.EventKindsNoAuthCondition;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
+import com.prosilion.superconductor.base.controller.EventApiUiIF;
+import com.prosilion.superconductor.base.controller.ReqApiUiIF;
 import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
+import com.prosilion.superconductor.base.service.event.auth.ReqAuthCondition;
+import com.prosilion.superconductor.base.service.event.auth.ReqNoAuthCondition;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -201,6 +210,30 @@ public abstract class AfterimageBaseConfig {
   @Conditional(EventKindsAuthCondition.class)
   EventKindsAuthIF EventKindsAuth(@Value("#{'${superconductor.auth.event.kinds}'.split(',')}") List<String> authEventKinds) {
     return new EventKindsAuth(authEventKinds.stream().map(Kind::valueOf).toList());
+  }
+
+  @Bean
+  @Conditional(EventKindsAuthCondition.class)
+  EventApiUiIF eventApiAuthUiIF() {
+    return new EventApiAuthUi();
+  }
+
+  @Bean
+  @Conditional(EventKindsNoAuthCondition.class)
+  EventApiUiIF eventApiNoAuthUiIF() {
+    return new EventApiNoAuthUi();
+  }
+
+  @Bean
+  @Conditional(ReqAuthCondition.class)
+  ReqApiUiIF reqApiAuthUiIF() {
+    return new ReqApiAuthUi();
+  }
+
+  @Bean
+  @Conditional(ReqNoAuthCondition.class)
+  ReqApiUiIF reqApiNoAuthUiIF() {
+    return new ReqApiNoAuthUi();
   }
 
   @Bean

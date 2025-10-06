@@ -32,10 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
     "superconductor.auth.event.kinds=SEARCH_RELAYS_LIST",
-    "superconductor.auth.challenge-relay.url=ws://localhost:5550",
     "afterimage.relay.url=ws://localhost:5560",
     "server.port=5560",
-    "spring.data.redis.host=localhost",
     "spring.data.redis.port=6390"
 })
 public class SearchRelaysListAuthIT {
@@ -57,7 +55,7 @@ public class SearchRelaysListAuthIT {
 
     aImgSearchRelaysListRejectionSubscriber.send(
         new EventMessage(
-            createSearchRelaysListEventMessage("ws://localhost:5550")),
+            createSearchRelaysListEventMessage("ws://localhost:5560")),
         rejectionClient);
 
     TimeUnit.MILLISECONDS.sleep(1000);

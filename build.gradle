@@ -51,7 +51,7 @@ dependencies {
     def springBootVersion = '3.5.1'
     def nostrJavaCoreVersion = '1.0.0'
     def superconductorStarterVersion = '1.17.1'
-    def subdivisionsVersion = '1.3.0'
+    def subdivisionsVersion = '1.3.1'
     def apacheCommonsLang3 = '3.17.0'
     def jacksonModuleAfterburner = '2.18.3'
     def googleGuava = '33.2.1-jre'
