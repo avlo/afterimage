@@ -62,8 +62,8 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
         new IdentifierTag(
             UnitReputationCalculator.class.getCanonicalName()),
         List.of(eventTagAddressTagPairs),
-//        TODO: replace 999999
-        "99999").getGenericEventRecord();
+//        TODO: replace content
+        "Follow Sets Event Content: available for useful use").getGenericEventRecord();
   }
 
   @Override
