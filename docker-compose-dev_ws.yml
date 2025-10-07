@@ -2,20 +2,28 @@ services:
   afterimage-db:
     container_name: afterimage-db-redis-dev_ws
     image: "redis:8.0.0"
-    hostname: redis
+    hostname: afterimage-db
     ports:
       - "6380:6379"
     environment:
       - "REDIS_ARGS=--appendonly yes"
+    networks:
+      - docker_network
   afterimage-app:
     container_name: afterimage-app-redis-dev_ws
     image: afterimage-nostr-reputation-relay:1.1.0
     ports:
       - "5556:5556"
-    links:
+    depends_on:
       - afterimage-db
+    networks:
+      - docker_network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
+      SPRING_DATA_REDIS_HOST: afterimage-db
 volumes:
   afterimage-db:
     driver: local
+networks:
+  docker_network:
+    driver: bridge
