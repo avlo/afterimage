@@ -83,6 +83,7 @@ dependencies {
     implementation 'org.awaitility:awaitility:' + awaitility
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
     def springBootEmbeddedRedis = '1.0.1'
     testImplementation('io.github.tobi-laa:spring-boot-embedded-redis:' + springBootEmbeddedRedis)

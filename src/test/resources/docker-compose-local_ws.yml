@@ -1,0 +1,21 @@
+services:
+  afterimage-db:
+    image: "redis:8.0.0"
+    hostname: localhost
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "afterimage-db" ]
+      retries: 3
+      interval: 3s
+      timeout: 10s
+    networks:
+      docker-network:
+#    environment:
+#      - "REDIS_ARGS=--appendonly yes"
+volumes:
+  afterimage-db:
+    driver: local
+networks:
+  docker-network:
+    driver: bridge
