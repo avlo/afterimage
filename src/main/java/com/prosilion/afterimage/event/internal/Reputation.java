@@ -22,8 +22,7 @@ public class Reputation {
             Kind.BADGE_DEFINITION_EVENT,
             reputationBadgeDefinitionEvent.getPublicKey(),
             reputationBadgeDefinitionEvent.getIdentifierTag(),
-            new Relay(reputationBadgeDefinitionEvent.getReferenceTag().getUri().toString())),
+            new Relay(reputationBadgeDefinitionEvent.getReferenceTag().getUrl())),
         new PubKeyTag(upvotedUser));
   }
 }
-

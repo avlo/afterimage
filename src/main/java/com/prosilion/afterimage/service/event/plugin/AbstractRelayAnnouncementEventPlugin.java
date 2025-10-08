@@ -3,8 +3,6 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
-import com.prosilion.afterimage.InvalidTagException;
-import com.prosilion.afterimage.service.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -13,13 +11,10 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,14 +42,19 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   public void processIncomingEvent(@NonNull EventIF relaysEvent) {
     log.debug("processing incoming event: [{}]", relaysEvent);
 
-    assert relaysEvent.getKind().equals(getKind()) : new InvalidKindException(relaysEvent.getKind().getName(), List.of(getKind().getName()));
+    Kind kind = getKind();
+    assert relaysEvent.getKind().equals(kind) : new InvalidKindException(relaysEvent.getKind().getName(), List.of(getKind().getName()));
+
+    Set<String> eventRelays = getRelayTag(relaysEvent)
+        .collect(Collectors.toSet());
+
+    Set<Stream<String>> existingKnownRelays = redisCacheServiceIF.getByKind(getKind()).stream()
+        .map(AbstractRelayAnnouncementEventPlugin::getRelayTag)
+        .collect(Collectors.toSet());
 
     Set<String> uniqueNewRelays = Sets.difference(
-        getRelayTag(relaysEvent)
-            .collect(Collectors.toSet()),
-        redisCacheServiceIF.getByKind(getKind()).stream()
-            .map(AbstractRelayAnnouncementEventPlugin::getRelayTag)
-            .collect(Collectors.toSet()));
+        eventRelays,
+        existingKnownRelays);
 
     if (uniqueNewRelays.isEmpty()) {
       log.debug("did not discover any new unique relays, so just return");
@@ -78,8 +78,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   private static Stream<String> getRelayTag(EventIF eventIF) {
     return Filterable.getTypeSpecificTagsStream(RelayTag.class, eventIF)
         .map(RelayTag::getRelay)
-        .map(Relay::getUri)
-        .map(URI::toString);
+        .map(Relay::getUrl);
   }
 
   protected static String generateRandomHex64String() {

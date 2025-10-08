@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.calculator;
 
+import com.prosilion.afterimage.InvalidTagException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UnitReputationCalculator implements ReputationCalculatorIF {
+  private static final List<String> VALID_TYPES = List.of(SuperconductorKindType.UNIT_UPVOTE.getName(), SuperconductorKindType.UNIT_DOWNVOTE.getName());
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final Identity aImgIdentity;
 
@@ -45,8 +47,10 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
                 .map(AddressTag.class::cast)
                 .map(AddressTag::getIdentifierTag)
                 .map(identifierTag ->
-                    Optional.ofNullable(identifierTag).orElseThrow())
-                .map(IdentifierTag::getUuid).toList()));
+                    Optional.ofNullable(identifierTag).orElseThrow(() -> new InvalidTagException(
+                        "NULL", VALID_TYPES)))
+                .map(IdentifierTag::getUuid)
+                .toList()));
   }
 
   private BigDecimal calculateReputationEvent(BigDecimal previousScore, List<String> voteEvents) throws NostrException {
@@ -74,7 +78,9 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
   }
 
   private BigDecimal convertContentToScore(String event) {
-    return event.equals(SuperconductorKindType.UNIT_UPVOTE.getName()) ? new BigDecimal("1") : new BigDecimal("-1");
+    assert VALID_TYPES.contains(event) : new InvalidTagException(event, VALID_TYPES);
+    boolean equals = event.equals(SuperconductorKindType.UNIT_UPVOTE.getName());
+    return equals ? new BigDecimal("1") : new BigDecimal("-1");
   }
 
   @Override
