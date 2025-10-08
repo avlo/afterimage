@@ -23,7 +23,6 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -64,7 +63,7 @@ public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeConta
   }
 
   @Test
-  void  testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException {
     final Identity upvotedUser = Identity.generateRandomIdentity();
     final Identity authorIdentity = Identity.generateRandomIdentity();
 

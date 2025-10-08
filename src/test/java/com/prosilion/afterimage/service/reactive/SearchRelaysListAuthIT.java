@@ -12,7 +12,6 @@ import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -49,7 +48,7 @@ public class SearchRelaysListAuthIT {
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
     TestSubscriber<OkMessage> rejectionClient = new TestSubscriber<>();
     final AfterimageMeshRelayService aImgSearchRelaysListRejectionSubscriber = new AfterimageMeshRelayService(afterimageRelayUri);
 
@@ -70,7 +69,7 @@ public class SearchRelaysListAuthIT {
     aImgSearchRelaysListRejectionSubscriber.closeSocket();
   }
 
-  private BaseEvent createSearchRelaysListEventMessage(String uri) throws NoSuchAlgorithmException {
+  private BaseEvent createSearchRelaysListEventMessage(String uri) {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
         "Kind.SEARCH_RELAYS_LIST",

@@ -27,7 +27,6 @@ import com.prosilion.nostr.user.PublicKey;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -112,7 +111,7 @@ public class RelaySetsIT {
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
     final AfterimageMeshRelayService afterimageSubscriberCheckClient = new AfterimageMeshRelayService(afterimageRelayUri);
     final Identity authorIdentity = Identity.generateRandomIdentity();
     final Identity upvotedUser = Identity.generateRandomIdentity();
@@ -242,7 +241,7 @@ public class RelaySetsIT {
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private BaseEvent createRelaysSetsEventMessage(String uri) throws NoSuchAlgorithmException {
+  private BaseEvent createRelaysSetsEventMessage(String uri) {
     return new RelaySetsEvent(
         afterimageInstanceIdentity,
         "Kind.RELAY_SETS",
@@ -250,7 +249,7 @@ public class RelaySetsIT {
             new Relay(uri)));
   }
 
-  private BaseEvent createSearchRelaysListEventMessage(String uri) throws NoSuchAlgorithmException {
+  private BaseEvent createSearchRelaysListEventMessage(String uri) {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
         Stream.of(uri).map(relayString ->

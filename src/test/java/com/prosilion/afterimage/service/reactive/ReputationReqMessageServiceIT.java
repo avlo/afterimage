@@ -28,7 +28,6 @@ import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -179,7 +178,7 @@ public class ReputationReqMessageServiceIT {
   }
 
   @Test
-  void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException, NoSuchAlgorithmException {
+  void testValidExistingEventThenAfterImageReputationRequest() throws IOException, NostrException {
     final Identity authorIdentity = Identity.generateRandomIdentity();
     final PublicKey upvotedUserPubKey = Identity.generateRandomIdentity().getPublicKey();
     log.info("authorIdentity: {}", authorIdentity.getPublicKey());

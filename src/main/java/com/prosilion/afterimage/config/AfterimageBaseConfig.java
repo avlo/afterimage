@@ -43,7 +43,6 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -195,7 +194,7 @@ public abstract class AfterimageBaseConfig {
   @Bean
   BadgeDefinitionEvent reputationBadgeDefinitionEvent(
       @NonNull Identity afterimageInstanceIdentity,
-      @NonNull String afterimageRelayUrl) throws NoSuchAlgorithmException {
+      @NonNull String afterimageRelayUrl) {
 
     return new BadgeDefinitionEvent(
         afterimageInstanceIdentity,

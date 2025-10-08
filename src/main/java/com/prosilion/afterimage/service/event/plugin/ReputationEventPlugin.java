@@ -2,6 +2,7 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.InvalidTagException;
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.DeletionEvent;
@@ -21,7 +22,6 @@ import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -43,8 +43,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     this.aImgIdentity = aImgIdentity;
   }
 
-  @SneakyThrows
-  public void processIncomingEvent(@NonNull EventIF incomingReputationEvent) {
+  public void processIncomingEvent(@NonNull EventIF incomingReputationEvent) throws NostrException {
     PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingReputationEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)
@@ -60,7 +59,6 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
             incomingReputationEvent));
   }
 
-  @SneakyThrows
   private void deletePreviousReputationCalculationEvent(EventIF previousReputationEvent) {
     redisCacheServiceIF.deleteEvent(
         new DeletionEvent(
@@ -96,13 +94,13 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
 
   @Override
   public Kind getKind() {
-    log.debug("ReputationEventKindTypePlugin getKind returning Kind.BADGE_AWARD_EVENT");
+    log.debug("{} getKind returning {}}", getClass().getSimpleName(), super.getKind());
     return super.getKind();
   }
 
   @Override
   public KindTypeIF getKindType() {
-    log.debug("ReputationEventKindTypePlugin getKindType returning Kind.REPUTATION");
+    log.debug("{} getKindType returning {}", getClass().getSimpleName(), super.getKindType());
     return super.getKindType();
   }
 }

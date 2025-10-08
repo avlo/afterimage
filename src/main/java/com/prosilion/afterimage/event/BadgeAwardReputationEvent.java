@@ -10,7 +10,6 @@ import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
@@ -21,7 +20,7 @@ public class BadgeAwardReputationEvent extends AbstractBadgeAwardEvent<KindTypeI
       @NonNull PublicKey badgeReceiverPubkey,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull List<BaseTag> tags,
-      @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
+      @NonNull BigDecimal score) throws NostrException {
     super(AfterimageKindType.REPUTATION,
         aImgIdentity,
         new Reputation(

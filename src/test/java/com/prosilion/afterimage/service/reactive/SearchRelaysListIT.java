@@ -26,7 +26,6 @@ import com.prosilion.nostr.user.PublicKey;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +111,7 @@ public class SearchRelaysListIT {
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, NoSuchAlgorithmException, InterruptedException {
+  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
     final AfterimageMeshRelayService afterimageSubscriberCheckClient = new AfterimageMeshRelayService(afterimageRelayUri);
     final Identity upvotedUser = Identity.generateRandomIdentity();
 
@@ -261,7 +260,7 @@ public class SearchRelaysListIT {
 
     List<EventIF> returnedReqGenericEvents_4 = getGenericEvents(items_8);
     assertEquals("3", returnedReqGenericEvents_4.getFirst().getContent());
-    
+
     afterimageRepRequestClient_3.closeSocket();
   }
 
@@ -286,7 +285,7 @@ public class SearchRelaysListIT {
                 reputationBadgeDefinitionEvent.getIdentifierTag())));
   }
 
-  private BaseEvent createSearchRelaysListEventMessage(String uri) throws NoSuchAlgorithmException {
+  private BaseEvent createSearchRelaysListEventMessage(String uri) {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
         "Kind.SEARCH_RELAYS_LIST",

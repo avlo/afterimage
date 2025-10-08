@@ -9,7 +9,6 @@ import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
@@ -17,7 +16,7 @@ public class BadgeAwardDownvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF>
   public BadgeAwardDownvoteEvent(
       @NonNull Identity identity,
       @NonNull PublicKey downvotedUser,
-      @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent) throws NostrException, NoSuchAlgorithmException {
+      @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent) throws NostrException {
     super(
         SuperconductorKindType.UNIT_DOWNVOTE,
         identity,
@@ -31,7 +30,7 @@ public class BadgeAwardDownvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF>
       @NonNull Identity identity,
       @NonNull PublicKey downvotedUser,
       @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
-      @NonNull List<BaseTag> tags) throws NostrException, NoSuchAlgorithmException {
+      @NonNull List<BaseTag> tags) throws NostrException {
     super(
         SuperconductorKindType.UNIT_DOWNVOTE,
         identity,

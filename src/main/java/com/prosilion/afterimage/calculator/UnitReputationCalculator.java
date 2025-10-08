@@ -14,7 +14,6 @@ import com.prosilion.superconductor.base.service.event.service.GenericEventKindT
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import java.math.BigDecimal;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.lang.NonNull;
@@ -34,7 +33,7 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
   public EventIF calculateUpdatedReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull Optional<EventIF> previousReputationEvent,
-      @NonNull EventIF incomingFollowSetsEvent) throws NoSuchAlgorithmException {
+      @NonNull EventIF incomingFollowSetsEvent) throws NostrException {
     return createReputationEvent(
         voteReceiverPubkey,
         calculateReputationEvent(
@@ -64,7 +63,7 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
     return uuids.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
-  private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException, NoSuchAlgorithmException {
+  private GenericEventKindTypeIF createReputationEvent(@NonNull PublicKey badgeReceiverPubkey, @NonNull BigDecimal score) throws NostrException {
     return new GenericNosqlEntityKindTypeDto(
         new BadgeAwardReputationEvent(
             aImgIdentity,
@@ -78,9 +77,11 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
   }
 
   private BigDecimal convertContentToScore(String event) {
-    assert VALID_TYPES.contains(event) : new InvalidTagException(event, VALID_TYPES);
-    boolean equals = event.equals(SuperconductorKindType.UNIT_UPVOTE.getName());
-    return equals ? new BigDecimal("1") : new BigDecimal("-1");
+    if (!VALID_TYPES.contains(event)) {
+//      TODO: replace unchecked excpetion with proper client notification
+      throw new IllegalArgumentException(new InvalidTagException(event, VALID_TYPES).getMessage());
+    }
+    return event.equals(SuperconductorKindType.UNIT_UPVOTE.getName()) ? new BigDecimal("1") : new BigDecimal("-1");
   }
 
   @Override

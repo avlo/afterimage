@@ -19,7 +19,6 @@ import com.prosilion.superconductor.base.service.event.service.plugin.EventKindP
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -54,7 +53,7 @@ public class FollowSetsEventPairOrderIT {
   }
 
   @Test
-  void testEventTagAddressTagPairsOrderAfterSaved() throws NoSuchAlgorithmException {
+  void testEventTagAddressTagPairsOrderAfterSaved() {
     List<EventTagAddressTagPair> pairs_1 = createPairs(1);
     FollowSetsEvent followSetsEvent_1 = createFollowSetsEvent(pairs_1);
 
@@ -121,7 +120,7 @@ public class FollowSetsEventPairOrderIT {
     assertEquals("6", savedReputationEvent_12.orElseThrow().getContent());
   }
 
-  private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) throws NoSuchAlgorithmException {
+  private @NotNull FollowSetsEvent createFollowSetsEvent(List<EventTagAddressTagPair> pairs) {
     return new FollowSetsEvent(
         authorIdentity,
         upvotedUser,
@@ -159,7 +158,7 @@ public class FollowSetsEventPairOrderIT {
   }
 
   @Test
-  void testEventTagAddressTagPairsOrder() throws NoSuchAlgorithmException {
+  void testEventTagAddressTagPairsOrder() {
     EventTag firstEventTag = new EventTag(
         Factory.generateRandomHex64String(),
         "aImgUrl");

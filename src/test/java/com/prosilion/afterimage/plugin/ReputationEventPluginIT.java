@@ -14,7 +14,6 @@ import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.entity.EventNosqlEntityIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +59,7 @@ public class ReputationEventPluginIT {
       @NonNull @Value("${votesCount}") Integer votesCount,
       @NonNull RedisCacheServiceIF cacheServiceIF,
       @NonNull EventKindTypePluginIF reputationEventPlugin,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
+      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
     this.votesCount = votesCount;
     this.cacheServiceIF = cacheServiceIF;
     this.repPlugin = (ReputationEventPlugin) reputationEventPlugin;
@@ -77,7 +76,7 @@ public class ReputationEventPluginIT {
   }
 
   @Test
-  void testProcessIncomingEvent() throws NoSuchAlgorithmException {
+  void testProcessIncomingEvent() {
     List<EventNosqlEntityIF> all = cacheServiceIF.getAll();
 
     int sizeOfGetAllBeforeDeletions = all.size();
@@ -129,7 +128,7 @@ public class ReputationEventPluginIT {
     return future;
   }
 
-  private GenericEventKindTypeIF createUpvoteDto(BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NoSuchAlgorithmException {
+  private GenericEventKindTypeIF createUpvoteDto(BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
     return new GenericNosqlEntityKindTypeDto(
         new BadgeAwardUpvoteEvent(
             authorIdentity,

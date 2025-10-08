@@ -16,7 +16,6 @@ import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindDto;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -57,7 +56,7 @@ class EventKindTypeServiceIT {
   }
 
   @Test
-  void testUpvoteEvent() throws NostrException, NoSuchAlgorithmException {
+  void testUpvoteEvent() throws NostrException {
     Identity voterIdentity = Identity.generateRandomIdentity();
     PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
@@ -77,7 +76,7 @@ class EventKindTypeServiceIT {
   }
 
   @Test
-  void testDownvoteEvent() throws NostrException, NoSuchAlgorithmException {
+  void testDownvoteEvent() throws NostrException {
     Identity identity = Identity.generateRandomIdentity();
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
@@ -90,7 +89,7 @@ class EventKindTypeServiceIT {
   }
 
   @Test
-  void testTextNoteEvent() throws NostrException, NoSuchAlgorithmException {
+  void testTextNoteEvent() throws NostrException {
     Identity identity = Identity.generateRandomIdentity();
 
     TextNoteEvent textNoteEvent = new TextNoteEvent(identity, "TEXT note event text content");
