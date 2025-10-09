@@ -7,6 +7,11 @@ services:
       - "6380:6379"
     environment:
       - "REDIS_ARGS=--appendonly yes"
+    networks:
+      - docker_network
 volumes:
   afterimage-db:
     driver: local
+networks:
+  docker_network:
+    driver: bridge

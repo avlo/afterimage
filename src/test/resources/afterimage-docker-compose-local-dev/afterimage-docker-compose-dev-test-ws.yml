@@ -1,31 +1,31 @@
 services:
-#  SC Redis 6379
-  superconductor-db:
-    image: "redis:8.0.0"
-    hostname: superconductor-db
-    ports:
-      - "6379:6379"
-#    healthcheck:
-#      test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
-#      retries: 10
-#      interval: 3s
-#      timeout: 30s
-    networks:
-      - docker_network
-#        
-#  SC App 5555
-  superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.17.1
-    ports:
-      - "5555:5555"
-    depends_on:
-      - superconductor-db
-#        condition: service_healthy
-    networks:
-      - docker_network
-    environment:
-      SPRING_PROFILES_ACTIVE: dev_ws
-      SPRING_DATA_REDIS_HOST: superconductor-db
+##  SC Redis 6379
+#  superconductor-db:
+#    image: "redis:8.0.0"
+#    hostname: superconductor-db
+#    ports:
+#      - "6379:6379"
+##    healthcheck:
+##      test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
+##      retries: 10
+##      interval: 3s
+##      timeout: 30s
+#    networks:
+#      - docker_network
+##        
+##  SC App 5555
+#  superconductor-afterimage:
+#    image: avlo/superconductor-app-redis:1.17.1
+#    ports:
+#      - "5555:5555"
+#    depends_on:
+#      - superconductor-db
+##        condition: service_healthy
+#    networks:
+#      - docker_network
+#    environment:
+#      SPRING_PROFILES_ACTIVE: dev_ws
+#      SPRING_DATA_REDIS_HOST: superconductor-db
 #
 #   aImg App2's Redis 6381 (docker container)
   afterimage-db-two:
@@ -33,11 +33,12 @@ services:
     hostname: afterimage-db-two
     ports:
       - "6381:6379"
-#    healthcheck:
-#      test: [ "CMD", "redis-cli" ,"ping", "afterimage-db-two" ]
-#      retries: 3
-#      interval: 3s
-#      timeout: 10s
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "afterimage-db-two" ]
+      retries: 5
+      interval: 3s
+      timeout: 15s
+      start_period: 10s
     networks:
       - docker_network
 #  
@@ -46,9 +47,15 @@ services:
     image: afterimage-nostr-reputation-relay:1.1.0
     ports:
       - "5557:5556"
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://localhost:5556/api-tests.html" ]
+      retries: 5
+      interval: 3s
+      timeout: 15s
+      start_period: 10s
     depends_on:
-      - afterimage-db-two
-#        condition: service_healthy
+      afterimage-db-two:
+        condition: service_healthy
     networks:
       - docker_network
     environment:

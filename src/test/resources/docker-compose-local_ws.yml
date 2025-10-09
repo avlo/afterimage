@@ -9,10 +9,10 @@ services:
       retries: 3
       interval: 3s
       timeout: 10s
+    environment:
+      - "REDIS_ARGS=--appendonly yes"
     networks:
       docker-network:
-#    environment:
-#      - "REDIS_ARGS=--appendonly yes"
 volumes:
   afterimage-db:
     driver: local
