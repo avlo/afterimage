@@ -11,10 +11,8 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,19 +61,19 @@ public class LocalDevApplication {
   }
 
   public static class FollowSetsDataLoaderRedis implements DataLoaderRedisIF {
-    private final EventPluginIF eventPlugin;
+    private final EventKindPluginIF afterimageFollowSetsEventPlugin;
     private final FollowSetsEvent followSetsEvent;
 
     public FollowSetsDataLoaderRedis(
-        @NonNull @Qualifier("eventPlugin") EventPluginIF eventPlugin,
+        @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
         @NonNull FollowSetsEvent followSetsEvent) {
-      this.eventPlugin = eventPlugin;
+      this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
       this.followSetsEvent = followSetsEvent;
     }
 
     @Override
     public void run(String... args) {
-      eventPlugin.processIncomingEvent(followSetsEvent);
+      afterimageFollowSetsEventPlugin.processIncomingEvent(followSetsEvent);
     }
   }
 }
