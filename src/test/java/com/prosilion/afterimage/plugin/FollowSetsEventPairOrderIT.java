@@ -44,12 +44,16 @@ public class FollowSetsEventPairOrderIT {
   private final Identity authorIdentity = Identity.generateRandomIdentity();
   private final PublicKey upvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
+  private final String afterimageRelayUrl;
+
   @Autowired
   public FollowSetsEventPairOrderIT(
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
-      @NonNull EventKindTypePluginIF reputationEventPlugin) {
+      @NonNull EventKindTypePluginIF reputationEventPlugin,
+      @NonNull String afterimageRelayUrl) {
     this.afterimageFollowSetsEventPlugin = (AfterimageFollowSetsEventPlugin) afterimageFollowSetsEventPlugin;
     this.reputationEventPlugin = (ReputationEventPlugin) reputationEventPlugin;
+    this.afterimageRelayUrl = afterimageRelayUrl;
   }
 
   @Test
@@ -134,7 +138,7 @@ public class FollowSetsEventPairOrderIT {
     int startIndex = 0;
     List<EventTag> eventTags = IntStream.range(startIndex, size)
         .mapToObj(i ->
-            new EventTag(Factory.generateRandomHex64String(), "aImgUrl"))
+            new EventTag(Factory.generateRandomHex64String(), afterimageRelayUrl))
         .toList();
 
     List<AddressTag> addressTags = IntStream.range(startIndex, size)
@@ -161,7 +165,7 @@ public class FollowSetsEventPairOrderIT {
   void testEventTagAddressTagPairsOrder() {
     EventTag firstEventTag = new EventTag(
         Factory.generateRandomHex64String(),
-        "aImgUrl");
+        afterimageRelayUrl);
     AddressTag firstAddressTag = new AddressTag(
         Kind.BADGE_AWARD_EVENT,
         authorIdentity.getPublicKey(),
@@ -172,7 +176,7 @@ public class FollowSetsEventPairOrderIT {
 
     List<EventTag> eventTags = IntStream.range(startIndex, size)
         .mapToObj(i ->
-            new EventTag(Factory.generateRandomHex64String(), "aImgUrl"))
+            new EventTag(Factory.generateRandomHex64String(), afterimageRelayUrl))
         .toList();
 
     List<AddressTag> addressTags = IntStream.range(startIndex, size)
