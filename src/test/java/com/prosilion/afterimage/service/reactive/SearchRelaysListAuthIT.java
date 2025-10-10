@@ -10,7 +10,6 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
-import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@EmbeddedRedisStandalone
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
-    "superconductor.auth.event.kinds=SEARCH_RELAYS_LIST",
-    "afterimage.relay.url=ws://localhost:5560",
-    "server.port=5560",
-    "spring.data.redis.port=6390"
+    "superconductor.auth.event.kinds=SEARCH_RELAYS_LIST"
+//    ,
+//    "afterimage.relay.url=ws://localhost:5560",
+//    "server.port=5560",
+//    "spring.data.redis.port=6390"
 })
 public class SearchRelaysListAuthIT {
   private final Identity afterimageInstanceIdentity;
