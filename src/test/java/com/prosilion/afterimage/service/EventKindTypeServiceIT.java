@@ -15,7 +15,6 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindDto;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@EmbeddedRedisStandalone
 @ActiveProfiles("test")
 class EventKindTypeServiceIT {
   private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
