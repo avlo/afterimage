@@ -7,10 +7,8 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli" ,"ping", "afterimage-db" ]
       retries: 3
-      interval: 3s
-      timeout: 10s
-    environment:
-      - "REDIS_ARGS=--appendonly yes"
+      interval: 1s
+      timeout: 2s
     networks:
       docker-network:
 volumes:

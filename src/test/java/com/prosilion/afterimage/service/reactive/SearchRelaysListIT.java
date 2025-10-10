@@ -23,14 +23,10 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -38,12 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -51,25 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Testcontainers
-@EmbeddedRedisStandalone
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class SearchRelaysListIT {
-
-  public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
-
-  @Container
-  private static final ComposeContainer DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
-      new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
-      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-      .withRemoveVolumes(true);
-
-  @Container
-  private static final ComposeContainer DOCKER_COMPOSE_CONTAINER_2 = new ComposeContainer(
-      new File("src/test/resources/superconductor-docker-compose-2/superconductor-docker-compose-dev-test-ws.yml"))
-      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-      .withRemoveVolumes(true);
-
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
@@ -77,27 +50,11 @@ public class SearchRelaysListIT {
   private final String superconductorRelayUri_2;
   private final String afterimageRelayUri;
 
-  @BeforeEach
-  public void setUp() {
-    log.info("BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()....");
-    DOCKER_COMPOSE_CONTAINER.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
-    DOCKER_COMPOSE_CONTAINER_2.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
-    log.info("... done BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()");
-  }
-
-  @BeforeAll
-  static void beforeAll() {
-    log.info("BeforeAll DOCKER_COMPOSE_CONTAINER.start()....");
-    DOCKER_COMPOSE_CONTAINER.start();
-    DOCKER_COMPOSE_CONTAINER_2.start();
-    log.info("... done BeforeAll DOCKER_COMPOSE_CONTAINER.start()");
-  }
-
   @Autowired
   public SearchRelaysListIT(
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${superconductor.relay.url.2}") String superconductorRelayUri_2,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
+      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+      @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrlTwo,
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
@@ -105,9 +62,9 @@ public class SearchRelaysListIT {
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
-    this.superconductorRelayUri = superconductorRelayUri;
-    this.superconductorRelayUri_2 = superconductorRelayUri_2;
-    this.afterimageRelayUri = afterimageRelayUri;
+    this.superconductorRelayUri = superconductorRelayUrl;
+    this.superconductorRelayUri_2 = superconductorRelayUrlTwo;
+    this.afterimageRelayUri = afterimageRelayUrl;
   }
 
   @Test

@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.afterimage.service.DockerITComposeContainer;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -30,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,8 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-public class AfterimageReqThenSuperconductorEventIT extends DockerITComposeContainer {
+public class AfterimageReqThenSuperconductorEventIT {
 
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;

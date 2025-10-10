@@ -21,14 +21,10 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -36,12 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,39 +41,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Testcontainers
-@EmbeddedRedisStandalone
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class SuperconductorEventThenAfterimageReqIT {
-
-  public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
-
-  @Container
-  private static final ComposeContainer DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
-      new File("src/test/resources/superconductor-docker-compose/superconductor-docker-compose-dev-test-ws.yml"))
-      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-      .withRemoveVolumes(true);
-
   private final EventServiceIF eventService;
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final PublicKey afterimageInstancePublicKey;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUri;
   private final String afterimageRelayUri;
-
-  @BeforeEach
-  public void setUp() {
-    log.info("BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()....");
-    DOCKER_COMPOSE_CONTAINER.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
-    log.info("... done BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()");
-  }
-
-  @BeforeAll
-  static void beforeAll() {
-    log.info("BeforeAll DOCKER_COMPOSE_CONTAINER.start()....");
-    DOCKER_COMPOSE_CONTAINER.start();
-    log.info("... done BeforeAll DOCKER_COMPOSE_CONTAINER.start()");
-  }
 
   @Autowired
   public SuperconductorEventThenAfterimageReqIT(
@@ -229,7 +194,8 @@ public class SuperconductorEventThenAfterimageReqIT {
         authorIdentity,
         upvotedUser.getPublicKey(),
         upvoteBadgeDefinitionEvent);
-//    GenericEventKindTypeIF upvote_2 = new GenericDocumentKindTypeDto(
+
+    //    GenericEventKindTypeIF upvote_2 = new GenericDocumentKindTypeDto(
 //        upvote_2,
 //        SuperconductorKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 
