@@ -152,7 +152,7 @@ run with docker logging displayed to console:
 
 <hr style="border:2px solid grey">
 
-### Providing Nostr relays for reputation-input events (by AfterImage)
+### Nostr relay discovery (reputation-input event sources)
 Upon receiving a [NIP-51 Search Relays](https://github.com/nostr-protocol/nips/blob/master/51.md#standard-lists) JSON event containing one or more nostr-relays:
 
 
