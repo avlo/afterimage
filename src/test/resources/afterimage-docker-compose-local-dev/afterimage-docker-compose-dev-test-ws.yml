@@ -64,7 +64,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: superconductor-db-two
-#
+      WEB_URL: http://superconductor-afterimage-two:5554/api-tests.html
+  #
 #   aImg App2's Redis 6381 (docker container)
   afterimage-db-two:
     image: "redis:8.0.0"
@@ -95,9 +96,12 @@ services:
         condition: service_healthy
     networks:
       - docker_network
+#    links:
+#      - superconductor-afterimage-two
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: afterimage-db-two
+#      WEB_URL: http://superconductor-afterimage-two:5554/api-tests.html
 #
 volumes:
   superconductor-db:

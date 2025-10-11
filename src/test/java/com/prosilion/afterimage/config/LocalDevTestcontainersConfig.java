@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
@@ -26,7 +25,9 @@ public class LocalDevTestcontainersConfig {
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
         new File("src/test/resources/afterimage-docker-compose-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-        .waitingFor("afterimage-app", Wait.forHealthcheck())
+//        .withExposedService("superconductor-afterimage", 5555)
+//        .withExposedService("superconductor-afterimage-two", 5554)
+//        .withExposedService("afterimage-app", 5557)
         .withRemoveVolumes(true);
   }
 }

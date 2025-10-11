@@ -24,28 +24,18 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.lang.NonNull;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -53,66 +43,36 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Testcontainers
-@EmbeddedRedisStandalone
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class RelaySetsIT {
-
-  public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
-  public static final String AFTERIMAGE = "afterimage-app";
-
-  @Container
-  private static final ComposeContainer AIMG_DOCKER_COMPOSE_CONTAINER = new ComposeContainer(
-      new File("src/test/resources/afterimage-docker-compose/afterimage-docker-compose-dev-test-ws.yml"))
-      .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-      .withExposedService(AFTERIMAGE, 5556)
-      .withRemoveVolumes(true);
-
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
-  private final String superconductorRelayUri;
-  private final String superconductorDockerRelayUri;
-  private final String afterimageDockerRelayUri;
-  private final String afterimageRelayUri;
-
-  @BeforeEach
-  public void setUp() {
-    log.info("BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()....");
-    AIMG_DOCKER_COMPOSE_CONTAINER.waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forHealthcheck());
-    AIMG_DOCKER_COMPOSE_CONTAINER.waitingFor(AFTERIMAGE, Wait.forHealthcheck());
-    log.info("... done BeforeEach DOCKER_COMPOSE_CONTAINER Wait.forHealthcheck()");
-  }
-
-  @BeforeAll
-  static void beforeAll() {
-    log.info("BeforeAll DOCKER_COMPOSE_CONTAINER.start()....");
-//    SC_DOCKER_COMPOSE_CONTAINER.start();
-    AIMG_DOCKER_COMPOSE_CONTAINER.start();
-    log.info("... done BeforeAll DOCKER_COMPOSE_CONTAINER.start()");
-  }
+  private final String superconductorRelayUrl;
+  private final String superconductorRelayUrl2;
+  private final String afterimageRelayUrl2;
+  private final String afterimageRelayUrl;
 
   @Autowired
   public RelaySetsIT(
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${superconductor.docker.relay.url}") String superconductorDockerRelayUri,
-      @NonNull @Value("${afterimage-docker.relay.url}") String afterimageDockerRelayUri,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
+//      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
+//      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrl2,
+//      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+//      @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrl2,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
-    this.superconductorRelayUri = superconductorRelayUri;
-    this.superconductorDockerRelayUri = superconductorDockerRelayUri;
-    this.afterimageDockerRelayUri = afterimageDockerRelayUri;
-    this.afterimageRelayUri = afterimageRelayUri;
+    this.superconductorRelayUrl = "ws://localhost:5555";
+    this.superconductorRelayUrl2 = "ws://localhost:5554";
+    this.afterimageRelayUrl = "ws://localhost:5556";
+    this.afterimageRelayUrl2 = "ws://localhost:5557";
   }
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
-    final AfterimageMeshRelayService afterimageSubscriberCheckClient = new AfterimageMeshRelayService(afterimageRelayUri);
+    final AfterimageMeshRelayService afterimageSubscriberCheckClient = new AfterimageMeshRelayService(afterimageRelayUrl);
     final Identity authorIdentity = Identity.generateRandomIdentity();
     final Identity upvotedUser = Identity.generateRandomIdentity();
 
@@ -147,7 +107,7 @@ public class RelaySetsIT {
 
 //  submit upvote event to SC
     TestSubscriber<OkMessage> okMessageSubscriber_sc_1 = new TestSubscriber<>();
-    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event), okMessageSubscriber_sc_1);
+    new AfterimageMeshRelayService(superconductorRelayUrl).send(new EventMessage(event), okMessageSubscriber_sc_1);
 
     TimeUnit.MILLISECONDS.sleep(500);
 
@@ -155,7 +115,7 @@ public class RelaySetsIT {
     assertEquals(true, items_1.getFirst().getFlag());
 
     TestSubscriber<OkMessage> okMessageSubscriber_sc_2 = new TestSubscriber<>();
-    new AfterimageMeshRelayService(superconductorRelayUri).send(new EventMessage(event_new), okMessageSubscriber_sc_2);
+    new AfterimageMeshRelayService(superconductorRelayUrl).send(new EventMessage(event_new), okMessageSubscriber_sc_2);
 
     TimeUnit.MILLISECONDS.sleep(500);
 
@@ -163,11 +123,11 @@ public class RelaySetsIT {
     assertEquals(true, items_2.getFirst().getFlag());
 
     TestSubscriber<OkMessage> okMessageSubscriber_aImg_1 = new TestSubscriber<>();
-    AfterimageMeshRelayService afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageDockerRelayUri);
+    AfterimageMeshRelayService afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUrl2);
     afterimageMeshRelayService
         .send(
             new EventMessage(
-                createSearchRelaysListEventMessage(superconductorDockerRelayUri)),
+                createSearchRelaysListEventMessage(superconductorRelayUrl)),
             okMessageSubscriber_aImg_1);
 
     List<OkMessage> items_aImg = okMessageSubscriber_aImg_1.getItems();
@@ -178,7 +138,7 @@ public class RelaySetsIT {
 //    TODO: check aImgDocker reputation, should have "2"
 
     TestSubscriber<BaseMessage> aImgDockerEventsSubscriber = new TestSubscriber<>();
-    final AfterimageMeshRelayService aImgDockerEventClient = new AfterimageMeshRelayService(afterimageDockerRelayUri);
+    final AfterimageMeshRelayService aImgDockerEventClient = new AfterimageMeshRelayService(afterimageRelayUrl2);
     aImgDockerEventClient.send(
         createReputationReqMessage(Factory.generateRandomHex64String(), upvotedUser.getPublicKey()),
         aImgDockerEventsSubscriber);
@@ -194,17 +154,17 @@ public class RelaySetsIT {
 //    assertEquals("2", returnedEventsAImg.getFirst().getContent());
 
 //    submit RelaySets event to aImg containing aImg docker as a RelaySets source 
-    new AfterimageMeshRelayService(afterimageRelayUri)
+    new AfterimageMeshRelayService(afterimageRelayUrl)
         .send(
             new EventMessage(
-                createRelaysSetsEventMessage(afterimageDockerRelayUri)),
+                createRelaysSetsEventMessage(afterimageRelayUrl2)),
             new TestSubscriber<>());
 
     TimeUnit.MILLISECONDS.sleep(1000);
 
 //  query Aimg for REPUTATION event existence
     TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
-    final AfterimageMeshRelayService afterimageRepRequestClient = new AfterimageMeshRelayService(afterimageRelayUri);
+    final AfterimageMeshRelayService afterimageRepRequestClient = new AfterimageMeshRelayService(afterimageRelayUrl);
     afterimageRepRequestClient.send(
         createReputationReqMessage(Factory.generateRandomHex64String(), upvotedUser.getPublicKey()),
         afterImageEventsSubscriber_A);

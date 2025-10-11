@@ -34,12 +34,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 
 @Slf4j
 @Configuration
+//@Profile("!test")
 public class LocalDevApplication {
   public static final Identity authorIdentity = Identity.generateRandomIdentity();
   public static final PublicKey UPVOTED_USER = Identity.create("1231231231231231231231231231231231231231231231231231231231231231").getPublicKey();
@@ -50,7 +51,7 @@ public class LocalDevApplication {
     SpringApplication.from(AfterimageApplication::main).with(LocalDevTestcontainersConfig.class).run(args);
   }
 
-  @Bean
+  //  @Bean
   public FollowSetsDataLoaderRedis followSetsDataLoaderRedis(
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity,
@@ -148,7 +149,7 @@ public class LocalDevApplication {
 
       List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
 
-      assert ("2".equals(returnedReqGenericEvents_2.getFirst().getContent()));
+      assert ("2" .equals(returnedReqGenericEvents_2.getFirst().getContent()));
     }
 
     private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
