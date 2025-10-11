@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.prosilion.afterimage.config.TestcontainersConfig;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -34,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 //    "server.port=5560",
 //    "spring.data.redis.port=6390"
 })
+@Import(TestcontainersConfig.class)
 public class SearchRelaysListAuthRejectionIT {
   private final Identity afterimageInstanceIdentity;
   private final String afterimageRelayUri;
@@ -53,7 +56,7 @@ public class SearchRelaysListAuthRejectionIT {
 
     aImgSearchRelaysListRejectionSubscriber.send(
         new EventMessage(
-            createSearchRelaysListEventMessage("ws://localhost:5560")),
+            createSearchRelaysListEventMessage("ws://localhost:1234")),
         rejectionClient);
 
     TimeUnit.MILLISECONDS.sleep(1000);
