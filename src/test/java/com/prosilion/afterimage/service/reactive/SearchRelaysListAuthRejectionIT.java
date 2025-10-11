@@ -34,12 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 //    "server.port=5560",
 //    "spring.data.redis.port=6390"
 })
-public class SearchRelaysListAuthIT {
+public class SearchRelaysListAuthRejectionIT {
   private final Identity afterimageInstanceIdentity;
   private final String afterimageRelayUri;
 
   @Autowired
-  public SearchRelaysListAuthIT(
+  public SearchRelaysListAuthRejectionIT(
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
