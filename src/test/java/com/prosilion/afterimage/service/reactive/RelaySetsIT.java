@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.prosilion.afterimage.config.TestcontainersConfig;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
@@ -29,45 +30,41 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-@TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Import(TestcontainersConfig.class)
 public class RelaySetsIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final Identity afterimageInstanceIdentity;
   private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUrl;
-  private final String superconductorRelayUrl2;
+  private final String superconductorContainerInternalRelayUrl;
   private final String afterimageRelayUrl2;
   private final String afterimageRelayUrl;
 
   @Autowired
   public RelaySetsIT(
-//      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-//      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrl2,
-//      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-//      @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrl2,
+      @NonNull String afterimageRelayUrl,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
-    this.superconductorRelayUrl = "ws://localhost:5555";
-    this.superconductorRelayUrl2 = "ws://localhost:5554";
-    this.afterimageRelayUrl = "ws://localhost:5556";
+    this.afterimageRelayUrl = afterimageRelayUrl;
     this.afterimageRelayUrl2 = "ws://localhost:5557";
+    this.superconductorRelayUrl = "ws://localhost:5555";
+    this.superconductorContainerInternalRelayUrl = "ws://superconductor-afterimage:5555";
   }
 
   @Test
@@ -127,7 +124,7 @@ public class RelaySetsIT {
     afterimageMeshRelayService
         .send(
             new EventMessage(
-                createSearchRelaysListEventMessage(superconductorRelayUrl)),
+                createSearchRelaysListEventMessage(superconductorContainerInternalRelayUrl)),
             okMessageSubscriber_aImg_1);
 
     List<OkMessage> items_aImg = okMessageSubscriber_aImg_1.getItems();
@@ -150,8 +147,8 @@ public class RelaySetsIT {
     log.debug("  {}", items_aImg_Docker);
 
     List<EventIF> returnedEventsAImg = getGenericEvents(items_aImg_Docker);
-//    assertEquals(1, returnedEventsAImg.size());
-//    assertEquals("2", returnedEventsAImg.getFirst().getContent());
+    assertEquals(1, returnedEventsAImg.size());
+    assertEquals("2", returnedEventsAImg.getFirst().getContent());
 
 //    submit RelaySets event to aImg containing aImg docker as a RelaySets source 
     new AfterimageMeshRelayService(afterimageRelayUrl)

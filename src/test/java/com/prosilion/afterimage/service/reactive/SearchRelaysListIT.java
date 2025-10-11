@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.prosilion.afterimage.config.TestcontainersConfig;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -42,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Import(TestcontainersConfig.class)
 public class SearchRelaysListIT {
   private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
   private final Identity afterimageInstanceIdentity;
