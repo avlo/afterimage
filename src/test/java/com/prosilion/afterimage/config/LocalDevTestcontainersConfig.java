@@ -25,9 +25,6 @@ public class LocalDevTestcontainersConfig {
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
         new File("src/test/resources/afterimage-docker-compose-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-//        .withExposedService("superconductor-afterimage", 5555)
-//        .withExposedService("superconductor-afterimage-two", 5554)
-//        .withExposedService("afterimage-app", 5557)
         .withRemoveVolumes(true);
   }
 }

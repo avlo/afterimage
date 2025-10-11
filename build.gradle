@@ -78,7 +78,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:' + apacheCommonsLang3
     implementation 'com.fasterxml.jackson.module:jackson-module-afterburner:' + jacksonModuleAfterburner
     implementation 'com.google.guava:guava:' + googleGuava
-    implementation 'org.springframework.boot:spring-boot-docker-compose'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     implementation 'org.awaitility:awaitility:' + awaitility
 
