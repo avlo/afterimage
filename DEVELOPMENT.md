@@ -11,12 +11,7 @@
 
 ### Development Mode
 
-- [SOLID](https://www.digitalocean.com/community/conceptual-articles/s-o-l-i-d-the-first-five-principles-of-object-oriented-design) engineering principles.  Simple.  Clean.  OO.
-  - understandability
-  - extensibility / modularization [(_HOW-TO: creating relay event-handlers_)](#adding-newcustom-events-to-afterimage)
-  - testing
-  - customization
-
+![AfterImage Architecture](arch-gridless.png "AfterImage Architecture")
 
 - Dependencies:
   - Java 21
