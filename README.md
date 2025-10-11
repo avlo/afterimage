@@ -27,7 +27,7 @@ Reputations are calculated based on customizable reputation formulae/functions d
 - reputation mesh-network / reputation aggregator
 
 ### Secondary function:
-- extensible reputation-authority framework
+- [extensible reputation-authority framework](DEVELOPMENT.md/#architecture)
 
 ----
 

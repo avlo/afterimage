@@ -11,8 +11,6 @@
 
 ### Development Mode
 
-![AfterImage Architecture](arch-gridless.png "AfterImage Architecture")
-
 - Dependencies:
   - Java 21
   - Spring [Boot](https://spring.io/projects/spring-boot) 3.3.4
@@ -23,6 +21,11 @@
 - Containerized deployment:
   - [Docker](https://hub.docker.com/_/docker) 27.5.0
   - [Docker Compose](https://docs.docker.com/compose/install/) v2.32.4
+
+----
+### Architecture
+
+![AfterImage Architecture](arch-gridless.png "AfterImage Architecture")
 
 ----
 
