@@ -10,9 +10,7 @@
 ```
 # Nostr Public-Key-reputation relay mesh network  
 
-<div align="center">
 ![AfterImage Mesh-Network Topography](afterimage-network-diagram.png "AfterImage Mesh-Network Topography")
-</div>
 
 AfterImage is a PublicKey-Reputation <abbr title="AfterImage relays can be made aware of other AfterImage relays, aggregating and transmitting reputations back to the mesh.">nostr relay mesh-network</abbr>.  
 
