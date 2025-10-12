@@ -12,13 +12,13 @@
 
 ![AfterImage Mesh-Network Topography](afterimage-network-diagram.png "AfterImage Mesh-Network Topography")
 
-AfterImage is a PublicKey-Reputation <abbr title="AfterImage relays can be made aware of other AfterImage relays, aggregating and transmitting reputations back to the mesh.">nostr relay mesh-network</abbr>.  
+AfterImage is a PublicKey-Reputation <abbr title="AfterImage relays can be made aware of other AfterImage relays, aggregating and transmitting reputations back to the mesh.">nostr relay mesh network</abbr>.  
 
-It listens to nostr-relays for PublicKey [NIP-58 Badge Award](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) (vote / reputation-input) events, then calculates and updates a reputation for every PublicKey it finds.
+Each AfterImage node listens to nostr relays for PublicKey [NIP-58 Badge Award](https://github.com/nostr-protocol/nips/blob/master/58.md#badge-award-event) (vote / reputation-input) events, calculates and updates a reputation for every PublicKey it finds, then transmits that PublicKey's reputation across all known AfterImage peers.
 
 These PublicKey-Reputations are then available for Nostr clients to query.
 
-Reputations are calculated based on customizable reputation formulae/functions defined by the AfterImage operator.
+Reputations are calculated from custom reputation formulae/functions defined by the AfterImage operator.
 
 ### Core functions:
 - vote/reputation-input recipient-PublicKey event listener 
