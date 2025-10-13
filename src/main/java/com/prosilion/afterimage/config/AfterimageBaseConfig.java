@@ -1,7 +1,5 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.InvalidReputationCalculatorException;
-import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.config.web.EventApiAuthUi;
 import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiAuthUi;
@@ -13,6 +11,7 @@ import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.UpvoteEventPlugin;
+import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.afterimage.service.request.AfterimageReqService;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
@@ -43,11 +42,7 @@ import com.prosilion.superconductor.base.service.event.type.SuperconductorKindTy
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,27 +82,12 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  ReputationCalculatorIF reputationCalculatorIF(
-      @NonNull @Value("${afterimage.calculator.impl}") String calculator,
-      @NonNull List<ReputationCalculatorIF> calculatorIFS) {
-    return Optional.ofNullable(
-            calculatorIFS.stream().collect(
-                    Collectors.toMap(
-                        ReputationCalculatorIF::getFullyQualifiedCalculatorName,
-                        Function.identity(),
-                        (prev, next) -> next, HashMap::new))
-                .get(calculator))
-        .orElseThrow(() ->
-            new InvalidReputationCalculatorException(calculator, calculatorIFS.stream().map(ReputationCalculatorIF::getFullyQualifiedCalculatorName).collect(Collectors.toList())));
-  }
-
-  @Bean
   EventKindTypePluginIF reputationEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull ReputationCalculatorIF reputationCalculatorIF) {
+      @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF) {
     return new ReputationEventPlugin(
         notifierService,
         new EventKindTypePlugin(
@@ -115,7 +95,7 @@ public abstract class AfterimageBaseConfig {
             eventPlugin),
         redisCacheServiceIF,
         aImgIdentity,
-        reputationCalculatorIF);
+        reputationCalculationServiceIF);
   }
 
   @Bean

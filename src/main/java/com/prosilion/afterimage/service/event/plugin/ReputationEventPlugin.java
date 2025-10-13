@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.InvalidTagException;
-import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
+import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
@@ -27,7 +27,7 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
-  private final ReputationCalculatorIF calculatorIF;
+  private final ReputationCalculationServiceIF reputationCalculationServiceIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
@@ -36,10 +36,10 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull ReputationCalculatorIF calculatorIF) {
+      @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF) {
     super(notifierService, eventKindTypePlugin);
     this.redisCacheServiceIF = redisCacheServiceIF;
-    this.calculatorIF = calculatorIF;
+    this.reputationCalculationServiceIF = reputationCalculationServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -53,7 +53,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
     previousReputationEvent.ifPresent(this::deletePreviousReputationCalculationEvent);
 
     super.processIncomingEvent(
-        calculatorIF.calculateUpdatedReputationEvent(
+        reputationCalculationServiceIF.calculateReputationEvent(
             voteReceiverPubkey,
             previousReputationEvent,
             incomingReputationEvent));

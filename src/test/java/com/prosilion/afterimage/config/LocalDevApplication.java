@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -48,7 +47,7 @@ public class LocalDevApplication {
   public static final String EVENT_ID_777 = "7777777777777777777777777777777777777777777777777777777777777777";
 
   public static void main(String[] args) {
-    SpringApplication.from(AfterimageApplication::main).with(LocalDevTestcontainersConfig.class).run(args);
+    SpringApplication.from(AfterimageApplication::main).with(TestcontainersConfig.class).run(args);
   }
 
   //  @Bean
@@ -149,7 +148,7 @@ public class LocalDevApplication {
 
       List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
 
-      assert ("2" .equals(returnedReqGenericEvents_2.getFirst().getContent()));
+      assert ("2".equals(returnedReqGenericEvents_2.getFirst().getContent()));
     }
 
     private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {

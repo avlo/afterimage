@@ -11,7 +11,7 @@ services:
       - docker_network
   afterimage-app:
     container_name: afterimage-app-redis-dev_ws
-    image: afterimage-nostr-reputation-relay:1.1.0
+    image: avlo/afterimage-nostr-reputation-relay:1.1.0
     ports:
       - "5556:5556"
     depends_on:
