@@ -114,7 +114,7 @@ public class ReputationReqMessageServiceIT {
         new ReqMessage(Factory.generateRandomHex64String(),
             new Filters(
                 new IdentifierTagFilter(
-                    new IdentifierTag(AfterimageKindType.REPUTATION.getName())))),
+                    new IdentifierTag(AfterimageKindType.UNIT_REPUTATION.getName())))),
         subscriber);
 
     assertTrue(
@@ -204,7 +204,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
-    assertEquals(AfterimageKindType.REPUTATION.getName(), Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
+    assertEquals(AfterimageKindType.UNIT_REPUTATION.getName(), Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
 
     BadgeAwardUpvoteEvent event_2 = new BadgeAwardUpvoteEvent(
         authorIdentity,
@@ -232,7 +232,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag_3.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag_3.getPublicKey());
-    assertEquals(AfterimageKindType.REPUTATION.getName(), Optional.ofNullable(reputationAddressTag_3.getIdentifierTag()).orElseThrow().getUuid());
+    assertEquals(AfterimageKindType.UNIT_REPUTATION.getName(), Optional.ofNullable(reputationAddressTag_3.getIdentifierTag()).orElseThrow().getUuid());
   }
 
   private @NotNull ReqMessage getReputationReqMessage(PublicKey upvotedUserPubKey) {

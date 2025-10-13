@@ -184,7 +184,7 @@ Upon receiving a Nostr [NIP-58 Badge Award](https://github.com/nostr-protocol/ni
   {
     "kinds":[8]
     '#p': ["<REPUTATION_RECIPIENT_PUBKEY>"],
-    '#d': ['REPUTATION']
+    '#d': ['UNIT_REPUTATION']
   }
 ]
 ```
@@ -197,7 +197,7 @@ AfterImage then applies a [user-provided reputation calculation](src/main/java/c
   "kind": 8,
   "pubkey": "<AFTERIMAGE_RELAY_PUBKEY>",
   "tags": [
-    ["a", "30009:<AFTERIMAGE_RELAY_PUBKEY>:REPUTATION"],
+    ["a", "30009:<AFTERIMAGE_RELAY_PUBKEY>:UNIT_REPUTATION"],
     ["p", "<REPUTATION_RECIPIENT_PUBKEY>"]
   ]
   "content": "<reputation_score>"

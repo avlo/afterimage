@@ -91,7 +91,7 @@ public abstract class AfterimageBaseConfig {
     return new ReputationEventPlugin(
         notifierService,
         new EventKindTypePlugin(
-            AfterimageKindType.REPUTATION,
+            AfterimageKindType.UNIT_REPUTATION,
             eventPlugin),
         redisCacheServiceIF,
         aImgIdentity,
@@ -179,7 +179,7 @@ public abstract class AfterimageBaseConfig {
     return new BadgeDefinitionEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
-            AfterimageKindType.REPUTATION.getName()),
+            AfterimageKindType.UNIT_REPUTATION.getName()),
         new ReferenceTag(
             afterimageRelayUrl),
         "afterimage reputation definition f(x)");

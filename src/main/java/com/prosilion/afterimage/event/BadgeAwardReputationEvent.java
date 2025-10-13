@@ -21,7 +21,7 @@ public class BadgeAwardReputationEvent extends AbstractBadgeAwardEvent<KindTypeI
       @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
       @NonNull List<BaseTag> tags,
       @NonNull BigDecimal score) throws NostrException {
-    super(AfterimageKindType.REPUTATION,
+    super(AfterimageKindType.UNIT_REPUTATION,
         aImgIdentity,
         new Reputation(
             badgeReceiverPubkey,

@@ -169,7 +169,7 @@ public class FollowSetsEventPairOrderIT {
     AddressTag firstAddressTag = new AddressTag(
         Kind.BADGE_AWARD_EVENT,
         authorIdentity.getPublicKey(),
-        new IdentifierTag(AfterimageKindType.REPUTATION.getName()));
+        new IdentifierTag(AfterimageKindType.UNIT_REPUTATION.getName()));
 
     int startIndex = 0;
     int size = 8;

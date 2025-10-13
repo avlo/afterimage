@@ -11,7 +11,7 @@ function cullEmptyKeyValuePairs() {
         // 'authors': (($("#authors1").val() !== "") ? [$("#authors1").val()] : undefined)
         'kinds': [8],
         '#p': [$("#referencePubKeys").val()],
-        '#d': ['REPUTATION']
+        '#d': ['UNIT_REPUTATION']
         // 'since': clickNow-1000,
         // 'until': clickNow,
         // 'limit': '1'

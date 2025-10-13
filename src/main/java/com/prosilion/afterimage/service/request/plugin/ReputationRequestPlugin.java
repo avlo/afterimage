@@ -62,6 +62,6 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    return AfterimageKindType.REPUTATION;
+    return AfterimageKindType.UNIT_REPUTATION;
   }
 }

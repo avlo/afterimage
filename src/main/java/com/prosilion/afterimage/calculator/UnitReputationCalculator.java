@@ -73,7 +73,7 @@ public class UnitReputationCalculator implements ReputationCalculatorIF {
                 new IdentifierTag(
                     getFullyQualifiedCalculatorName())),
             score),
-        AfterimageKindType.REPUTATION).convertBaseEventToGenericEventKindTypeIF();
+        AfterimageKindType.UNIT_REPUTATION).convertBaseEventToGenericEventKindTypeIF();
   }
 
   private BigDecimal convertContentToScore(String event) {
