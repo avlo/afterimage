@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.util;
+package com.prosilion.afterimage.service.reputation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +14,7 @@ import reactor.core.publisher.SignalType;
 import reactor.util.context.Context;
 
 @Slf4j
-public class TestSubscriber<T> extends BaseSubscriber<T> {
+public class ReputationServiceSubscriber<T> extends BaseSubscriber<T> {
   private final List<T> items = Collections.synchronizedList(new ArrayList<>());
   private final AtomicBoolean completed = new AtomicBoolean(false);
   private Subscription subscription;

@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.lang.NonNull;
 
 public interface ReputationCalculatorIF {
-  EventIF calculateUpdatedReputationEvent(
+  EventIF calculateReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull Optional<EventIF> previousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent);

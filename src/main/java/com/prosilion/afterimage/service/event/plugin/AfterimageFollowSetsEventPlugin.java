@@ -1,12 +1,10 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.calculator.UnitReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
-import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.EventTag;
@@ -30,7 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
+public class AfterimageFollowSetsEventPlugin
+    extends PublishingEventKindPlugin
+    implements FollowSetsCreatorPlugin { // kind 30_000
   private final EventKindTypePluginIF reputationEventPlugin;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
@@ -50,33 +50,11 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   @Override
   public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
     log.debug("{}} processing incoming Kind.FOLLOW_SETS 30_000 : [{}]", getClass().getSimpleName(), incomingFollowSetsEvent);
-    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEvent)
-        .stream()
-        .map(PubKeyTag::getPublicKey)
-        .findFirst().orElseThrow();
-    
-/*{
-  "kind": 30000,
-  "pubkey": "<AIMG_RELAY_PUBKEY>",
-  "tags": [
-    ["d", "<AimgRepCalculationClass>"],
-    ["p", "VOTE_RECIP_1_PUBKEY", "ws://sc.url:port"],
-
-    ["e", "VOTE_EVENT_ID_1", "ws://sc.url:port"],
-    ["a", "30009:SC_PUBKEY:upvote"],
-
-    ["e", "VOTE_EVENT_ID_2", "ws://sc.url:port"],
-    ["a", "30009:SC_PUBKEY:downvote"],
-
-  "content": current REP score 
-}*/
+    PublicKey voteReceiverPubkey = getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEvent).publicKey();
+    IdentifierTag calculatorIdentifierTag = getTypeSpecificTags(IdentifierTag.class, incomingFollowSetsEvent);
 
     Optional<GenericEventKind> existingFollowSetsEvent = getExistingFollowSetsEvent(voteReceiverPubkey);
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
-//    if (existingFollowSetsEvents.isEmpty()) {
-//      reputationEventPlugin.processIncomingEvent(incomingFollowSetsEvent);
-//      return;
-//    }
 
     List<FollowSetsEvent.EventTagAddressTagPair> incomingPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
     List<FollowSetsEvent.EventTagAddressTagPair> existingPairs = getEventTagAddressTagPairs(
@@ -86,14 +64,20 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         .filter(incomingEventTagAddressTagPair ->
             !existingPairs.contains(incomingEventTagAddressTagPair)).toList();
 
-    super.processIncomingEvent(
-        createFollowSetsEvent(
-            voteReceiverPubkey,
-            Stream.concat(existingPairs.stream(), nonMatches.stream()).toList()));
 
-    reputationEventPlugin.processIncomingEvent(
+    super.processIncomingEvent( // call to save (vote receiver's FOLLOW_SETS event history) of votes received    
         createFollowSetsEvent(
+            aImgIdentity,
             voteReceiverPubkey,
+            calculatorIdentifierTag,
+            Stream.concat(existingPairs.stream(), nonMatches.stream()).toList())
+    );
+
+    reputationEventPlugin.processIncomingEvent(  // call to update vote receiver's reputation score
+        createFollowSetsEvent(
+            aImgIdentity,
+            voteReceiverPubkey,
+            calculatorIdentifierTag,
             nonMatches));
   }
 
@@ -111,19 +95,6 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
                 eventIF.getTags(),
                 eventIF.getContent(),
                 eventIF.getSignature()));
-  }
-
-  @SneakyThrows
-  public EventIF createFollowSetsEvent(
-      @NonNull PublicKey voteReceiverPubkey,
-      @NonNull List<FollowSetsEvent.EventTagAddressTagPair> eventTagAddressTagPairs) {
-    return new FollowSetsEvent(
-        aImgIdentity,
-        voteReceiverPubkey,
-        new IdentifierTag(
-            UnitReputationCalculator.class.getCanonicalName()),
-        eventTagAddressTagPairs,
-        UnitReputationCalculator.class.getSimpleName()).getGenericEventRecord();
   }
 
   public List<FollowSetsEvent.EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
