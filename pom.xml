@@ -42,6 +42,7 @@
     <subdivisions.version>1.3.1</subdivisions.version>
     <superconductor.version>1.17.1</superconductor.version>
     <testcontainers.version>1.21.3</testcontainers.version>
+    <EvalEx.version>3.5.0</EvalEx.version>
   </properties>
 
   <dependencyManagement>
@@ -128,6 +129,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${commons-lang3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ezylang</groupId>
+      <artifactId>EvalEx</artifactId>
+      <version>${EvalEx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
