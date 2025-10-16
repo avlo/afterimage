@@ -19,7 +19,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -109,40 +108,20 @@ public class ExpressionTest {
 
   @Test
   void testVariableParserWithOperatorWithValuesFromEvents() {
-    BigDecimal startingTotalIsZero = BigDecimal.ZERO;
-    String CURRENT_TOTAL_STRING = "CURRENT_TOTAL";
-
-    List<ExternalIdentityTag> typeSpecificTagsStream =
-        Filterable.getTypeSpecificTags(ExternalIdentityTag.class, reputationDefinitioniEvent);
-
-    Map<String, String> bothMap =
-        typeSpecificTagsStream.stream().collect(
-            Collectors
-                .toMap(
-                    externalTag -> externalTag.getIdentifierTag().getUuid(),
-                    externalTag -> externalTag.getFormula(),
-                    (prev, next) -> next, HashMap::new));
-
-
-    List<String> operandsWithOperator = voteEvents.stream().map(abstractBadgeAwardEvent ->
-    {
-      String kindType = abstractBadgeAwardEvent.getKindType().toString();
-      String name = kindType.toUpperCase();
-      return bothMap.get(name);
-    }).toList();
-
-
-    String reduce = operandsWithOperator
-        .stream()
-        .reduce("0", (subtotal, element) ->
-            doCalc(CURRENT_TOTAL_STRING, subtotal, element));
-
-
-    assertEquals("0", reduce);
+    assertEquals(
+        "0",
+        voteEvents.stream().map(badgeAwardEvent ->
+                Filterable.getTypeSpecificTagsStream(ExternalIdentityTag.class, reputationDefinitioniEvent).collect(
+                    Collectors.toMap(
+                        externalIdentityTag -> externalIdentityTag.getIdentifierTag().getUuid(),
+                        ExternalIdentityTag::getFormula,
+                        (prev, next) -> next, HashMap::new)).get(badgeAwardEvent.getKindType().toString().toUpperCase()))
+            .reduce("0", this::doCalc));
   }
 
   @SneakyThrows
-  private String doCalc(String currentTotalString, String currentTotal, String operator) {
+  private String doCalc(String currentTotal, String operator) {
+    final String currentTotalString = "total";
     BigDecimal result = new Expression(
         String.format("%s %s", currentTotalString, operator))
         .with(currentTotalString, new BigDecimal(currentTotal))
