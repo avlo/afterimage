@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.web.EventApiAuthUi;
 import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiAuthUi;
@@ -7,10 +8,9 @@ import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
-import com.prosilion.afterimage.service.event.plugin.DownvoteEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.GeneralVoteEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventPlugin;
-import com.prosilion.afterimage.service.event.plugin.UpvoteEventPlugin;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.afterimage.service.request.AfterimageReqService;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
@@ -19,6 +19,8 @@ import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.message.EventMessage;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
@@ -38,7 +40,6 @@ import com.prosilion.superconductor.base.service.event.service.plugin.EventKindT
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -53,6 +54,10 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AfterimageBaseConfig {
+
+  public static final ExternalIdentityTag EXTERNAL_IDENTITY_TAG_UPVOTE = new ExternalIdentityTag(Kind.BADGE_AWARD_EVENT, new IdentifierTag(AfterimageKindType.UNIT_UPVOTE.getName()), "+1");
+  public static final ExternalIdentityTag EXTERNAL_IDENTITY_TAG_DOWNVOTE = new ExternalIdentityTag(Kind.BADGE_AWARD_EVENT, new IdentifierTag(AfterimageKindType.UNIT_DOWNVOTE.getName()), "-1");
+
   @Bean
   Identity afterimageInstanceIdentity(@NonNull @Value("${afterimage.key.private}") String privateKey) {
     return Identity.create(privateKey);
@@ -98,29 +103,40 @@ public abstract class AfterimageBaseConfig {
         reputationCalculationServiceIF);
   }
 
-  @Bean
-  EventKindTypePluginIF upvoteEventKindTypePlugin(
-      @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
-      @NonNull Identity aImgIdentity) {
-    return new UpvoteEventPlugin(
-        new EventKindTypePlugin(
-            SuperconductorKindType.UNIT_UPVOTE,
-            eventPlugin),
-        afterimageFollowSetsEventPlugin,
-        aImgIdentity);
-  }
+//  @Bean
+//  EventKindTypePluginIF upvoteEventKindTypePlugin(
+//      @NonNull EventPluginIF eventPlugin,
+//      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
+//      @NonNull Identity aImgIdentity) {
+//    return new UpvoteEventPlugin(
+//        new EventKindTypePlugin(
+//            SuperconductorKindType.UNIT_UPVOTE,
+//            eventPlugin),
+//        afterimageFollowSetsEventPlugin,
+//        aImgIdentity);
+//  }
+//
+//  @Bean
+//  EventKindTypePluginIF downvoteEventKindTypePlugin(
+//      @NonNull EventPluginIF eventPlugin,
+//      @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
+//      @NonNull Identity aImgIdentity) {
+//    return new DownvoteEventPlugin(
+//        new EventKindTypePlugin(
+//            SuperconductorKindType.UNIT_DOWNVOTE,
+//            eventPlugin),
+//        afterimageFollowSetsEventPlugin,
+//        aImgIdentity);
+//  }
 
   @Bean
-  EventKindTypePluginIF downvoteEventKindTypePlugin(
-      @NonNull EventPluginIF eventPlugin,
+  EventKindPluginIF generalVoteEventPlugin(
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
-    return new DownvoteEventPlugin(
-        new EventKindTypePlugin(
-            SuperconductorKindType.UNIT_DOWNVOTE,
-            eventPlugin),
-        afterimageFollowSetsEventPlugin,
+    return new GeneralVoteEventPlugin(
+        new EventKindPlugin(
+            Kind.BADGE_AWARD_EVENT,
+            afterimageFollowSetsEventPlugin),
         aImgIdentity);
   }
 
@@ -174,15 +190,25 @@ public abstract class AfterimageBaseConfig {
   @Bean
   BadgeDefinitionEvent reputationBadgeDefinitionEvent(
       @NonNull Identity afterimageInstanceIdentity,
-      @NonNull String afterimageRelayUrl) {
+      @NonNull String afterimageRelayUrl) throws JsonProcessingException {
 
-    return new BadgeDefinitionEvent(
+    BadgeDefinitionEvent badgeDefinitionEvent = new BadgeDefinitionEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
             AfterimageKindType.UNIT_REPUTATION.getName()),
         new ReferenceTag(
             afterimageRelayUrl),
+        List.of(
+            EXTERNAL_IDENTITY_TAG_UPVOTE,
+            EXTERNAL_IDENTITY_TAG_DOWNVOTE),
         "afterimage reputation definition f(x)");
+
+    System.out.println("000000000000000000000");
+    System.out.println("000000000000000000000");
+    System.out.println(new EventMessage(badgeDefinitionEvent).encode());
+    System.out.println("000000000000000000000");
+    System.out.println("000000000000000000000");
+    return badgeDefinitionEvent;
   }
 
   @Bean

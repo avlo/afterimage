@@ -1,30 +1,21 @@
 package com.prosilion.afterimage.event;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.internal.Vote;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.enums.KindTypeIF;
-import com.prosilion.nostr.event.AbstractBadgeAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
-import com.prosilion.nostr.event.internal.AwardEvent;
 import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
-public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
+public class BadgeAwardUpvoteEvent extends BadgeAwardGenericEvent {
   public BadgeAwardUpvoteEvent(
       @NonNull Identity authorIdentity,
       @NonNull PublicKey upvotedUser,
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) throws NostrException {
-    super(
-        SuperconductorKindType.UNIT_UPVOTE,
-        authorIdentity,
-        getAwardEvent(
-            upvotedUser,
-            upvoteBadgeDefinitionEvent),
-        upvoteBadgeDefinitionEvent.getContent());
+    this(authorIdentity, upvotedUser, upvoteBadgeDefinitionEvent, List.of());
   }
 
   public BadgeAwardUpvoteEvent(
@@ -33,16 +24,11 @@ public class BadgeAwardUpvoteEvent extends AbstractBadgeAwardEvent<KindTypeIF> {
       @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
       @NonNull List<BaseTag> tags) throws NostrException {
     super(
-        SuperconductorKindType.UNIT_UPVOTE,
+        AfterimageKindType.UNIT_UPVOTE.getName(),
         identity,
-        getAwardEvent(
-            upvotedUser,
-            upvoteBadgeDefinitionEvent),
+        new Vote(upvotedUser, upvoteBadgeDefinitionEvent).getAwardEvent(),
         tags,
         upvoteBadgeDefinitionEvent.getContent());
   }
 
-  private static AwardEvent getAwardEvent(PublicKey upvotedUser, BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
-    return new Vote(upvotedUser, upvoteBadgeDefinitionEvent).getAwardEvent();
-  }
 }

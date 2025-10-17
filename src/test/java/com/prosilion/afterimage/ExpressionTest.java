@@ -5,15 +5,14 @@ import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
+import com.prosilion.afterimage.event.BadgeAwardGenericEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
-import com.prosilion.nostr.event.AbstractBadgeAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class ExpressionTest {
   private final Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
   private final String afterimageRelayUrl = "ws://localhost:5555";
   private final BadgeDefinitionEvent reputationDefinitioniEvent;
-  private final List<AbstractBadgeAwardEvent<?>> voteEvents = new ArrayList<>();
+  private final List<BadgeAwardGenericEvent> voteEvents = new ArrayList<>();
   private final Identity authorIdentity = Identity.generateRandomIdentity();
 
   public ExpressionTest() {
@@ -56,7 +55,7 @@ public class ExpressionTest {
             Identity.generateRandomIdentity().getPublicKey(),
             new BadgeDefinitionEvent(
                 authorIdentity,
-                new IdentifierTag(SuperconductorKindType.UNIT_UPVOTE.getName()),
+                new IdentifierTag(AfterimageKindType.UNIT_UPVOTE.getName()),
                 new ReferenceTag(afterimageRelayUrl),
                 "1")));
 
@@ -66,7 +65,7 @@ public class ExpressionTest {
             Identity.generateRandomIdentity().getPublicKey(),
             new BadgeDefinitionEvent(
                 authorIdentity,
-                new IdentifierTag(SuperconductorKindType.UNIT_DOWNVOTE.getName()),
+                new IdentifierTag(AfterimageKindType.UNIT_DOWNVOTE.getName()),
                 new ReferenceTag(afterimageRelayUrl),
                 "-1")));
   }
@@ -134,7 +133,7 @@ public class ExpressionTest {
     BigDecimal startingTotalIsZero = BigDecimal.ZERO;
     String CURRENT_TOTAL_STRING = "CURRENT_TOTAL";
 
-    String UNIT_UPVOTE_STRING = SuperconductorKindType.UNIT_UPVOTE.getName();
+    String UNIT_UPVOTE_STRING = AfterimageKindType.UNIT_UPVOTE.getName();
     Number UNIT_UPVOTE_VALUE = parsePlusSign("+1");
 
     BigDecimal resultAfterUpvote = new Expression(
@@ -144,7 +143,7 @@ public class ExpressionTest {
         .evaluate().getNumberValue();
     assertEquals(new BigDecimal("1"), resultAfterUpvote);
 
-    String UNIT_DOWNVOTE_STRING = SuperconductorKindType.UNIT_DOWNVOTE.getName();
+    String UNIT_DOWNVOTE_STRING = AfterimageKindType.UNIT_DOWNVOTE.getName();
     Number UNIT_DOWNVOTE_VALUE = parsePlusSign("-1");
     assertEquals(
         new BigDecimal("0"),

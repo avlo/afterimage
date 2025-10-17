@@ -1,7 +1,8 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.calculator.UnitReputationCalculator;
+import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.afterimage.config.TestcontainersConfig;
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -26,14 +27,11 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -70,11 +68,11 @@ public class FollowSetsIT {
         authorIdentity,
         UPVOTED_USER,
         new IdentifierTag(
-            UnitReputationCalculator.class.getCanonicalName()),
+            DynamicReputationCalculator.class.getCanonicalName()),
         List.of(
             createPair(EVENT_ID_666, afterimageRelayUrl),
             createPair(EVENT_ID_777, afterimageRelayUrl)),
-        UnitReputationCalculator.class.getName());
+        DynamicReputationCalculator.class.getName());
   }
 
   @Test
@@ -155,7 +153,7 @@ public class FollowSetsIT {
             Kind.BADGE_AWARD_EVENT,
             authorIdentity.getPublicKey(),
             new IdentifierTag(
-                SuperconductorKindType.UNIT_UPVOTE
+                AfterimageKindType.UNIT_UPVOTE
                     .getName())));
   }
 }

@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.plugin;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.nostr.enums.Kind;
@@ -9,7 +10,6 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.entity.EventNosqlEntityIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -134,6 +134,6 @@ public class ReputationEventPluginIT {
             authorIdentity,
             upvotedUser,
             upvoteBadgeDefinitionEvent),
-        SuperconductorKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
+        AfterimageKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
   }
 }

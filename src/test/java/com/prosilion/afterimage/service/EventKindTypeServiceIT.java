@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service;
 
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
 import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
 import com.prosilion.nostr.NostrException;
@@ -11,7 +12,6 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindDto;
 import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -63,7 +63,7 @@ class EventKindTypeServiceIT {
         upvotedUser,
         upvoteBadgeDefinitionEvent);
 
-    GenericNosqlEntityKindTypeDto genericEventKindTypeDto = new GenericNosqlEntityKindTypeDto(event1, SuperconductorKindType.UNIT_UPVOTE);
+    GenericNosqlEntityKindTypeDto genericEventKindTypeDto = new GenericNosqlEntityKindTypeDto(event1, AfterimageKindType.UNIT_UPVOTE);
 
     GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
 
@@ -79,7 +79,7 @@ class EventKindTypeServiceIT {
     PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 
     BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
-    GenericEventKindTypeIF genericEventKindIF = new GenericNosqlEntityKindTypeDto(downvoteEvent, SuperconductorKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+    GenericEventKindTypeIF genericEventKindIF = new GenericNosqlEntityKindTypeDto(downvoteEvent, AfterimageKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
     eventKindTypeService.processIncomingEvent(genericEventKindIF);
 
     List<? extends EventIF> eventsByKind = cacheIF.getByKind(downvoteBadgeDefinitionEvent.getKind());

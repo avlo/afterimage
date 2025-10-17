@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.plugin;
 
-import com.prosilion.afterimage.calculator.UnitReputationCalculator;
+import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
@@ -17,7 +17,6 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.base.service.event.type.SuperconductorKindType;
 import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 import java.util.List;
 import java.util.Optional;
@@ -129,9 +128,9 @@ public class FollowSetsEventPairOrderIT {
         authorIdentity,
         upvotedUser,
         new IdentifierTag(
-            UnitReputationCalculator.class.getCanonicalName()),
+            DynamicReputationCalculator.class.getCanonicalName()),
         pairs,
-        UnitReputationCalculator.class.getName());
+        DynamicReputationCalculator.class.getName());
   }
 
   private List<EventTagAddressTagPair> createPairs(int size) {
@@ -155,10 +154,10 @@ public class FollowSetsEventPairOrderIT {
         .toList();
   }
 
-  private SuperconductorKindType getKindType(int i) {
+  private AfterimageKindType getKindType(int i) {
     if (i % 2 == 0)
-      return SuperconductorKindType.UNIT_UPVOTE;
-    return SuperconductorKindType.UNIT_DOWNVOTE;
+      return AfterimageKindType.UNIT_UPVOTE;
+    return AfterimageKindType.UNIT_DOWNVOTE;
   }
 
   @Test
@@ -196,9 +195,9 @@ public class FollowSetsEventPairOrderIT {
         authorIdentity,
         upvotedUser,
         new IdentifierTag(
-            UnitReputationCalculator.class.getCanonicalName()),
+            DynamicReputationCalculator.class.getCanonicalName()),
         expectedPairsOrder,
-        UnitReputationCalculator.class.getName());
+        DynamicReputationCalculator.class.getName());
 
     List<EventTagAddressTagPair> actualPairsOrder = afterimageFollowSetsEventPlugin.getEventTagAddressTagPairs(followSetsEvent.getTags());
 

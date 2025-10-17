@@ -33,26 +33,30 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    return 
-        new Filters(
-            new KindFilter(getKind()),
+    ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
+        .map(filters1 ->
+            filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
+        .flatMap(Collection::stream)
+        .map(ReferencedPublicKeyFilter.class::cast)
+        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY));
+
+    AddressTagFilter addressTagFilter = new AddressTagFilter(
+        new AddressTag(
+            Kind.BADGE_DEFINITION_EVENT,
+            getAImgIdentity().getPublicKey(),
             filtersList.stream()
-                .map(filters1 ->
-                    filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
+                .map(filters ->
+                    filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
                 .flatMap(Collection::stream)
-                .map(ReferencedPublicKeyFilter.class::cast)
-                .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY)),
-            new AddressTagFilter(
-                new AddressTag(
-                    Kind.BADGE_DEFINITION_EVENT,
-                    getAImgIdentity().getPublicKey(),
-                    filtersList.stream()
-                        .map(filters ->
-                            filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
-                        .flatMap(Collection::stream)
-                        .map(IdentifierTagFilter.class::cast)
-                        .map(IdentifierTagFilter::getFilterable)
-                        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY)))));
+                .map(IdentifierTagFilter.class::cast)
+                .map(IdentifierTagFilter::getFilterable)
+                .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY))));
+    Filters filters = new Filters(
+        new KindFilter(getKind()),
+        referencedPublicKeyFilter,
+        addressTagFilter);
+    
+    return filters;
   }
 
   @Override
