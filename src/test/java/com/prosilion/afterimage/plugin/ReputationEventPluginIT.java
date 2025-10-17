@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.plugin;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;

@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.event.internal;
+package com.prosilion.afterimage.util.event;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;

@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.event;
+package com.prosilion.afterimage.util.event;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.internal.Vote;
+import com.prosilion.afterimage.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.tag.BaseTag;

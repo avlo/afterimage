@@ -1,8 +1,8 @@
 package com.prosilion.afterimage.service;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
-import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardDownvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeDefinitionEvent;
 import com.prosilion.nostr.event.EventIF;

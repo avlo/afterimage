@@ -1,8 +1,8 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.event.BadgeAwardDownvoteEvent;
-import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardDownvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;

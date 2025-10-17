@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
