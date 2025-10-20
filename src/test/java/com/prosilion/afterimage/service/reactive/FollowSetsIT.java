@@ -1,13 +1,13 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
+import com.prosilion.afterimage.config.AfterimageBaseConfig;
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -47,13 +47,13 @@ public class FollowSetsIT {
   public static final PublicKey UPVOTED_USER = Identity.create("1231231231231231231231231231231231231231231231231231231231231231").getPublicKey();
   public static final String EVENT_ID_666 = "6666666666666666666666666666666666666666666666666666666666666666";
   public static final String EVENT_ID_777 = "7777777777777777777777777777777777777777777777777777777777777777";
-  BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  BadgeDefinitionReputationEvent badgeDefinitionReputationViaEventTagsEvent;
   Identity afterimageInstanceIdentity;
   FollowSetsEvent followSetsEvent;
 
   @Autowired
   public FollowSetsIT(
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationViaEventTagsEvent,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl) {
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
@@ -62,7 +62,7 @@ public class FollowSetsIT {
     System.out.println(UPVOTED_USER);
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.badgeDefinitionReputationViaEventTagsEvent = badgeDefinitionReputationViaEventTagsEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.followSetsEvent = new FollowSetsEvent(
         authorIdentity,
@@ -125,7 +125,7 @@ public class FollowSetsIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                reputationBadgeDefinitionEvent.getIdentifierTag())));
+                badgeDefinitionReputationViaEventTagsEvent.getIdentifierTag())));
   }
 
   private BaseEvent createRelaysSetsEventMessage(String uri) {
@@ -153,7 +153,6 @@ public class FollowSetsIT {
             Kind.BADGE_AWARD_EVENT,
             authorIdentity.getPublicKey(),
             new IdentifierTag(
-                AfterimageKindType.UNIT_UPVOTE
-                    .getName())));
+                new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE).getUuid())));
   }
 }

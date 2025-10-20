@@ -1,13 +1,14 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.filter.Filters;
@@ -46,9 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Import(TestcontainersConfig.class)
 public class SuperconductorEventThenAfterimageReqIT {
   private final EventServiceIF eventService;
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
   private final PublicKey afterimageInstancePublicKey;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final BadgeDefinitionReputationEvent badgeReputationDefinitionEvent;
   private final String superconductorRelayUri;
   private final String afterimageRelayUri;
 
@@ -57,11 +58,11 @@ public class SuperconductorEventThenAfterimageReqIT {
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
+    this.badgeReputationDefinitionEvent = badgeReputationDefinitionEvent;
     this.afterimageInstancePublicKey = afterimageInstanceIdentity.getPublicKey();
     this.eventService = eventService;
     this.superconductorRelayUri = superconductorRelayUri;
@@ -98,7 +99,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
 //        new GenericDocumentKindTypeDto(
@@ -176,7 +177,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     BadgeAwardUpvoteEvent upvote_1 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 //    GenericEventKindTypeIF upvote_1 = new GenericDocumentKindTypeDto(
 //        upvote_1,
 //        SuperconductorKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
@@ -195,7 +196,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     BadgeAwardUpvoteEvent upvote_2 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     //    GenericEventKindTypeIF upvote_2 = new GenericDocumentKindTypeDto(
 //        upvote_2,
@@ -211,7 +212,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     log.debug("received 2of2 OkMessage...");
 
 ////    create & submit subscriber's third Event to superconductor
-//    BadgeAwardUpvoteEvent textNoteEvent_3 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), upvoteBadgeDefinitionEvent);
+//    BadgeAwardUpvoteEvent textNoteEvent_3 = new BadgeAwardUpvoteEvent(authorIdentity, upvotedUser.getPublicKey(), badgeDefinitionUpvoteEvent);
 //    GenericEventKindTypeIF genericEventKindIF3 = new GenericDocumentKindTypeDto(textNoteEvent_3, SuperconductorKindType.UNIT_UPVOTE).convertBaseEventToGenericEventKindTypeIF();
 //
 ////    okMessageSubscriber_1.dispose();
@@ -291,7 +292,7 @@ public class SuperconductorEventThenAfterimageReqIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                reputationBadgeDefinitionEvent.getIdentifierTag())));
+                badgeReputationDefinitionEvent.getIdentifierTag())));
   }
 
   private ReqMessage createSuperconductorReqMessage(String subscriberId) {

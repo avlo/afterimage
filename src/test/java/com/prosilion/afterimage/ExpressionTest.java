@@ -3,15 +3,13 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
-import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.util.event.BadgeAwardDownvoteEvent;
-import com.prosilion.afterimage.event.BadgeAwardGenericEvent;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.afterimage.config.AfterimageBaseConfig;
+import com.prosilion.afterimage.config.AfterimageWsConfig;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -22,52 +20,34 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.EXTERNAL_IDENTITY_TAG_DOWNVOTE;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.EXTERNAL_IDENTITY_TAG_UPVOTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ActiveProfiles("test")
+@SpringBootTest
 public class ExpressionTest {
-  private final Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
-  private final String afterimageRelayUrl = "ws://localhost:5555";
-  private final BadgeDefinitionEvent reputationDefinitioniEvent;
-  private final List<BadgeAwardGenericEvent> voteEvents = new ArrayList<>();
-  private final Identity authorIdentity = Identity.generateRandomIdentity();
+  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
+  private final List<BadgeDefinitionAwardEvent> voteEvents = new ArrayList<>();
 
-  public ExpressionTest() {
-    this.reputationDefinitioniEvent = new BadgeDefinitionEvent(
+  @Autowired
+  public ExpressionTest(BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) throws ParseException {
+    this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
+    Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
+    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(
         afterimageInstanceIdentity,
-        new IdentifierTag(
-            AfterimageKindType.UNIT_REPUTATION.getName()),
-        new ReferenceTag(
-            afterimageRelayUrl),
-        List.of(
-            EXTERNAL_IDENTITY_TAG_UPVOTE,
-            EXTERNAL_IDENTITY_TAG_DOWNVOTE),
-        "afterimage reputation definition f(x)");
+        new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE));
 
-    this.voteEvents.add(
-        new BadgeAwardUpvoteEvent(
-            authorIdentity,
-            Identity.generateRandomIdentity().getPublicKey(),
-            new BadgeDefinitionEvent(
-                authorIdentity,
-                new IdentifierTag(AfterimageKindType.UNIT_UPVOTE.getName()),
-                new ReferenceTag(afterimageRelayUrl),
-                "1")));
+    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(
+        afterimageInstanceIdentity,
+        new IdentifierTag(AfterimageBaseConfig.UNIT_DOWNVOTE));
 
-    this.voteEvents.add(
-        new BadgeAwardDownvoteEvent(
-            authorIdentity,
-            Identity.generateRandomIdentity().getPublicKey(),
-            new BadgeDefinitionEvent(
-                authorIdentity,
-                new IdentifierTag(AfterimageKindType.UNIT_DOWNVOTE.getName()),
-                new ReferenceTag(afterimageRelayUrl),
-                "-1")));
+    this.voteEvents.add(upvoteDefinitionEvent);
+    this.voteEvents.add(downvoteDefinitionEvent);
   }
 
   @Test
@@ -110,11 +90,11 @@ public class ExpressionTest {
     assertEquals(
         "0",
         voteEvents.stream().map(badgeAwardEvent ->
-                Filterable.getTypeSpecificTagsStream(ExternalIdentityTag.class, reputationDefinitioniEvent).collect(
+                Filterable.getTypeSpecificTagsStream(ExternalIdentityTag.class, badgeDefinitionReputationEvent).collect(
                     Collectors.toMap(
                         externalIdentityTag -> externalIdentityTag.getIdentifierTag().getUuid(),
                         ExternalIdentityTag::getFormula,
-                        (prev, next) -> next, HashMap::new)).get(badgeAwardEvent.getKindType().toString().toUpperCase()))
+                        (prev, next) -> next, HashMap::new)).get(badgeAwardEvent.getIdentifierTag().getUuid().toUpperCase()))
             .reduce("0", this::doCalc));
   }
 
@@ -133,7 +113,7 @@ public class ExpressionTest {
     BigDecimal startingTotalIsZero = BigDecimal.ZERO;
     String CURRENT_TOTAL_STRING = "CURRENT_TOTAL";
 
-    String UNIT_UPVOTE_STRING = AfterimageKindType.UNIT_UPVOTE.getName();
+    String UNIT_UPVOTE_STRING = new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE).getUuid();
     Number UNIT_UPVOTE_VALUE = parsePlusSign("+1");
 
     BigDecimal resultAfterUpvote = new Expression(
@@ -143,7 +123,7 @@ public class ExpressionTest {
         .evaluate().getNumberValue();
     assertEquals(new BigDecimal("1"), resultAfterUpvote);
 
-    String UNIT_DOWNVOTE_STRING = AfterimageKindType.UNIT_DOWNVOTE.getName();
+    String UNIT_DOWNVOTE_STRING = new IdentifierTag(AfterimageBaseConfig.UNIT_DOWNVOTE).getUuid();
     Number UNIT_DOWNVOTE_VALUE = parsePlusSign("-1");
     assertEquals(
         new BigDecimal("0"),

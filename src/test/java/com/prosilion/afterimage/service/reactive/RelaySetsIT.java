@@ -1,13 +1,14 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.RelaySetsEvent;
@@ -44,9 +45,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
 public class RelaySetsIT {
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
   private final Identity afterimageInstanceIdentity;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent;
   private final String superconductorRelayUrl;
   private final String superconductorContainerInternalRelayUrl;
   private final String afterimageRelayUrl2;
@@ -55,11 +56,11 @@ public class RelaySetsIT {
   @Autowired
   public RelaySetsIT(
       @NonNull String afterimageRelayUrl,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
+    this.reputationBadgeDefinitionEvent = badgeReputationDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.afterimageRelayUrl2 = "ws://localhost:5557";
@@ -93,12 +94,12 @@ public class RelaySetsIT {
     BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     BadgeAwardUpvoteEvent event_new = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     assertEquals(event.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
 

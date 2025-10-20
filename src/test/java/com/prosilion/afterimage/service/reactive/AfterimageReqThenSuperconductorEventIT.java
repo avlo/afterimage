@@ -1,13 +1,14 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.filter.Filters;
@@ -48,20 +49,20 @@ public class AfterimageReqThenSuperconductorEventIT {
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
+  private final BadgeDefinitionReputationEvent badgeReputationDefinitionEvent;
 
   @Autowired
   public AfterimageReqThenSuperconductorEventIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent) {
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent) {
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
+    this.badgeReputationDefinitionEvent = badgeReputationDefinitionEvent;
     this.eventService = eventService;
   }
 
@@ -84,7 +85,7 @@ public class AfterimageReqThenSuperconductorEventIT {
     BadgeAwardUpvoteEvent badgeAwardUpvoteEvent_1 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
 //        new GenericDocumentKindTypeDto(
 //            badgeAwardUpvoteEvent_1,
@@ -104,7 +105,7 @@ public class AfterimageReqThenSuperconductorEventIT {
     BadgeAwardUpvoteEvent badgeAwardUpvoteEvent_2 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_2 =
 //        new GenericDocumentKindTypeDto(
 //            badgeAwardUpvoteEvent_2,
@@ -179,7 +180,7 @@ public class AfterimageReqThenSuperconductorEventIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                reputationBadgeDefinitionEvent.getIdentifierTag())));
+                badgeReputationDefinitionEvent.getIdentifierTag())));
   }
 
   private ReqMessage createSuperconductorReqMessage(String subscriberId) {

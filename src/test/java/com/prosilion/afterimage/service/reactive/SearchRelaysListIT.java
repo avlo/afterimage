@@ -1,13 +1,14 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
@@ -46,9 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
 public class SearchRelaysListIT {
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
   private final Identity afterimageInstanceIdentity;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final BadgeDefinitionReputationEvent badgeReputationDefinitionEvent;
   private final String superconductorRelayUri;
   private final String superconductorRelayUri_2;
   private final String afterimageRelayUri;
@@ -58,12 +59,12 @@ public class SearchRelaysListIT {
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrlTwo,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
 
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-    this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
+    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
+    this.badgeReputationDefinitionEvent = badgeReputationDefinitionEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUri = superconductorRelayUrl;
     this.superconductorRelayUri_2 = superconductorRelayUrlTwo;
@@ -98,12 +99,12 @@ public class SearchRelaysListIT {
     BadgeAwardUpvoteEvent event = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     BadgeAwardUpvoteEvent event_new = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     assertEquals(event.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
 
@@ -164,7 +165,7 @@ public class SearchRelaysListIT {
     BadgeAwardUpvoteEvent event_2 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
 
     assertEquals(event_2.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
 
@@ -242,7 +243,7 @@ public class SearchRelaysListIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                reputationBadgeDefinitionEvent.getIdentifierTag())));
+                badgeReputationDefinitionEvent.getIdentifierTag())));
   }
 
   private BaseEvent createSearchRelaysListEventMessage(String uri) {

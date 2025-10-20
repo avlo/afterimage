@@ -1,9 +1,9 @@
 package com.prosilion.afterimage.service.reputation;
 
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
+import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.user.PublicKey;
-import java.util.Optional;
 import org.springframework.lang.NonNull;
 
 public class ReputationCalculationLocalService implements ReputationCalculationServiceIF {
@@ -16,8 +16,8 @@ public class ReputationCalculationLocalService implements ReputationCalculationS
   @Override
   public EventIF calculateReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
-      @NonNull Optional<EventIF> previousReputationEvent,
+      @NonNull BadgeAwardReputationEvent dbPreviousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent) {
-    return reputationCalculatorIF.calculateUpdatedReputationEvent(voteReceiverPubkey, previousReputationEvent, incomingFollowSetsEvent);
+    return reputationCalculatorIF.calculateUpdatedReputationEvent(voteReceiverPubkey, dbPreviousReputationEvent, incomingFollowSetsEvent);
   }
 }

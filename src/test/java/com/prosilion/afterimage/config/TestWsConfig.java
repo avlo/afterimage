@@ -14,7 +14,6 @@ import org.springframework.lang.NonNull;
     havingValue = "false",
     matchIfMissing = true)
 public class TestWsConfig {
-
   @Bean
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageMeshRelayService afterimageMeshRelayService(@NonNull String afterimageRelayUrl) {

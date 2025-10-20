@@ -1,7 +1,7 @@
-package com.prosilion.afterimage.util.event;
+package com.prosilion.afterimage.event.internal;
 
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.internal.AwardEvent;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
@@ -15,12 +15,12 @@ import org.springframework.lang.NonNull;
 public class Vote {
   private final AwardEvent awardEvent;
 
-  public Vote(@NonNull PublicKey upvotedUser, @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent) {
+  public Vote(@NonNull PublicKey upvotedUser, @NonNull BadgeDefinitionAwardEvent badgeAwardDefinitionEvent) {
     awardEvent = new AwardEvent(
         new AddressTag(
             Kind.BADGE_DEFINITION_EVENT,
-            upvoteBadgeDefinitionEvent.getPublicKey(),
-            upvoteBadgeDefinitionEvent.getIdentifierTag()),
+            badgeAwardDefinitionEvent.getPublicKey(),
+            badgeAwardDefinitionEvent.getIdentifierTag()),
         new PubKeyTag(upvotedUser));
   }
 }

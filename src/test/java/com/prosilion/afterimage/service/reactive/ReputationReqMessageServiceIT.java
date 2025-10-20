@@ -1,14 +1,15 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.util.event.BadgeAwardDownvoteEvent;
-import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
+import com.prosilion.afterimage.config.AfterimageBaseConfig;
+import com.prosilion.afterimage.event.internal.BadgeAwardDownvoteEvent;
+import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
@@ -48,23 +49,23 @@ public class ReputationReqMessageServiceIT {
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
   private final Identity afterimageInstanceIdentity;
-  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
-  private final BadgeDefinitionEvent downvoteBadgeDefinitionEvent;
-  private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
+  private final BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent;
+  private final BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent;
 
   @Autowired
   public ReputationReqMessageServiceIT(
       @NonNull EventServiceIF eventService,
       @NonNull AfterimageMeshRelayService afterimageMeshRelayService,
-      @NonNull BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent,
+      @NonNull BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.afterimageMeshRelayService = afterimageMeshRelayService;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.eventService = eventService;
-    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
-    this.downvoteBadgeDefinitionEvent = downvoteBadgeDefinitionEvent;
+    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
+    this.badgeDefinitionDownvoteEvent = badgeDefinitionDownvoteEvent;
     this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
   }
 
@@ -114,7 +115,7 @@ public class ReputationReqMessageServiceIT {
         new ReqMessage(Factory.generateRandomHex64String(),
             new Filters(
                 new IdentifierTagFilter(
-                    new IdentifierTag(AfterimageKindType.UNIT_REPUTATION.getName())))),
+                    new IdentifierTag(AfterimageBaseConfig.UNIT_REPUTATION)))),
         subscriber);
 
     assertTrue(
@@ -185,7 +186,7 @@ public class ReputationReqMessageServiceIT {
     BadgeAwardUpvoteEvent event_1 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUserPubKey,
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
     eventService.processIncomingEvent(new EventMessage(event_1));
 
 //    submit Req for above event_1 to Aimg
@@ -204,18 +205,18 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag.getPublicKey());
-    assertEquals(AfterimageKindType.UNIT_REPUTATION.getName(), Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
+    assertEquals(AfterimageBaseConfig.UNIT_REPUTATION, Optional.ofNullable(reputationAddressTag.getIdentifierTag()).orElseThrow().getUuid());
 
     BadgeAwardUpvoteEvent event_2 = new BadgeAwardUpvoteEvent(
         authorIdentity,
         upvotedUserPubKey,
-        upvoteBadgeDefinitionEvent);
+        badgeDefinitionUpvoteEvent);
     eventService.processIncomingEvent(new EventMessage(event_2));
 
     BadgeAwardDownvoteEvent event_3 = new BadgeAwardDownvoteEvent(
         authorIdentity,
         upvotedUserPubKey,
-        downvoteBadgeDefinitionEvent);
+        badgeDefinitionDownvoteEvent);
     eventService.processIncomingEvent(new EventMessage(event_3));
 
     ReqMessage reputationReqMessage_3 = getReputationReqMessage(upvotedUserPubKey);
@@ -232,7 +233,7 @@ public class ReputationReqMessageServiceIT {
 
     assertEquals(Kind.BADGE_DEFINITION_EVENT, reputationAddressTag_3.getKind());
     assertEquals(afterimageInstanceIdentity.getPublicKey(), reputationAddressTag_3.getPublicKey());
-    assertEquals(AfterimageKindType.UNIT_REPUTATION.getName(), Optional.ofNullable(reputationAddressTag_3.getIdentifierTag()).orElseThrow().getUuid());
+    assertEquals(AfterimageBaseConfig.UNIT_REPUTATION, Optional.ofNullable(reputationAddressTag_3.getIdentifierTag()).orElseThrow().getUuid());
   }
 
   private @NotNull ReqMessage getReputationReqMessage(PublicKey upvotedUserPubKey) {

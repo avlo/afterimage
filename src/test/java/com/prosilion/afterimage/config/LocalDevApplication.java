@@ -2,12 +2,11 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.AfterimageApplication;
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
-import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionEvent;
+import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -37,6 +36,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 
+
 @Slf4j
 @Configuration
 //@Profile("!test")
@@ -52,7 +52,7 @@ public class LocalDevApplication {
 
   //  @Bean
   public FollowSetsDataLoaderRedis followSetsDataLoaderRedis(
-      @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+      @NonNull BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl) {
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
@@ -84,17 +84,16 @@ public class LocalDevApplication {
             Kind.BADGE_AWARD_EVENT,
             authorIdentity.getPublicKey(),
             new IdentifierTag(
-                AfterimageKindType.UNIT_UPVOTE
-                    .getName())));
+                new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE).getUuid())));
   }
 
   public static class FollowSetsDataLoaderRedis implements DataLoaderRedisIF {
     private final FollowSetsEvent followSetsEvent;
     private final Identity afterimageInstanceIdentity;
-    private final BadgeDefinitionEvent reputationBadgeDefinitionEvent;
+    private final BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent;
 
     public FollowSetsDataLoaderRedis(
-        @NonNull BadgeDefinitionEvent reputationBadgeDefinitionEvent,
+        @NonNull BadgeDefinitionReputationEvent reputationBadgeDefinitionEvent,
         @NonNull FollowSetsEvent followSetsEvent,
         @NonNull Identity afterimageInstanceIdentity) {
       this.reputationBadgeDefinitionEvent = reputationBadgeDefinitionEvent;
