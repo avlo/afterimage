@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.db;
 
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeDefinitionReputationFormulaEvent;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.PublicKey;
@@ -45,11 +45,11 @@ public class AfterimageCacheService extends RedisCacheService {
     return event.getEventTags().stream()
         .map(eventTag ->
             super.getEventByEventId(eventTag.getIdEvent()))
-            .map(BadgeDefinitionReputationFormulaEvent.class::cast)
+            .map(FormulaEvent.class::cast)
             .collect(
                 Collectors.toMap(item ->
                         item.getIdentifierTag().getUuid(),
-                    BadgeDefinitionReputationFormulaEvent::getFormula,
+                    FormulaEvent::getFormula,
                     (prev, next) -> next, HashMap::new));
   }
 }

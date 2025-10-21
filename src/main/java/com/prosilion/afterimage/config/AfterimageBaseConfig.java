@@ -17,7 +17,7 @@ import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationFormulaEvent;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
@@ -219,11 +219,11 @@ public abstract class AfterimageBaseConfig {
         new IdentifierTag(
             UNIT_REPUTATION),
         List.of(
-            new BadgeDefinitionReputationFormulaEvent(
+            new FormulaEvent(
                 afterimageInstanceIdentity,
                 upvoteIdentityTag,
                 PLUS_ONE_FORMULA),
-            new BadgeDefinitionReputationFormulaEvent(
+            new FormulaEvent(
                 afterimageInstanceIdentity,
                 downvoteIdentityTag,
                 MINUS_ONE_FORMULA)));
