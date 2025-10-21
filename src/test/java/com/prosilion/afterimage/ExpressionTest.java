@@ -4,14 +4,12 @@ import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.AfterimageBaseConfig;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -30,17 +28,9 @@ public class ExpressionTest {
   public static final IdentifierTag DOWNVOTE_IDENTIFIER_TAG = new IdentifierTag(AfterimageBaseConfig.UNIT_DOWNVOTE);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
-  private final List<BadgeDefinitionAwardEvent> voteEvents = new ArrayList<>();
 
   public ExpressionTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
-    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(
-        afterimageInstanceIdentity,
-        UPVOTE_IDENTIFIER_TAG);
-
-    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(
-        afterimageInstanceIdentity,
-        DOWNVOTE_IDENTIFIER_TAG);
 
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
@@ -69,9 +59,6 @@ public class ExpressionTest {
                 afterimageInstanceIdentity,
                 UPVOTE_IDENTIFIER_TAG,
                 PLUS_ONE_FORMULA)));
-    
-    this.voteEvents.add(upvoteDefinitionEvent);
-    this.voteEvents.add(downvoteDefinitionEvent);
   }
 
   @Test
@@ -111,6 +98,7 @@ public class ExpressionTest {
 
   @Test
   void testAddOneSubtractOne() {
+    log.info(badgeDefinitionReputationEventAddOneSubtractOne.getContent());
     assertEquals(
         "0",
         badgeDefinitionReputationEventAddOneSubtractOne.getFormulaEvents().stream()
@@ -121,6 +109,7 @@ public class ExpressionTest {
 
   @Test
   void testAddOneAddOne() {
+    log.info(badgeDefinitionReputationEventAddOneAddOne.getContent());
     assertEquals(
         "2",
         badgeDefinitionReputationEventAddOneAddOne.getFormulaEvents().stream()
@@ -128,7 +117,7 @@ public class ExpressionTest {
             .reduce(this::doCalc)
             .orElseThrow());
   }
-  
+
   @SneakyThrows
   private String doCalc(String currentTotal, String operator) {
     final String currentTotalString = "total";
