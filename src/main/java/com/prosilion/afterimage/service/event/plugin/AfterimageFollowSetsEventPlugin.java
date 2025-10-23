@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
+import com.prosilion.afterimage.config.AfterimageBaseConfig;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -53,29 +54,14 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
-    
-/*{
-  "kind": 30000,
-  "pubkey": "<AIMG_RELAY_PUBKEY>",
-  "tags": [
-    ["d", "<AimgRepCalculationClass>"],
-    ["p", "VOTE_RECIP_1_PUBKEY", "ws://sc.url:port"],
 
-    ["e", "VOTE_EVENT_ID_1", "ws://sc.url:port"],
-    ["a", "30009:SC_PUBKEY:upvote"],
+    IdentifierTag identifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, incomingFollowSetsEvent)
+        .stream()
+        .findFirst().orElseThrow();
 
-    ["e", "VOTE_EVENT_ID_2", "ws://sc.url:port"],
-    ["a", "30009:SC_PUBKEY:downvote"],
-
-  "content": current REP score 
-}*/
-
-    Optional<GenericEventKind> existingFollowSetsEvent = getExistingFollowSetsEvent(voteReceiverPubkey);
+    Optional<GenericEventKind> existingFollowSetsEvent = getExistingFollowSetsEvent(voteReceiverPubkey, identifierTag);
+//    TODO: ifPresent likely superfluous if delete mechanism already handles optional
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
-//    if (existingFollowSetsEvents.isEmpty()) {
-//      reputationEventPlugin.processIncomingEvent(incomingFollowSetsEvent);
-//      return;
-//    }
 
     List<FollowSetsEvent.EventTagAddressTagPair> incomingPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
     List<FollowSetsEvent.EventTagAddressTagPair> existingPairs = getEventTagAddressTagPairs(
@@ -96,10 +82,15 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
             nonMatches));
   }
 
-  public Optional<GenericEventKind> getExistingFollowSetsEvent(PublicKey badgeReceiverPubkey) {
+  private Optional<GenericEventKind> getExistingFollowSetsEvent(
+      PublicKey badgeReceiverPubkey,
+      IdentifierTag uuid) {
     return redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
         .stream()
+        .filter(eventIf -> 
+            Filterable.getTypeSpecificTags(IdentifierTag.class, eventIf)
+                .contains(uuid))
         .max(Comparator.comparing(EventIF::getCreatedAt))
         .map(eventIF ->
             new GenericEventKind(
@@ -119,7 +110,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         aImgIdentity,
         voteReceiverPubkey,
         new IdentifierTag(
-            DynamicReputationCalculator.class.getCanonicalName()),
+            AfterimageBaseConfig.UNIT_REPUTATION),
         eventTagAddressTagPairs,
         DynamicReputationCalculator.class.getSimpleName());
 

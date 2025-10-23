@@ -47,13 +47,13 @@ public class FollowSetsIT {
   public static final PublicKey UPVOTED_USER = Identity.create("1231231231231231231231231231231231231231231231231231231231231231").getPublicKey();
   public static final String EVENT_ID_666 = "6666666666666666666666666666666666666666666666666666666666666666";
   public static final String EVENT_ID_777 = "7777777777777777777777777777777777777777777777777777777777777777";
-  BadgeDefinitionReputationEvent badgeDefinitionReputationViaEventTagsEvent;
+  BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
   Identity afterimageInstanceIdentity;
   FollowSetsEvent followSetsEvent;
 
   @Autowired
   public FollowSetsIT(
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationViaEventTagsEvent,
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl) {
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
@@ -62,7 +62,7 @@ public class FollowSetsIT {
     System.out.println(UPVOTED_USER);
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
-    this.badgeDefinitionReputationViaEventTagsEvent = badgeDefinitionReputationViaEventTagsEvent;
+    this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.followSetsEvent = new FollowSetsEvent(
         authorIdentity,
@@ -125,7 +125,7 @@ public class FollowSetsIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                badgeDefinitionReputationViaEventTagsEvent.getIdentifierTag())));
+                badgeDefinitionReputationEvent.getIdentifierTag())));
   }
 
   private BaseEvent createRelaysSetsEventMessage(String uri) {

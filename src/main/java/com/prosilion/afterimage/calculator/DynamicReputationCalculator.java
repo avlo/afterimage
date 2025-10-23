@@ -29,10 +29,10 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
 
   public EventIF calculateUpdatedReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
-      @NonNull BadgeAwardReputationEvent dbPreviousReputationEvent,
+      @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent) throws NostrException {
 
-    String definitionUuids = dbPreviousReputationEvent
+    String definitionUuids = previousReputationEvent
         .getBadgeDefinitionReputationEvent()
         .getIdentifierTag()
 //        .getExternalIdentityTags().stream()
@@ -51,9 +51,9 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         .filter(definitionUuids::contains)
         .toList();
 
-    String updatedScore = calculateReputationEvent(eventVoteTags, dbPreviousReputationEvent);
+    String updatedScore = calculateReputationEvent(eventVoteTags, previousReputationEvent);
 
-    EventIF reputationEvent = createReputationEvent(voteReceiverPubkey, updatedScore, dbPreviousReputationEvent.getBadgeDefinitionReputationEvent());
+    EventIF reputationEvent = createReputationEvent(voteReceiverPubkey, updatedScore, previousReputationEvent.getBadgeDefinitionReputationEvent());
     return reputationEvent;
   }
 

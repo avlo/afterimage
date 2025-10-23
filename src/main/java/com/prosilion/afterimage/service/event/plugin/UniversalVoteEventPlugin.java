@@ -6,12 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class GeneralVoteEventPlugin extends AbstractGeneralVoteEventPlugin {
+public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
 
-  public GeneralVoteEventPlugin(
+  public UniversalVoteEventPlugin(
+      @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
-    super(afterimageFollowSetsEventPlugin, aImgIdentity);
-    log.debug("AbstractGeneralVoteEventPlugin loaded");
+    super(eventKindPlugin, afterimageFollowSetsEventPlugin, aImgIdentity);
+    log.debug("{} loaded", getClass().getSimpleName());
   }
 }

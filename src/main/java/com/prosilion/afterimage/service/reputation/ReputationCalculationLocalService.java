@@ -16,8 +16,8 @@ public class ReputationCalculationLocalService implements ReputationCalculationS
   @Override
   public EventIF calculateReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
-      @NonNull BadgeAwardReputationEvent dbPreviousReputationEvent,
+      @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent) {
-    return reputationCalculatorIF.calculateUpdatedReputationEvent(voteReceiverPubkey, dbPreviousReputationEvent, incomingFollowSetsEvent);
+    return reputationCalculatorIF.calculateUpdatedReputationEvent(voteReceiverPubkey, previousReputationEvent, incomingFollowSetsEvent);
   }
 }

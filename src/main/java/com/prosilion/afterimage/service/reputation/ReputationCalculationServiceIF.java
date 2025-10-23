@@ -8,6 +8,6 @@ import org.springframework.lang.NonNull;
 public interface ReputationCalculationServiceIF {
   EventIF calculateReputationEvent(
       PublicKey voteReceiverPubkey,
-      BadgeAwardReputationEvent dbPreviousReputationEvent,
+      BadgeAwardReputationEvent previousReputationEvent,
       EventIF incomingFollowSetsEvent);
 }

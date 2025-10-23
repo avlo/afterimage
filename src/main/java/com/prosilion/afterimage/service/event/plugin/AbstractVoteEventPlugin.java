@@ -21,22 +21,23 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 // our SportsCar extends CarDecorator
-public abstract class AbstractGeneralVoteEventPlugin extends NonPublishingEventKindPlugin {
-  //  private final EventKindPluginIF afterimageFollowSetsEventPlugin;
+public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlugin {
+  private final EventKindPluginIF afterimageFollowSetsEventPlugin;
   private final Identity aImgIdentity;
 
-  public AbstractGeneralVoteEventPlugin(
+  public AbstractVoteEventPlugin(
+      @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
-    super(afterimageFollowSetsEventPlugin);
-//    this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
+    super(eventKindPlugin);
+    this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
     this.aImgIdentity = aImgIdentity;
   }
 
   @Override
   public void processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("VoteEventKindTypePlugin processing incoming VOTE EVENT: [{}]", voteEvent);
-    super.processIncomingEvent(
+    afterimageFollowSetsEventPlugin.processIncomingEvent(
         createFollowSetsEvent(
             Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
                 .stream()

@@ -7,7 +7,7 @@ import com.prosilion.nostr.user.PublicKey;
 public interface ReputationCalculatorIF {
   EventIF calculateUpdatedReputationEvent(
       PublicKey voteReceiverPubkey,
-      BadgeAwardReputationEvent dbPreviousReputationEvent,
+      BadgeAwardReputationEvent previousReputationEvent,
       EventIF incomingFollowSetsEvent);
 
   String getFullyQualifiedCalculatorName();
