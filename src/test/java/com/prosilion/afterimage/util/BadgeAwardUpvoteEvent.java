@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.event.internal;
+package com.prosilion.afterimage.util;
 
 import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
 import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;

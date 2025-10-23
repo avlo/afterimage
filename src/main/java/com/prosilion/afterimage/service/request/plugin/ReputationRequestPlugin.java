@@ -1,8 +1,10 @@
 package com.prosilion.afterimage.service.request.plugin;
 
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
@@ -19,16 +21,14 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ReputationRequestPlugin implements ReqKindPluginIF {
+public class ReputationRequestPlugin extends ReqKindTypePlugin {
   public static final String REF_PUBKEY_FILTER_KEY = ReferencedPublicKeyFilter.FILTER_KEY;
   public static final String IDENTIFIER_TAG_FILTER_KEY = IdentifierTagFilter.FILTER_KEY;
 
-  private final Identity aImgIdentity;
-
   @Autowired
   public ReputationRequestPlugin(@NonNull Identity aImgIdentity) {
-    log.debug("loaded {} bean", getClass().getName());
-    this.aImgIdentity = aImgIdentity;
+    super(aImgIdentity);
+    log.debug("loaded ReputationReqKindTypePlugin bean");
   }
 
   @Override
@@ -43,7 +43,7 @@ public class ReputationRequestPlugin implements ReqKindPluginIF {
     AddressTagFilter addressTagFilter = new AddressTagFilter(
         new AddressTag(
             Kind.BADGE_DEFINITION_EVENT,
-            aImgIdentity.getPublicKey(),
+            getAImgIdentity().getPublicKey(),
             filtersList.stream()
                 .map(filters ->
                     filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
@@ -55,12 +55,17 @@ public class ReputationRequestPlugin implements ReqKindPluginIF {
         new KindFilter(getKind()),
         referencedPublicKeyFilter,
         addressTagFilter);
-
+    
     return filters;
   }
 
   @Override
   public Kind getKind() {
     return Kind.BADGE_AWARD_EVENT;
+  }
+
+  @Override
+  public KindTypeIF getKindType() {
+    return AfterimageKindType.UNIT_REPUTATION;
   }
 }

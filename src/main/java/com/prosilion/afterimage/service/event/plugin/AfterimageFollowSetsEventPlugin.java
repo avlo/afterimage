@@ -18,6 +18,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -31,7 +32,7 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
-  private final EventKindPluginIF reputationEventPlugin;
+  private final EventKindTypePluginIF reputationEventPlugin;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
@@ -40,7 +41,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
-      @NonNull EventKindPluginIF reputationEventPlugin) {
+      @NonNull EventKindTypePluginIF reputationEventPlugin) {
     super(notifierService, eventKindPlugin);
     this.reputationEventPlugin = reputationEventPlugin;
     this.redisCacheServiceIF = redisCacheServiceIF;
@@ -88,7 +89,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
     return redisCacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
         .stream()
-        .filter(eventIf -> 
+        .filter(eventIf ->
             Filterable.getTypeSpecificTags(IdentifierTag.class, eventIf)
                 .contains(uuid))
         .max(Comparator.comparing(EventIF::getCreatedAt))

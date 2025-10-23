@@ -5,6 +5,7 @@ import com.prosilion.afterimage.config.web.EventApiAuthUi;
 import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.ReputationEventPlugin;
@@ -13,6 +14,7 @@ import com.prosilion.afterimage.service.event.plugin.UniversalVoteEventPlugin;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.afterimage.service.request.AfterimageReqService;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
+import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.codec.deserializer.EventMessageDeserializer;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
@@ -30,9 +32,13 @@ import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.auth.ReqAuthCondition;
 import com.prosilion.superconductor.base.service.event.auth.ReqNoAuthCondition;
 import com.prosilion.superconductor.base.service.event.service.EventKindService;
+import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePlugin;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.EventKindPlugin;
 import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -59,6 +65,22 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
+  @Primary
+  ReqServiceIF afterimageReqService(
+      @NonNull ReqServiceIF reqService,
+      @NonNull ReqKindServiceIF reqKindService,
+      @NonNull ReqKindTypeServiceIF reqKindTypeService) {
+    return new AfterimageReqService(reqService, reqKindService, reqKindTypeService);
+  }
+
+  @Bean
+  List<KindTypeIF> kindTypes() {
+    List<KindTypeIF> values = List.of(AfterimageKindType.values());
+    log.info("Loading custom AfterImage kind types [{}]", values);
+    return values;
+  }
+
+  @Bean
   public EventMessageDeserializer eventMessageDeserializer() {
     EventMessageDeserializer eventMessageDeserializer = new EventMessageDeserializer();
     log.info("EventMessageDeserializer instance [{}]", eventMessageDeserializer);
@@ -66,24 +88,16 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
-  @Primary
-  ReqServiceIF afterimageReqService(
-      @NonNull ReqServiceIF reqService,
-      @NonNull ReqKindServiceIF reqKindService) {
-    return new AfterimageReqService(reqService, reqKindService);
-  }
-
-  @Bean
-  EventKindPluginIF reputationEventPlugin(
+  EventKindTypePluginIF reputationEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull NotifierService notifierService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
-      @NonNull Identity aImgIdentity) {
+      @NonNull Identity aImgIdentity,
+      @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF) {
     return new ReputationEventPlugin(
         notifierService,
-        new EventKindPlugin(
-            Kind.BADGE_AWARD_EVENT,
+        new EventKindTypePlugin(
+            AfterimageKindType.UNIT_REPUTATION,
             eventPlugin),
         redisCacheServiceIF,
         aImgIdentity,
@@ -94,13 +108,13 @@ public abstract class AfterimageBaseConfig {
   EventKindPluginIF superconductorSearchRelaysListEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-//      @NonNull EventKindServiceIF eventKindServiceIF,
+      @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull Identity aImgIdentity) {
     return new SuperconductorSearchRelaysListEventPlugin(
         new EventKindPlugin(
             Kind.SEARCH_RELAYS_LIST,
             eventPlugin),
-//        eventKindServiceIF,
+        eventKindTypeService,
         redisCacheServiceIF,
         aImgIdentity);
   }
@@ -109,9 +123,8 @@ public abstract class AfterimageBaseConfig {
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
-      @NonNull Identity aImgIdentity,
-//      TODO: investigae List<>, seems superfluous since no longer KindTypeIF
-      @NonNull List<EventKindPluginIF> eventKindPlugins) {
+      @NonNull List<EventKindPluginIF> eventKindPlugins,
+      @NonNull Identity aImgIdentity) {
     return new AfterimageRelaySetsEventPlugin(
         new EventKindPlugin(
             Kind.RELAY_SETS,
@@ -124,7 +137,7 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindPluginIF afterimageFollowSetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull EventKindPluginIF reputationEventPlugin,
+      @NonNull EventKindTypePluginIF reputationEventPlugin,
       @NonNull NotifierService notifierService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {

@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.prosilion.afterimage.event.internal.Reputation;
 import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.tag.BaseTag;

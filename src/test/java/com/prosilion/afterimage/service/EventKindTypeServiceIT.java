@@ -1,15 +1,19 @@
 //package com.prosilion.afterimage.service;
 //
-//import com.prosilion.afterimage.event.internal.BadgeAwardDownvoteEvent;
-//import com.prosilion.afterimage.event.internal.BadgeAwardUpvoteEvent;
+//import com.prosilion.afterimage.enums.AfterimageKindType;
+//import com.prosilion.afterimage.util.event.BadgeAwardDownvoteEvent;
+//import com.prosilion.afterimage.util.event.BadgeAwardUpvoteEvent;
 //import com.prosilion.nostr.NostrException;
-//import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+//import com.prosilion.nostr.event.BadgeDefinitionEvent;
 //import com.prosilion.nostr.event.EventIF;
 //import com.prosilion.nostr.event.TextNoteEvent;
 //import com.prosilion.nostr.user.Identity;
 //import com.prosilion.nostr.user.PublicKey;
 //import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
+//import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
+//import com.prosilion.superconductor.base.service.event.service.GenericEventKindTypeIF;
 //import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindDto;
+//import com.prosilion.superconductor.lib.redis.dto.GenericNosqlEntityKindTypeDto;
 //import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 //import java.util.List;
 //import org.junit.jupiter.api.Test;
@@ -26,23 +30,27 @@
 //class EventKindTypeServiceIT {
 //  private static final Logger log = LoggerFactory.getLogger(EventKindTypeServiceIT.class);
 //  private final EventKindServiceIF eventKindServiceIF;
-//  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
-//  private final BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent;
+//  private final EventKindTypeServiceIF eventKindTypeService;
+//  private final BadgeDefinitionEvent upvoteBadgeDefinitionEvent;
+//  private final BadgeDefinitionEvent downvoteBadgeDefinitionEvent;
 //
 //  private final RedisCacheServiceIF cacheIF;
 //
 //  @Autowired
 //  public EventKindTypeServiceIT(
 //      EventKindServiceIF eventKindServiceIF,
-//      BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-//      BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent,
+//      EventKindTypeServiceIF eventKindTypeService,
+//      BadgeDefinitionEvent upvoteBadgeDefinitionEvent,
+//      BadgeDefinitionEvent downvoteBadgeDefinitionEvent,
 //      RedisCacheServiceIF cacheIF) {
 //    this.eventKindServiceIF = eventKindServiceIF;
-//    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
-//    this.badgeDefinitionDownvoteEvent = badgeDefinitionDownvoteEvent;
+//    this.eventKindTypeService = eventKindTypeService;
+//    this.upvoteBadgeDefinitionEvent = upvoteBadgeDefinitionEvent;
+//    this.downvoteBadgeDefinitionEvent = downvoteBadgeDefinitionEvent;
 //    this.cacheIF = cacheIF;
 //
 //    log.info("EventKindTypeServiceIT initialized, EventKindServiceIF services: {}", this.eventKindServiceIF.getClass().getName());
+//    log.info("EventKindTypeServiceIT initialized, EventKindTypeServiceIF services: {}", this.eventKindTypeService.getClass().getName());
 //  }
 //
 //  @Test
@@ -53,13 +61,15 @@
 //    BadgeAwardUpvoteEvent event1 = new BadgeAwardUpvoteEvent(
 //        voterIdentity,
 //        upvotedUser,
-//        badgeDefinitionUpvoteEvent);
+//        upvoteBadgeDefinitionEvent);
 //
-//    EventIF event = new GenericNosqlEntityKindDto(event1).convertBaseEventToEventIF();
+//    GenericNosqlEntityKindTypeDto genericEventKindTypeDto = new GenericNosqlEntityKindTypeDto(event1, AfterimageKindType.UNIT_UPVOTE);
 //
-//    eventKindServiceIF.processIncomingEvent(event);
+//    GenericEventKindTypeIF event = genericEventKindTypeDto.convertBaseEventToGenericEventKindTypeIF();
 //
-//    List<? extends EventIF> eventsByKind = cacheIF.getByKind(badgeDefinitionUpvoteEvent.getKind());
+//    eventKindTypeService.processIncomingEvent(event);
+//
+//    List<? extends EventIF> eventsByKind = cacheIF.getByKind(upvoteBadgeDefinitionEvent.getKind());
 //    eventsByKind.forEach(System.out::println);
 //  }
 //
@@ -68,11 +78,11 @@
 //    Identity identity = Identity.generateRandomIdentity();
 //    PublicKey downvotedUser = Identity.generateRandomIdentity().getPublicKey();
 //
-//    BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, badgeDefinitionDownvoteEvent);
-//    EventIF genericEventKindIF = new GenericNosqlEntityKindDto(downvoteEvent).convertBaseEventToEventIF();
-//    eventKindServiceIF.processIncomingEvent(genericEventKindIF);
+//    BadgeAwardDownvoteEvent downvoteEvent = new BadgeAwardDownvoteEvent(identity, downvotedUser, downvoteBadgeDefinitionEvent);
+//    GenericEventKindTypeIF genericEventKindIF = new GenericNosqlEntityKindTypeDto(downvoteEvent, AfterimageKindType.UNIT_DOWNVOTE).convertBaseEventToGenericEventKindTypeIF();
+//    eventKindTypeService.processIncomingEvent(genericEventKindIF);
 //
-//    List<? extends EventIF> eventsByKind = cacheIF.getByKind(badgeDefinitionDownvoteEvent.getKind());
+//    List<? extends EventIF> eventsByKind = cacheIF.getByKind(downvoteBadgeDefinitionEvent.getKind());
 //    eventsByKind.forEach(System.out::println);
 //  }
 //

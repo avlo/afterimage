@@ -16,8 +16,9 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.PublishingEventKindPlugin;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
+import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.lib.redis.entity.EventNosqlEntityIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
@@ -31,14 +32,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class ReputationEventPlugin extends PublishingEventKindPlugin {
+public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   private final ReputationCalculationServiceIF reputationCalculationServiceIF;
   private final RedisCacheServiceIF redisCacheServiceIF;
   private final Identity aImgIdentity;
 
   public ReputationEventPlugin(
       @NonNull NotifierService notifierService,
-      @NonNull EventKindPluginIF eventKindTypePlugin,
+      @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF) {
@@ -147,12 +148,6 @@ public class ReputationEventPlugin extends PublishingEventKindPlugin {
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
   }
 
-  @Override
-  public Kind getKind() {
-    log.debug("{} getKind returning {}}", getClass().getSimpleName(), super.getKind());
-    return super.getKind();
-  }
-
   private static GenericEventKind createGenericEventKind(EventNosqlEntityIF eventIF) {
     return new GenericEventKind(
         eventIF.getId(),
@@ -171,5 +166,17 @@ public class ReputationEventPlugin extends PublishingEventKindPlugin {
         Filterable.getTypeSpecificTagsStream(IdentifierTag.class, formulaEvent)
             .findFirst().orElseThrow(),
         formulaEvent.getContent());
+  }
+
+  @Override
+  public Kind getKind() {
+    log.debug("{} getKind returning {}}", getClass().getSimpleName(), super.getKind());
+    return super.getKind();
+  }
+
+  @Override
+  public KindTypeIF getKindType() {
+    log.debug("{} getKindType returning {}", getClass().getSimpleName(), super.getKindType());
+    return super.getKindType();
   }
 }

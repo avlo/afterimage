@@ -11,6 +11,8 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
+import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Optional;
@@ -23,15 +25,15 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // Kind.SEARCH_RELAYS_LIST 10_007
-//  private final EventKindServiceIF eventKindServiceIF;
+  private final EventKindServiceIF eventKindServiceIF;
 
   public SuperconductorSearchRelaysListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-//      @NonNull EventKindServiceIF eventKindServiceIF,
+      @NonNull EventKindTypeServiceIF eventKindTypeService,
       @NonNull RedisCacheServiceIF redisCacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin, redisCacheServiceIF, aImgIdentity);
-//    this.eventKindServiceIF = eventKindServiceIF;
+    this.eventKindServiceIF = eventKindTypeService;
   }
 
 //  start with pre-defined Map<String, String> superconductorRelays
@@ -52,7 +54,7 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
                 Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, getKind().getName())))),
-        super::processIncomingEvent).setUpRequestFlux(getFilters());
+        eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
   }
 
   //  TODO: fix sneaky
