@@ -30,6 +30,8 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
+import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
+
 @Slf4j
 public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
   private final EventKindTypePluginIF reputationEventPlugin;
@@ -110,8 +112,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
     FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
-        new IdentifierTag(
-            AfterimageBaseConfig.UNIT_REPUTATION),
+        new IdentifierTag(UNIT_REPUTATION.getName()),
         eventTagAddressTagPairs,
         DynamicReputationCalculator.class.getSimpleName());
 

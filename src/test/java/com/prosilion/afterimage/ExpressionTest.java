@@ -3,7 +3,7 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
-import com.prosilion.afterimage.config.AfterimageBaseConfig;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.tag.IdentifierTag;
@@ -18,46 +18,50 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.MINUS_ONE_FORMULA;
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.PLUS_ONE_FORMULA;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_REPUTATION;
+import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_DOWNVOTE;
+import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_UPVOTE;
+import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ActiveProfiles("test")
 public class ExpressionTest {
-  public static final IdentifierTag UPVOTE_IDENTIFIER_TAG = new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE);
-  public static final IdentifierTag DOWNVOTE_IDENTIFIER_TAG = new IdentifierTag(AfterimageBaseConfig.UNIT_DOWNVOTE);
+  public static final IdentifierTag upvoteIdentifierTag = new IdentifierTag(UNIT_UPVOTE);
+  public static final IdentifierTag downvoteIdentifierTag = new IdentifierTag(UNIT_DOWNVOTE);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
 
   public ExpressionTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
+    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, upvoteIdentifierTag);
+    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, downvoteIdentifierTag);
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
-            UNIT_REPUTATION),
+            UNIT_REPUTATION.getName()),
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
-                UPVOTE_IDENTIFIER_TAG,
+                upvoteDefinitionEvent,
                 PLUS_ONE_FORMULA),
             new FormulaEvent(
                 afterimageInstanceIdentity,
-                DOWNVOTE_IDENTIFIER_TAG,
+                downvoteDefinitionEvent,
                 MINUS_ONE_FORMULA)));
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
-            UNIT_REPUTATION),
+            UNIT_REPUTATION.getName()),
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
-                UPVOTE_IDENTIFIER_TAG,
+                upvoteDefinitionEvent,
                 PLUS_ONE_FORMULA),
             new FormulaEvent(
                 afterimageInstanceIdentity,
-                UPVOTE_IDENTIFIER_TAG,
+                downvoteDefinitionEvent,
                 PLUS_ONE_FORMULA)));
   }
 
@@ -133,7 +137,7 @@ public class ExpressionTest {
     BigDecimal startingTotalIsZero = BigDecimal.ZERO;
     String CURRENT_TOTAL_STRING = "CURRENT_TOTAL";
 
-    String UNIT_UPVOTE_STRING = UPVOTE_IDENTIFIER_TAG.getUuid();
+    String UNIT_UPVOTE_STRING = upvoteIdentifierTag.getUuid();
     Number UNIT_UPVOTE_VALUE = parsePlusSign("+1");
 
     BigDecimal resultAfterUpvote = new Expression(
@@ -143,7 +147,7 @@ public class ExpressionTest {
         .evaluate().getNumberValue();
     assertEquals(new BigDecimal("1"), resultAfterUpvote);
 
-    String UNIT_DOWNVOTE_STRING = DOWNVOTE_IDENTIFIER_TAG.getUuid();
+    String UNIT_DOWNVOTE_STRING = downvoteIdentifierTag.getUuid();
     Number UNIT_DOWNVOTE_VALUE = parsePlusSign("-1");
     assertEquals(
         new BigDecimal("0"),

@@ -13,7 +13,8 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
+import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindTypePlugin;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,15 +22,15 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 // our SportsCar extends CarDecorator
-public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlugin {
+public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindTypePlugin {
   private final EventKindPluginIF afterimageFollowSetsEventPlugin;
   private final Identity aImgIdentity;
 
   public AbstractVoteEventPlugin(
-      @NonNull EventKindPluginIF eventKindPlugin,
+      @NonNull EventKindTypePluginIF eventKindTypePluginIF,
       @NonNull EventKindPluginIF afterimageFollowSetsEventPlugin,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPlugin);
+    super(eventKindTypePluginIF);
     this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
     this.aImgIdentity = aImgIdentity;
   }

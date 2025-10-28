@@ -33,6 +33,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -59,7 +60,7 @@ public class SearchRelaysListIT {
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrlTwo,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull @Qualifier("badgeDefinitionUpvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
       @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
 

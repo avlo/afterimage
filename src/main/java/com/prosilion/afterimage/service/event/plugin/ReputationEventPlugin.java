@@ -1,5 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
+import com.prosilion.afterimage.db.AfterimageCacheService;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.nostr.NostrException;
@@ -7,9 +8,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.filter.Filterable;
-import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
@@ -20,31 +19,26 @@ import com.prosilion.superconductor.base.service.event.service.plugin.EventKindT
 import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.redis.entity.EventNosqlEntityIF;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
 public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
   private final ReputationCalculationServiceIF reputationCalculationServiceIF;
-  private final RedisCacheServiceIF redisCacheServiceIF;
+  private final AfterimageCacheService afterimageCacheService;
   private final Identity aImgIdentity;
 
   public ReputationEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull AfterimageCacheService afterimageCacheService,
       @NonNull Identity aImgIdentity,
       @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF) {
     super(notifierService, eventKindTypePlugin);
-    this.redisCacheServiceIF = redisCacheServiceIF;
+    this.afterimageCacheService = afterimageCacheService;
     this.reputationCalculationServiceIF = reputationCalculationServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
@@ -60,55 +54,33 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         .stream()
         .findFirst().orElseThrow();
 
-    getExistingBadgeAwardReputationEvent(
+    Optional<GenericEventKind> existingBadgeAwardReputationEvent = getExistingBadgeAwardReputationEvent(
         voteReceiverPubkey,
         incomingReputationEvent.getPublicKey(),
-//    TODO: ifPresent likely superfluous if delete mechanism already handles optional        
-        identifierTag).ifPresent(this::deletePreviousBadgeAwardReputationEvent);
+        identifierTag);
+    existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent);
 
-    BadgeDefinitionReputationEvent existingReputationDefinitionEvent = getReputationDefinitionEvent(
+    BadgeDefinitionReputationEvent existingReputationDefinitionEvent = getExistingBadgeDefinitionReputationEvent(
         incomingReputationEvent.getPublicKey(),
         identifierTag);
 
-    BadgeAwardReputationEvent badgeAwardReputationEvent = createBadgeAwardReputationEvent(voteReceiverPubkey,
-        existingReputationDefinitionEvent);
+    BadgeAwardReputationEvent updatedBadgeAwardReputationEvent = createBadgeAwardReputationEvent(
+        voteReceiverPubkey,
+        existingReputationDefinitionEvent,
+//        existingBadgeAwardReputationEvent.orElse(BigDecimal.ZERO.toString()).getContent()
+        existingBadgeAwardReputationEvent
+    );
 
     super.processIncomingEvent(
         reputationCalculationServiceIF.calculateReputationEvent(
             voteReceiverPubkey,
-            badgeAwardReputationEvent,
+            updatedBadgeAwardReputationEvent,
             incomingReputationEvent));
   }
 
-  private BadgeDefinitionReputationEvent getReputationDefinitionEvent(PublicKey eventCreatorPubkey, IdentifierTag uuid) {
-    EventNosqlEntityIF nakedDefinitionEvent =
-        redisCacheServiceIF.getEventsByKindAndAuthorPublicKeyAndIdentifierTag(
-                Kind.BADGE_DEFINITION_EVENT,
-                eventCreatorPubkey,
-                uuid)
-            .stream()
-            .max(Comparator.comparing(EventIF::getCreatedAt))
-            .orElseThrow(() -> new NoSuchElementException(
-                String.format("Redis BadgeDefinitionReputationEvent matching PublicKey [%s] with Uuid [%s] not found",
-                    eventCreatorPubkey, uuid)));
-
-    List<FormulaEvent> formulaEvents =
-        Filterable.getTypeSpecificTagsStream(EventTag.class, nakedDefinitionEvent)
-            .map(eventTag -> redisCacheServiceIF
-                .getEventByEventId(eventTag.getIdEvent()).orElseThrow(
-                    () -> new NoSuchElementException(
-                        String.format("Redis FormulaEvent matching EventID [%s] was found",
-                            eventTag.getIdEvent()))
-                ))
-            .filter(event ->
-                event.getKind().equals(Kind.ARBITRARY_CUSTOM_APP_DATA))
-            .map(this::asFormulaEvent)
-            .toList();
-
-    BadgeDefinitionReputationEvent foundReputationDefinitionEvent = new BadgeDefinitionReputationEvent(
-        aImgIdentity,
-        uuid,
-        formulaEvents);
+  private BadgeDefinitionReputationEvent getExistingBadgeDefinitionReputationEvent(PublicKey eventCreatorPubkey, IdentifierTag uuid) {
+    BadgeDefinitionReputationEvent foundReputationDefinitionEvent =
+        afterimageCacheService.getBadgeDefinitionReputationEvent(eventCreatorPubkey, uuid);
     return foundReputationDefinitionEvent;
   }
 
@@ -116,56 +88,29 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
       PublicKey badgeReceiverPubkey,
       PublicKey eventCreatorPubkey,
       IdentifierTag uuid) {
-    Optional<GenericEventKind> badgeAwardReputationEvent = redisCacheServiceIF
-        .getEventsByKindAndPubKeyTagAndAddressTag(
-            Kind.BADGE_AWARD_EVENT,
-            badgeReceiverPubkey,
-            new AddressTag(
-                Kind.BADGE_DEFINITION_EVENT,
-                eventCreatorPubkey,
-                uuid))
-        .stream()
-        .max(Comparator.comparing(EventIF::getCreatedAt))
-        .map(ReputationEventPlugin::createGenericEventKind);
+    Optional<GenericEventKind> badgeAwardReputationEvent =
+        afterimageCacheService.getBadgeAwardReputationEvent(
+            badgeReceiverPubkey, eventCreatorPubkey, uuid);
     return badgeAwardReputationEvent;
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(
       PublicKey badgeReceiverPubkey,
-      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
+      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
+      Optional<GenericEventKind> previousBadgeAwardReputationEvent) {
     BadgeAwardReputationEvent badgeAwardReputationEvent = new BadgeAwardReputationEvent(
         aImgIdentity,
         badgeReceiverPubkey,
         badgeDefinitionReputationEvent,
-        BigDecimal.ZERO);
+        previousBadgeAwardReputationEvent.map(GenericEventKind::content).map(BigDecimal::new).orElse(BigDecimal.ZERO));
     return badgeAwardReputationEvent;
   }
 
   private void deletePreviousBadgeAwardReputationEvent(EventIF previousReputationEvent) {
-    redisCacheServiceIF.deleteEvent(
+    afterimageCacheService.deleteEvent(
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
-  }
-
-  private static GenericEventKind createGenericEventKind(EventNosqlEntityIF eventIF) {
-    return new GenericEventKind(
-        eventIF.getId(),
-        eventIF.getPublicKey(),
-        eventIF.getCreatedAt(),
-        eventIF.getKind(),
-        eventIF.getTags(),
-        eventIF.getContent(),
-        eventIF.getSignature());
-  }
-
-  @SneakyThrows
-  private FormulaEvent asFormulaEvent(EventNosqlEntityIF formulaEvent) {
-    return new FormulaEvent(
-        aImgIdentity,
-        Filterable.getTypeSpecificTagsStream(IdentifierTag.class, formulaEvent)
-            .findFirst().orElseThrow(),
-        formulaEvent.getContent());
   }
 
   @Override

@@ -27,7 +27,6 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

@@ -1,33 +1,36 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.afterimage.db.AfterimageCacheService;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.superconductor.autoconfigure.redis.config.DataLoaderRedisIF;
-import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.prosilion.nostr.event.FormulaEvent;
+import java.util.Collections;
 import org.springframework.lang.NonNull;
 
 public class DataLoaderRedis implements DataLoaderRedisIF {
-  private final EventPluginIF eventPlugin;
+  private final AfterimageCacheService afterimageCacheService;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
-  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
-  private final BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent;
 
   public DataLoaderRedis(
-      @NonNull @Qualifier("eventPlugin") EventPluginIF eventPlugin,
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-      @NonNull BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent) {
-    this.eventPlugin = eventPlugin;
+      @NonNull AfterimageCacheService afterimageCacheService,
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
+    this.afterimageCacheService = afterimageCacheService;
     this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
-    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
-    this.badgeDefinitionDownvoteEvent = badgeDefinitionDownvoteEvent;
   }
 
   @Override
   public void run(String... args) {
-    eventPlugin.processIncomingEvent(badgeDefinitionReputationEvent);
-    eventPlugin.processIncomingEvent(badgeDefinitionUpvoteEvent);
-    eventPlugin.processIncomingEvent(badgeDefinitionDownvoteEvent);
+    afterimageCacheService.saveWithEvents(badgeDefinitionReputationEvent);
+    System.out.println("0000000000000000000000000");
+    System.out.println("0000000000000000000000000");
+    System.out.printf("badgeDefinitionReputationEvent eventId: [%s]%n", badgeDefinitionReputationEvent.getId());
+    System.out.printf("badgeDefinitionReputationEvent author PubKey: [%s]%n", badgeDefinitionReputationEvent.getPublicKey());
+    System.out.println("-------------------------");
+    badgeDefinitionReputationEvent.getEventTags().forEach(eventTag ->
+        System.out.printf("eventTag.getIdEvent: [%s]%n", eventTag.getIdEvent()));
+    System.out.println("-------------------------");
+    badgeDefinitionReputationEvent.getFormulaEvents().stream().map(FormulaEvent::getId).forEach(formulaEventId ->
+        System.out.printf("FormulaEvent::getId: [%s]%n", formulaEventId));
+    System.out.println("0000000000000000000000000");
+    System.out.println("0000000000000000000000000");
   }
 }
