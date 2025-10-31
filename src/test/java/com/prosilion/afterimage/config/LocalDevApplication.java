@@ -65,8 +65,7 @@ public class LocalDevApplication {
         new FollowSetsEvent(
             authorIdentity,
             UPVOTED_USER,
-            new IdentifierTag(
-                DynamicReputationCalculator.class.getCanonicalName()),
+            reputationBadgeDefinitionEvent.getIdentifierTag(),
             List.of(
                 createPair(EVENT_ID_666, afterimageRelayUrl),
                 createPair(EVENT_ID_777, afterimageRelayUrl)),

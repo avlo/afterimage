@@ -3,12 +3,12 @@ package com.prosilion.afterimage.calculator;
 import com.ezylang.evalex.Expression;
 import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.ArbitraryCustomAppDataEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.filter.Filterable;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
-import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -32,48 +32,48 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
       @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull EventIF incomingFollowSetsEvent) throws NostrException {
 
-    String definitionUuids = previousReputationEvent
+    List<IdentifierTag> definitionUuids = previousReputationEvent
         .getBadgeDefinitionReputationEvent()
-        .getIdentifierTag()
-//        .getExternalIdentityTags().stream()
-//        .map(
-//            externalIdentityTag -> externalIdentityTag.getIdentifierTag().getUuid()).toList();
-        .getUuid();
+        .getFormulaEvents().stream()
+        .map(
+            ArbitraryCustomAppDataEvent::getIdentifierTag)
+        .toList();
 
     List<BaseTag> allEventTags = incomingFollowSetsEvent.getTags();
 
-    List<String> eventVoteTags = allEventTags.stream()
+    List<IdentifierTag> eventVoteTags = allEventTags.stream()
         .filter(AddressTag.class::isInstance)
         .map(AddressTag.class::cast)
         .map(AddressTag::getIdentifierTag)
         .filter(Objects::nonNull)
-        .map(IdentifierTag::getUuid)
         .filter(definitionUuids::contains)
         .toList();
 
-    String updatedScore = calculateReputationEvent(eventVoteTags, previousReputationEvent);
+    String updatedScore = calculateReputationEventScore(eventVoteTags, previousReputationEvent);
 
     EventIF reputationEvent = createReputationEvent(voteReceiverPubkey, updatedScore, previousReputationEvent.getBadgeDefinitionReputationEvent());
     return reputationEvent;
   }
 
-  private String calculateReputationEvent(
-      List<String> voteEvents,
-      BadgeAwardReputationEvent previousReputationEvent) {
-    return voteEvents.stream().map(voteEventType ->
-            Filterable.getTypeSpecificTagsStream(ExternalIdentityTag.class, previousReputationEvent.getBadgeDefinitionReputationEvent()).collect(
-                Collectors.toMap(
-                    externalIdentityTag -> externalIdentityTag.getIdentifierTag().getUuid(),
-                    ExternalIdentityTag::getFormula,
-                    (prev, next) -> next, HashMap::new)).get(voteEventType.toUpperCase()))
-        .reduce(previousReputationEvent.getContent(), this::doCalc);
+  private String calculateReputationEventScore(List<IdentifierTag> voteEvents, BadgeAwardReputationEvent previousReputationEvent) {
+    final List<FormulaEvent> formulaEvents = previousReputationEvent.getBadgeDefinitionReputationEvent().getFormulaEvents();
+    String result =
+        voteEvents.stream().map(voteEventType ->
+                formulaEvents.stream()
+                    .filter(formulaEvent -> formulaEvent.getIdentifierTag().equals(voteEventType)).collect(
+                        Collectors.toMap(
+                            externalIdentityTag -> externalIdentityTag.getIdentifierTag().getUuid(),
+                            FormulaEvent::getFormula,
+                            (prev, next) -> next, HashMap::new)).get(voteEventType.getUuid()))
+            .reduce(previousReputationEvent.getContent(), this::doCalc);
+    return result;
   }
 
   @SneakyThrows
-  private String doCalc(String currentTotal, String operator) {
+  private String doCalc(String currentTotal, String operation) {
     final String currentTotalString = "total";
     BigDecimal result = new Expression(
-        String.format("%s %s", currentTotalString, operator))
+        String.format("%s %s", currentTotalString, operation))
         .with(currentTotalString, new BigDecimal(currentTotal))
         .evaluate().getNumberValue();
     return result.toString();
@@ -88,9 +88,8 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         badgeReceiverPubkey,
         badgeDefinitionReputationEvent,
         List.of(
-            new IdentifierTag(
-                getFullyQualifiedCalculatorName())),
-        new BigDecimal(score));
+            badgeDefinitionReputationEvent.getIdentifierTag()),
+    new BigDecimal(score));
   }
 
   @Override

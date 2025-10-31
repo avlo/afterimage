@@ -20,6 +20,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
+import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
+
 @Slf4j
 // our SportsCar extends CarDecorator
 public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindTypePlugin {
@@ -37,7 +39,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
 
   @Override
   public void processIncomingEvent(@NonNull EventIF voteEvent) {
-    log.debug("VoteEventKindTypePlugin processing incoming VOTE EVENT: [{}]", voteEvent);
+    log.debug("{} processing incoming VOTE EVENT: [{}]", getClass().getSimpleName(), voteEvent);
     afterimageFollowSetsEventPlugin.processIncomingEvent(
         createFollowSetsEvent(
             Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
@@ -59,7 +61,37 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindType
         aImgIdentity,
         voteReceiverPubkey,
         new IdentifierTag(
-            DynamicReputationCalculator.class.getCanonicalName()),
+// TODO CRITICAL: below needs replaced via proper reference chain, ex:
+//   ["a", "30009:BADGE_AWARD_DEFN_UPVOTE_CREATOR_PUBKEY:UNIT_UPVOTE"]
+//       where pubkey and uuid refers to formula event relevant fields to obtain event_id:
+            /*
+{
+  "id": "BadgeDefinitionReputationFormulaEventId_1"  <------- obtain
+  "pubkey": "REP_DEFN_CREATOR_PUBKEY",  <-------------------- matching pubkey
+  "kind": 30078, // Kind.ARBITRARY_APP_DATA
+  "tags": [
+    [ "d", "UNIT_UPVOTE"                <--------------------- matching uuid
+  "content": "+1",
+}            
+             */
+// TODO: after which pubkey and eventId are then used to find a single badge definition event (30009)
+//    for matching "e" tag, 
+            /*
+{
+  "id": "BADGE_DEFINITION_REPUTATION_EVENT_ID",
+  "pubkey": "REP_DEFN_CREATOR_PUBKEY",                    <------------------- matching pubkey
+  "kind": 30009, // Kind.BADGE_DEFINITION_EVENT       
+  "tags": [
+    [ "d", "USER_DEFINED_REPUTATION_DEFINITION_NAME"],  //  UNIT_REPUTATION  <-------------- obtain
+      below event tag classes are BadgeDefinitionReputationFormulaEvent instances
+    [ "e", "BadgeDefinitionReputationFormulaEventId_1", "ws://aimg.url:port"]  <----- matching e tag
+    ...
+  ],
+  "content": "afterimage reputation definition f(x)",
+}            
+             */
+// TODO: after which USER_DEFINED_REPUTATION_DEFINITION_NAME is used to populate identifierTag on next line
+            UNIT_REPUTATION.getName()),  
         List.of(eventTagAddressTagPairs),
 //        TODO: replace content
         "Follow Sets Event Content: available for useful use").getGenericEventRecord();

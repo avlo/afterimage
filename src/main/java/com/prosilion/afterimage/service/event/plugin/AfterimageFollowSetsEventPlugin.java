@@ -74,15 +74,17 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         .filter(incomingEventTagAddressTagPair ->
             !existingPairs.contains(incomingEventTagAddressTagPair)).toList();
 
-    super.processIncomingEvent(
-        createFollowSetsEvent(
-            voteReceiverPubkey,
-            Stream.concat(existingPairs.stream(), nonMatches.stream()).toList()));
+    EventIF saveToDbEvent = createFollowSetsEvent(
+        voteReceiverPubkey,
+        identifierTag,
+        Stream.concat(existingPairs.stream(), nonMatches.stream()).toList());
+    super.processIncomingEvent(saveToDbEvent);
 
-    reputationEventPlugin.processIncomingEvent(
-        createFollowSetsEvent(
-            voteReceiverPubkey,
-            nonMatches));
+    EventIF createdReputationEvent = createFollowSetsEvent(
+        voteReceiverPubkey,
+        identifierTag,
+        nonMatches);
+    reputationEventPlugin.processIncomingEvent(createdReputationEvent);
   }
 
   private Optional<GenericEventKind> getExistingFollowSetsEvent(
@@ -108,11 +110,12 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   public EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
+      @NonNull IdentifierTag identifierTag,
       @NonNull List<FollowSetsEvent.EventTagAddressTagPair> eventTagAddressTagPairs) {
     FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
-        new IdentifierTag(UNIT_REPUTATION.getName()),
+        identifierTag,
         eventTagAddressTagPairs,
         DynamicReputationCalculator.class.getSimpleName());
 

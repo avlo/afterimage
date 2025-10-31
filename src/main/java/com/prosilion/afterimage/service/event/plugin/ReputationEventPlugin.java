@@ -71,11 +71,12 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         existingBadgeAwardReputationEvent
     );
 
-    super.processIncomingEvent(
-        reputationCalculationServiceIF.calculateReputationEvent(
-            voteReceiverPubkey,
-            updatedBadgeAwardReputationEvent,
-            incomingReputationEvent));
+    EventIF newReputationEvent = reputationCalculationServiceIF.calculateReputationEvent(
+        voteReceiverPubkey,
+        updatedBadgeAwardReputationEvent,
+        incomingReputationEvent);
+    
+    super.processIncomingEvent(newReputationEvent);
   }
 
   private BadgeDefinitionReputationEvent getExistingBadgeDefinitionReputationEvent(PublicKey eventCreatorPubkey, IdentifierTag uuid) {

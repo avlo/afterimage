@@ -12,8 +12,8 @@ import lombok.Getter;
 import org.springframework.lang.NonNull;
 
 public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent {
-  @JsonIgnore @Getter PublicKey badgeReceiverPubkey;
-  @JsonIgnore @Getter BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
+  @JsonIgnore @Getter private final PublicKey badgeReceiverPubkey;
+  @JsonIgnore @Getter private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
 
   public BadgeAwardReputationEvent(
       @NonNull Identity aImgIdentity,
@@ -36,5 +36,7 @@ public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent {
             badgeDefinitionReputationEvent).getAwardEvent(),
         tags,
         score.toString());
+    this.badgeReceiverPubkey = badgeReceiverPubkey;
+    this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
   }
 }
