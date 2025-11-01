@@ -50,10 +50,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
 public class AfterimageReqThenSingleSuperconductorEventIT {
-  public static final String afterimagePublicKey = "bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984";
-  public static final String authorPublicKey = afterimagePublicKey;
-  public static final String content = "matching kind, author, identity-tag filter test";
-
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;

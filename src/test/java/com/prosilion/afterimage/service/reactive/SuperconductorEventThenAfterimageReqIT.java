@@ -58,8 +58,7 @@ public class SuperconductorEventThenAfterimageReqIT {
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-//      @NonNull @Qualifier("badgeDefinitionUpvoteEvent") 
-      BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
       @NonNull BadgeDefinitionReputationEvent badgeReputationDefinitionEvent,
       @NonNull Identity afterimageInstanceIdentity) {
     this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;

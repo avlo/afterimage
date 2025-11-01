@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
-public class AfterimageReqThenTwoSuperconductorUploveEventsIT {
+public class AfterimageReqThenTwoSuperconductorUpvoteEventsIT {
 
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
@@ -53,7 +53,7 @@ public class AfterimageReqThenTwoSuperconductorUploveEventsIT {
   private final BadgeDefinitionReputationEvent badgeReputationDefinitionEvent;
 
   @Autowired
-  public AfterimageReqThenTwoSuperconductorUploveEventsIT(
+  public AfterimageReqThenTwoSuperconductorUpvoteEventsIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
@@ -73,12 +73,12 @@ public class AfterimageReqThenTwoSuperconductorUploveEventsIT {
 
 //    // # --------------------- Aimg REQ -------------------
 //    //   results should process at end of test once SC vote events have completed
-    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
-    afterimageMeshRelayService.send(
-        createAfterImageReqMessage(
-            Factory.generateRandomHex64String(),
-            upvotedUser.getPublicKey()),
-        reputationRequestSubscriber);
+//    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
+//    afterimageMeshRelayService.send(
+//        createAfterImageReqMessage(
+//            Factory.generateRandomHex64String(),
+//            upvotedUser.getPublicKey()),
+//        reputationRequestSubscriber);
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
@@ -144,6 +144,13 @@ public class AfterimageReqThenTwoSuperconductorUploveEventsIT {
 
 
     // # --------------------- Aimg EVENTS returned -------------------
+    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
+    afterimageMeshRelayService.send(
+        createAfterImageReqMessage(
+            Factory.generateRandomHex64String(),
+            upvotedUser.getPublicKey()),
+        reputationRequestSubscriber);
+    
     List<BaseMessage> returnedAimgMessages = reputationRequestSubscriber.getItems();
 
     List<EventIF> returnedReputationEventIFs = getGenericEvents(returnedAimgMessages);
