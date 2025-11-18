@@ -16,11 +16,13 @@ import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
+import static com.prosilion.afterimage.config.AfterimageBaseConfig.IDENTITY;
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.MINUS_ONE_FORMULA;
+import static com.prosilion.afterimage.config.AfterimageBaseConfig.PLATFORM;
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.PLUS_ONE_FORMULA;
+import static com.prosilion.afterimage.config.AfterimageBaseConfig.PROOF;
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_DOWNVOTE;
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_UPVOTE;
 import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
@@ -33,15 +35,11 @@ public class ExpressionTest {
   public static final IdentifierTag downvoteIdentifierTag = new IdentifierTag(UNIT_DOWNVOTE);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
-  private final ExternalIdentityTag externalIdentityTag;
-  private final Relay relay;
+  private final ExternalIdentityTag externalIdentityTag = new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF);
+  private final Relay relay = new Relay("ws://localhost:5555");
 
-  public ExpressionTest(
-      @NonNull ExternalIdentityTag externalIdentityTag,
-      @NonNull String afterimageRelayUrl) throws ParseException {
+  public ExpressionTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
-    this.externalIdentityTag = externalIdentityTag;
-    this.relay = new Relay(afterimageRelayUrl);
 
     BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
     BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);

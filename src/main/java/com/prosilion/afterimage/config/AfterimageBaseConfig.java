@@ -6,7 +6,7 @@ import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.db.AfterimageCacheService;
-import com.prosilion.afterimage.db.CacheBadgeAwardEventService;
+import com.prosilion.afterimage.db.CacheBadgeAwardReputationEventService;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
@@ -110,7 +110,7 @@ public abstract class AfterimageBaseConfig {
 
   @Bean(name = "cacheBadgeAwardEventService")
   CacheEventTagBaseEventServiceIF cacheBadgeAwardEventService(@NonNull CacheServiceIF cacheServiceIF) {
-    return new CacheBadgeAwardEventService(cacheServiceIF);
+    return new CacheBadgeAwardReputationEventService(cacheServiceIF);
   }
 
   @Bean

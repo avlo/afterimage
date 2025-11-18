@@ -16,13 +16,13 @@ import org.springframework.lang.NonNull;
 
 public class AfterimageCacheService {
   private final CacheBadgeDefinitionReputationEventService defnReputationEventService;
-  private final CacheBadgeAwardEventService cacheBadgeAwardEventService;
+  private final CacheBadgeAwardReputationEventService cacheBadgeAwardEventService;
 
   public AfterimageCacheService(
       @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
       @NonNull CacheEventTagBaseEventServiceIF cacheBadgeAwardEventService) {
     this.defnReputationEventService = cacheBadgeDefinitionReputationEventService;
-    this.cacheBadgeAwardEventService = (CacheBadgeAwardEventService) cacheBadgeAwardEventService;
+    this.cacheBadgeAwardEventService = (CacheBadgeAwardReputationEventService) cacheBadgeAwardEventService;
   }
 
   public void save(@NonNull EventIF event) {
