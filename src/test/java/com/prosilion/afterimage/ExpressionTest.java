@@ -6,6 +6,8 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
+import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
@@ -14,6 +16,7 @@ import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.config.AfterimageBaseConfig.MINUS_ONE_FORMULA;
@@ -30,16 +33,24 @@ public class ExpressionTest {
   public static final IdentifierTag downvoteIdentifierTag = new IdentifierTag(UNIT_DOWNVOTE);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
+  private final ExternalIdentityTag externalIdentityTag;
+  private final Relay relay;
 
-  public ExpressionTest() throws ParseException {
+  public ExpressionTest(
+      @NonNull ExternalIdentityTag externalIdentityTag,
+      @NonNull String afterimageRelayUrl) throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
+    this.externalIdentityTag = externalIdentityTag;
+    this.relay = new Relay(afterimageRelayUrl);
 
-    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, upvoteIdentifierTag);
-    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, downvoteIdentifierTag);
+    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
+    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
             UNIT_REPUTATION.getName()),
+        relay,
+        externalIdentityTag,
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
@@ -54,6 +65,8 @@ public class ExpressionTest {
         afterimageInstanceIdentity,
         new IdentifierTag(
             UNIT_REPUTATION.getName()),
+        relay,
+        externalIdentityTag,
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,

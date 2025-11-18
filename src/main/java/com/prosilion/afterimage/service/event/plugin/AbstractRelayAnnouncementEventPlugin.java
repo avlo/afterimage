@@ -11,9 +11,9 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -25,15 +25,15 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
-  private final RedisCacheServiceIF redisCacheServiceIF;
+  private final CacheServiceIF cacheServiceIF;
   private final Identity aImgIdentity;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.redisCacheServiceIF = redisCacheServiceIF;
+    this.cacheServiceIF = cacheServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -48,7 +48,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     Set<String> eventRelays = getRelayTag(relaysEvent)
         .collect(Collectors.toSet());
 
-    Set<Stream<String>> existingKnownRelays = redisCacheServiceIF.getByKind(getKind()).stream()
+    Set<Stream<String>> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
         .map(AbstractRelayAnnouncementEventPlugin::getRelayTag)
         .collect(Collectors.toSet());
 

@@ -3,17 +3,23 @@ package com.prosilion.afterimage.event;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.EventTagsMappedEventsIF;
+import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.tag.BaseTag;
+import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Function;
 import lombok.Getter;
 import org.springframework.lang.NonNull;
 
-public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent {
-  @JsonIgnore @Getter private final PublicKey badgeReceiverPubkey;
-  @JsonIgnore @Getter private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
+public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent implements EventTagsMappedEventsIF {
+  //  @JsonIgnore @Getter private final PublicKey badgeReceiverPubkey;
+  @JsonIgnore
+  @Getter
+  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
 
   public BadgeAwardReputationEvent(
       @NonNull Identity aImgIdentity,
@@ -36,7 +42,14 @@ public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent {
             badgeDefinitionReputationEvent).getAwardEvent(),
         tags,
         score.toString());
-    this.badgeReceiverPubkey = badgeReceiverPubkey;
+//    this.badgeReceiverPubkey = badgeReceiverPubkey;
     this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
+  }
+
+  public BadgeAwardReputationEvent(
+      @NonNull GenericEventRecord genericEventRecord,
+      @NonNull Function<EventTag, BadgeDefinitionReputationEvent> eventTagFormulaEventFunction) {
+    super(genericEventRecord);
+    this.badgeDefinitionReputationEvent = mapEventTagsToEvents(this, eventTagFormulaEventFunction).getFirst();
   }
 }

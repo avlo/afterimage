@@ -11,6 +11,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
@@ -30,9 +31,9 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
   public SuperconductorSearchRelaysListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindTypeServiceIF eventKindTypeService,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPlugin, redisCacheServiceIF, aImgIdentity);
+    super(eventKindPlugin, cacheServiceIF, aImgIdentity);
     this.eventKindServiceIF = eventKindTypeService;
   }
 

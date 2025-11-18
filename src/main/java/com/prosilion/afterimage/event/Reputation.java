@@ -3,7 +3,9 @@ package com.prosilion.afterimage.event;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.internal.AwardEvent;
+import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.PublicKey;
 import lombok.EqualsAndHashCode;
@@ -20,7 +22,7 @@ public class Reputation {
         new AddressTag(
             Kind.BADGE_DEFINITION_EVENT,
             badgeDefinitionReputationEvent.getPublicKey(),
-            badgeDefinitionReputationEvent.getIdentifierTag()),
+            Filterable.getTypeSpecificTags(IdentifierTag.class, badgeDefinitionReputationEvent).getFirst()),
         new PubKeyTag(upvotedUser));
   }
 }

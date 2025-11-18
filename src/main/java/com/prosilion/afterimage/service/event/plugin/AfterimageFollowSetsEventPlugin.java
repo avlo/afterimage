@@ -1,13 +1,12 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
-import com.prosilion.afterimage.config.AfterimageBaseConfig;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
-import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
 import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.event.internal.EventTagAddressTagPair;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.BaseTag;
@@ -16,12 +15,12 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.request.NotifierService;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -30,23 +29,21 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
-import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
-
 @Slf4j
 public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
   private final EventKindTypePluginIF reputationEventPlugin;
-  private final RedisCacheServiceIF redisCacheServiceIF;
+  private final CacheServiceIF cacheServiceIF;
   private final Identity aImgIdentity;
 
   public AfterimageFollowSetsEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull EventKindTypePluginIF reputationEventPlugin) {
     super(notifierService, eventKindPlugin);
     this.reputationEventPlugin = reputationEventPlugin;
-    this.redisCacheServiceIF = redisCacheServiceIF;
+    this.cacheServiceIF = cacheServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -66,11 +63,11 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 //    TODO: ifPresent likely superfluous if delete mechanism already handles optional
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
 
-    List<FollowSetsEvent.EventTagAddressTagPair> incomingPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
-    List<FollowSetsEvent.EventTagAddressTagPair> existingPairs = getEventTagAddressTagPairs(
+    List<EventTagAddressTagPair> incomingPairs = getEventTagAddressTagPairs(incomingFollowSetsEvent.getTags());
+    List<EventTagAddressTagPair> existingPairs = getEventTagAddressTagPairs(
         existingFollowSetsEvent.map(GenericEventKind::getTags).orElse(List.of()));
 
-    List<FollowSetsEvent.EventTagAddressTagPair> nonMatches = incomingPairs.stream()
+    List<EventTagAddressTagPair> nonMatches = incomingPairs.stream()
         .filter(incomingEventTagAddressTagPair ->
             !existingPairs.contains(incomingEventTagAddressTagPair)).toList();
 
@@ -90,7 +87,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   private Optional<GenericEventKind> getExistingFollowSetsEvent(
       PublicKey badgeReceiverPubkey,
       IdentifierTag uuid) {
-    return redisCacheServiceIF
+    return cacheServiceIF
         .getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, badgeReceiverPubkey)
         .stream()
         .filter(eventIf ->
@@ -111,7 +108,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   public EventIF createFollowSetsEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull IdentifierTag identifierTag,
-      @NonNull List<FollowSetsEvent.EventTagAddressTagPair> eventTagAddressTagPairs) {
+      @NonNull List<EventTagAddressTagPair> eventTagAddressTagPairs) {
     FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
@@ -124,7 +121,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
     return genericEventRecord;
   }
 
-  public List<FollowSetsEvent.EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
+  public List<EventTagAddressTagPair> getEventTagAddressTagPairs(List<BaseTag> followSetsEvent) {
     List<EventTag> eventTags = followSetsEvent
         .stream()
         .filter(EventTag.class::isInstance)
@@ -147,7 +144,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   }
 
   private void deletePreviousFollowSetsEvent(GenericEventKind previousFollowSetsEvent) {
-    redisCacheServiceIF.deleteEvent(
+    cacheServiceIF.deleteEvent(
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousFollowSetsEvent.getId())), "aImg delete previous FOLLOW_SETS event"));

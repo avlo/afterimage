@@ -4,7 +4,7 @@ import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
-import com.prosilion.nostr.event.FollowSetsEvent.EventTagAddressTagPair;
+import com.prosilion.nostr.event.internal.EventTagAddressTagPair;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;

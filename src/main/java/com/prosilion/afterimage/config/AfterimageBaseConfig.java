@@ -6,6 +6,7 @@ import com.prosilion.afterimage.config.web.EventApiNoAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.db.AfterimageCacheService;
+import com.prosilion.afterimage.db.CacheBadgeAwardEventService;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
@@ -21,13 +22,18 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
+import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsNoAuthCondition;
+import com.prosilion.superconductor.autoconfigure.base.service.CacheBadgeDefinitionReputationEventService;
 import com.prosilion.superconductor.base.controller.EventApiUiIF;
 import com.prosilion.superconductor.base.controller.ReqApiUiIF;
+import com.prosilion.superconductor.base.service.CacheEventTagBaseEventServiceIF;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.auth.ReqAuthCondition;
 import com.prosilion.superconductor.base.service.event.auth.ReqNoAuthCondition;
@@ -42,11 +48,9 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.superconductor.base.service.request.NotifierService;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
-import com.prosilion.superconductor.lib.redis.service.DeletionEventNoSqlEntityService;
-import com.prosilion.superconductor.lib.redis.service.EventNosqlEntityService;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -62,6 +66,10 @@ public abstract class AfterimageBaseConfig {
   public static final String UNIT_DOWNVOTE = "UNIT_DOWNVOTE";
   public static final String PLUS_ONE_FORMULA = "+1";
   public static final String MINUS_ONE_FORMULA = "-1";
+
+  public final static String PLATFORM = BadgeDefinitionReputationEvent.class.getPackageName();
+  public final static String IDENTITY = BadgeDefinitionReputationEvent.class.getSimpleName();
+  public final static String PROOF = String.valueOf(BadgeDefinitionReputationEvent.class.hashCode());
 
   @Bean
   Identity afterimageInstanceIdentity(@NonNull @Value("${afterimage.key.private}") String privateKey) {
@@ -93,12 +101,17 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   AfterimageCacheService afterimageCacheService(
-      @NonNull EventNosqlEntityService eventNosqlEntityService,
-      @NonNull DeletionEventNoSqlEntityService deletionEventNoSqlEntityService,
-      @NonNull Identity afterimageInstanceIdentity) {
-    return new AfterimageCacheService(eventNosqlEntityService, deletionEventNoSqlEntityService, afterimageInstanceIdentity);
+      @NonNull CacheEventTagBaseEventServiceIF cacheBadgeDefinitionReputationEventService,
+      @NonNull CacheEventTagBaseEventServiceIF cacheBadgeAwardEventService) {
+    return new AfterimageCacheService(
+        (CacheBadgeDefinitionReputationEventService) cacheBadgeDefinitionReputationEventService,
+        cacheBadgeAwardEventService);
   }
 
+  @Bean(name = "cacheBadgeAwardEventService")
+  CacheEventTagBaseEventServiceIF cacheBadgeAwardEventService(@NonNull CacheServiceIF cacheServiceIF) {
+    return new CacheBadgeAwardEventService(cacheServiceIF);
+  }
 
   @Bean
 //      (name = "reputationEventPlugin")
@@ -137,7 +150,7 @@ public abstract class AfterimageBaseConfig {
   @Bean
   EventKindPluginIF superconductorSearchRelaysListEventPlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull EventKindTypeServiceIF eventKindTypeServiceIF,
       @NonNull Identity afterimageInstanceIdentity) {
     return new SuperconductorSearchRelaysListEventPlugin(
@@ -145,14 +158,14 @@ public abstract class AfterimageBaseConfig {
             Kind.SEARCH_RELAYS_LIST,
             eventPlugin),
         eventKindTypeServiceIF,
-        redisCacheServiceIF,
+        cacheServiceIF,
         afterimageInstanceIdentity);
   }
 
   @Bean
   EventKindPluginIF afterimageRelaySetsEventPlugin(
       @NonNull EventPluginIF eventPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull List<EventKindPluginIF> eventKindPlugins,
       @NonNull Identity afterimageInstanceIdentity) {
     return new AfterimageRelaySetsEventPlugin(
@@ -160,7 +173,7 @@ public abstract class AfterimageBaseConfig {
             Kind.RELAY_SETS,
             eventPlugin),
         new EventKindService(eventKindPlugins),
-        redisCacheServiceIF,
+        cacheServiceIF,
         afterimageInstanceIdentity);
   }
 
@@ -170,40 +183,37 @@ public abstract class AfterimageBaseConfig {
       @NonNull EventPluginIF eventPlugin,
       @NonNull EventKindTypePluginIF reputationEventPlugin,
       @NonNull NotifierService notifierService,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity afterimageInstanceIdentity) {
     return new AfterimageFollowSetsEventPlugin(
         notifierService,
         new EventKindPlugin(
             Kind.FOLLOW_SETS,
             eventPlugin),
-        redisCacheServiceIF,
+        cacheServiceIF,
         afterimageInstanceIdentity,
         reputationEventPlugin);
   }
 
   @Bean
-//      (name = "badgeDefinitionUpvoteEvent")
-  BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent(@NonNull Identity afterimageInstanceIdentity) {
-    return new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, new IdentifierTag(UNIT_UPVOTE));
-  }
-
-  @Bean
-//      (name = "badgeDefinitionDownvoteEvent")
-  BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent(@NonNull Identity afterimageInstanceIdentity) {
-    return new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, new IdentifierTag(UNIT_DOWNVOTE));
+  ExternalIdentityTag externalIdentityTag() {
+    return new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF);
   }
 
   @Bean
 //      (name = "badgeDefinitionReputationEvent")
-  BadgeDefinitionReputationEvent badgeDefinitionReputationEvent(
+  BadgeDefinitionReputationEvent badgeDefinitionReputationEventDto(
+      @NonNull String afterimageRelayUrl,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-      @NonNull BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent) throws ParseException {
+      @NonNull BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent,
+      @NonNull ExternalIdentityTag externalIdentityTag) throws ParseException {
     return new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
         new IdentifierTag(
             UNIT_REPUTATION.getName()),
+        new Relay(afterimageRelayUrl),
+        externalIdentityTag,
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
@@ -218,19 +228,10 @@ public abstract class AfterimageBaseConfig {
   @Bean
   DataLoaderRedisIF dataLoaderRedis(
       @NonNull AfterimageCacheService afterimageCacheService,
-//      @NonNull @Qualifier("badgeDefinitionReputationEvent")
-      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent
-//      ,
-//      @NonNull @Qualifier("badgeDefinitionUpvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-//      @NonNull @Qualifier("badgeDefinitionDownvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent
-  ) {
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEventDto) {
     return new DataLoaderRedis(
         afterimageCacheService,
-        badgeDefinitionReputationEvent
-//        ,
-//        badgeDefinitionUpvoteEvent,
-//        badgeDefinitionDownvoteEvent
-    );
+        badgeDefinitionReputationEventDto);
   }
 
   @Bean

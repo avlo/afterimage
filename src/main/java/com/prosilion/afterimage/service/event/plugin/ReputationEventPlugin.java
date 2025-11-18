@@ -5,6 +5,7 @@ import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -14,7 +15,6 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
@@ -54,7 +54,7 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         .stream()
         .findFirst().orElseThrow();
 
-    Optional<GenericEventKind> existingBadgeAwardReputationEvent = getExistingBadgeAwardReputationEvent(
+    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = getExistingBadgeAwardReputationEvent(
         voteReceiverPubkey,
         incomingReputationEvent.getPublicKey(),
         identifierTag);
@@ -68,42 +68,48 @@ public class ReputationEventPlugin extends PublishingEventKindTypePlugin {
         voteReceiverPubkey,
         existingReputationDefinitionEvent,
 //        existingBadgeAwardReputationEvent.orElse(BigDecimal.ZERO.toString()).getContent()
-        existingBadgeAwardReputationEvent
-    );
+        existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO));
 
     EventIF newReputationEvent = reputationCalculationServiceIF.calculateReputationEvent(
         voteReceiverPubkey,
         updatedBadgeAwardReputationEvent,
+        existingReputationDefinitionEvent.getFormulaEvents(),
         incomingReputationEvent);
-    
+
     super.processIncomingEvent(newReputationEvent);
   }
 
-  private BadgeDefinitionReputationEvent getExistingBadgeDefinitionReputationEvent(PublicKey eventCreatorPubkey, IdentifierTag uuid) {
+  private BadgeDefinitionReputationEvent getExistingBadgeDefinitionReputationEvent(
+      @NonNull PublicKey eventCreatorPubkey,
+      @NonNull IdentifierTag uuid) {
     BadgeDefinitionReputationEvent foundReputationDefinitionEvent =
-        afterimageCacheService.getBadgeDefinitionReputationEvent(eventCreatorPubkey, uuid);
+        afterimageCacheService.getBadgeDefinitionReputationEvent(
+            eventCreatorPubkey,
+            uuid);
     return foundReputationDefinitionEvent;
   }
 
-  private Optional<GenericEventKind> getExistingBadgeAwardReputationEvent(
-      PublicKey badgeReceiverPubkey,
-      PublicKey eventCreatorPubkey,
-      IdentifierTag uuid) {
-    Optional<GenericEventKind> badgeAwardReputationEvent =
+  private Optional<BadgeAwardReputationEvent> getExistingBadgeAwardReputationEvent(
+      @NonNull PublicKey badgeReceiverPubkey,
+      @NonNull PublicKey eventCreatorPubkey,
+      @NonNull IdentifierTag uuid) {
+    Optional<BadgeAwardReputationEvent> badgeAwardReputationEvent =
         afterimageCacheService.getBadgeAwardReputationEvent(
-            badgeReceiverPubkey, eventCreatorPubkey, uuid);
+            badgeReceiverPubkey,
+            eventCreatorPubkey,
+            uuid);
     return badgeAwardReputationEvent;
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(
       PublicKey badgeReceiverPubkey,
       BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-      Optional<GenericEventKind> previousBadgeAwardReputationEvent) {
+      BigDecimal score) {
     BadgeAwardReputationEvent badgeAwardReputationEvent = new BadgeAwardReputationEvent(
         aImgIdentity,
         badgeReceiverPubkey,
         badgeDefinitionReputationEvent,
-        previousBadgeAwardReputationEvent.map(GenericEventKind::content).map(BigDecimal::new).orElse(BigDecimal.ZERO));
+        score);
     return badgeAwardReputationEvent;
   }
 

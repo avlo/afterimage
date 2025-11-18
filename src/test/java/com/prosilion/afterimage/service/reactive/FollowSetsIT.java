@@ -12,6 +12,7 @@ import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
+import com.prosilion.nostr.event.internal.EventTagAddressTagPair;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -144,8 +145,8 @@ public class FollowSetsIT {
         .toList();
   }
 
-  private FollowSetsEvent.EventTagAddressTagPair createPair(String eventId, String afterimageRelayUrl) {
-    return new FollowSetsEvent.EventTagAddressTagPair(
+  private EventTagAddressTagPair createPair(String eventId, String afterimageRelayUrl) {
+    return new EventTagAddressTagPair(
         new EventTag(
             eventId,
             afterimageRelayUrl),
