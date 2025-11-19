@@ -19,7 +19,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 #  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- docker logs -f "$1" > $OUTPUT_FILE_PREFIX."$2" & tail -f "$OUTPUT_FILE_PREFIX."$2"
-  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- docker logs -f "$1" > "$OUTPUT_FILE_PREFIX-$2"
+  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- bash -c "docker logs -f '$1' && read"
 }
 
 get_existing_terminal_pids() {
