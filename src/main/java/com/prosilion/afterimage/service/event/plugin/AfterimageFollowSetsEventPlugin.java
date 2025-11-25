@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -38,7 +39,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   public AfterimageFollowSetsEventPlugin(
       @NonNull NotifierService notifierService,
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull CacheServiceIF cacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull EventKindTypePluginIF reputationEventPlugin) {
     super(notifierService, eventKindPlugin);

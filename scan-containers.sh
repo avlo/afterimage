@@ -54,7 +54,7 @@ create_terminals() {
     done
     j_counter=$((j_counter + horizontal_terminal_count))
     x_position=1
-    y_position=$((y_position + 500)) # increment y position by 500
+    y_position=$((y_position + 520)) # increment y position by 500
   done
 }
 

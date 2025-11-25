@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.config;
+package com.prosilion.afterimage.config.util;
 
 import org.springframework.boot.CommandLineRunner;
 

@@ -9,10 +9,10 @@ import java.util.List;
 import org.springframework.lang.NonNull;
 
 public class ReputationCalculationLocalService implements ReputationCalculationServiceIF {
-  ReputationCalculatorIF reputationCalculatorIF;
+  ReputationCalculatorIF reputationCalculator;
 
-  public ReputationCalculationLocalService(@NonNull ReputationCalculatorIF reputationCalculatorIF) {
-    this.reputationCalculatorIF = reputationCalculatorIF;
+  public ReputationCalculationLocalService(@NonNull ReputationCalculatorIF reputationCalculator) {
+    this.reputationCalculator = reputationCalculator;
   }
 
   @Override
@@ -21,6 +21,6 @@ public class ReputationCalculationLocalService implements ReputationCalculationS
       @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull List<FormulaEvent> formulaEvents,
       @NonNull EventIF incomingFollowSetsEvent) {
-    return reputationCalculatorIF.calculateUpdatedReputationEvent(voteReceiverPubkey, previousReputationEvent, formulaEvents, incomingFollowSetsEvent);
+    return reputationCalculator.calculateUpdatedReputationEvent(voteReceiverPubkey, previousReputationEvent, formulaEvents, incomingFollowSetsEvent);
   }
 }

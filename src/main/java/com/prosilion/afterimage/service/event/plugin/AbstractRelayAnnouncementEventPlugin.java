@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -30,7 +31,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull CacheServiceIF cacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
     this.cacheServiceIF = cacheServiceIF;

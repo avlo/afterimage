@@ -48,8 +48,8 @@ public class BadgeAwardReputationEvent extends BadgeAwardAbstractEvent implement
 
   public BadgeAwardReputationEvent(
       @NonNull GenericEventRecord genericEventRecord,
-      @NonNull Function<EventTag, BadgeDefinitionReputationEvent> eventTagFormulaEventFunction) {
+      @NonNull Function<EventTag, BadgeDefinitionReputationEvent> fxn) {
     super(genericEventRecord);
-    this.badgeDefinitionReputationEvent = mapEventTagsToEvents(this, eventTagFormulaEventFunction).getFirst();
+    this.badgeDefinitionReputationEvent = mapEventTagsToEvents(this, fxn).getFirst();
   }
 }

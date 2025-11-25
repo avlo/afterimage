@@ -4,7 +4,6 @@ import com.prosilion.afterimage.InvalidReputationCalculatorException;
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationLocalService;
-import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.nostr.user.Identity;
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +33,12 @@ public class ReputationCalculatorConfig {
   }
 
   @Bean
-  ReputationCalculatorIF dynamicReputationCalculator(@NonNull Identity aImgIdentity) {
+  DynamicReputationCalculator dynamicReputationCalculator(@NonNull Identity aImgIdentity) {
     return new DynamicReputationCalculator(aImgIdentity);
   }
 
   @Bean
-  public ReputationCalculationServiceIF reputationCalculationServiceIF(@NonNull ReputationCalculatorIF dynamicReputationCalculator) {
+  public ReputationCalculationLocalService reputationCalculationService(@NonNull ReputationCalculatorIF dynamicReputationCalculator) {
     return new ReputationCalculationLocalService(dynamicReputationCalculator);
   }
 }

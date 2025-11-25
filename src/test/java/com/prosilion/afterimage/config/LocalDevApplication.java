@@ -2,6 +2,7 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.AfterimageApplication;
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
+import com.prosilion.afterimage.config.util.DataLoaderRedisIF;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
@@ -134,7 +135,7 @@ public class LocalDevApplication {
       TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
       final AfterimageMeshRelayService afterimageRepRequestClient = new AfterimageMeshRelayService(aimg5556);
       afterimageRepRequestClient.send(
-          createAfterImageReqMessage(Factory.generateRandomHex64String(), UPVOTED_USER),
+          createAfterImageReqMessage(Factory.generateRandomHex64String(), UPVOTED_USER, Kind.BADGE_AWARD_EVENT),
           afterImageEventsSubscriber_A);
 
       TimeUnit.MILLISECONDS.sleep(100);
@@ -148,12 +149,11 @@ public class LocalDevApplication {
       assert ("2".equals(returnedReqGenericEvents_2.getFirst().getContent()));
     }
 
-    private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {
+    private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey, Kind kind) {
       return new ReqMessage(
           subscriberId,
           new Filters(
-              new KindFilter(
-                  Kind.BADGE_AWARD_EVENT),
+              new KindFilter(kind),
               new ReferencedPublicKeyFilter(
                   new PubKeyTag(
                       upvotedUserPublicKey)),

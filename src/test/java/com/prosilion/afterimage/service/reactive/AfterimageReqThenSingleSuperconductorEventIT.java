@@ -61,11 +61,11 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
       @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEventDto) {
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
     this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
-    this.badgeReputationDefinitionEvent = badgeDefinitionReputationEventDto;
+    this.badgeReputationDefinitionEvent = badgeDefinitionReputationEvent;
     this.eventService = eventService;
   }
 

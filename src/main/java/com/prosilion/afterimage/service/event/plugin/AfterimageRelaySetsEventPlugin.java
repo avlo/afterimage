@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -29,7 +30,7 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
   public AfterimageRelaySetsEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindServiceIF eventKindServiceIF,
-      @NonNull CacheServiceIF cacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin, cacheServiceIF, aImgIdentity);
     this.eventKindServiceIF = eventKindServiceIF;

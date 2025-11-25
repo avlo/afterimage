@@ -14,10 +14,11 @@ import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 public class CacheBadgeAwardReputationEventService extends AbstractCacheEventTagBaseEventService {
-  public CacheBadgeAwardReputationEventService(@NonNull CacheServiceIF cacheServiceIF) {
+  public CacheBadgeAwardReputationEventService(@NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF) {
     super(cacheServiceIF);
   }
 
