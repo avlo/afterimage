@@ -9,6 +9,7 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.CacheServiceIF;
@@ -63,14 +64,15 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
-    super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream()));
+//    TODO::UNIQUE-RELAY-IDENTIFIER-TAG
+    super.processIncomingEvent(createEvent(aImgIdentity, new IdentifierTag("TODO::UNIQUE-RELAY-IDENTIFIER-TAG"), uniqueNewRelays.stream()));
 
     processIncomingEventAuth(uniqueNewRelays);
   }
 
   protected abstract void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException;
 
-  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewRelays);
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays);
 
   abstract protected Filters getFilters();
 

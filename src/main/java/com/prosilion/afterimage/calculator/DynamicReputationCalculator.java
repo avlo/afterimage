@@ -1,19 +1,17 @@
 package com.prosilion.afterimage.calculator;
 
 import com.ezylang.evalex.Expression;
-import com.prosilion.afterimage.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.BadgeAwardReputationEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
-import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -34,25 +32,28 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
       @NonNull List<FormulaEvent> formulaEvents,
       @NonNull EventIF incomingFollowSetsEvent) throws NostrException {
 
-    List<IdentifierTag> definitionUuids = formulaEvents.stream()
-        .map(formulaEvent ->
-            Filterable.getTypeSpecificTags(IdentifierTag.class, formulaEvent))
-        .flatMap(Collection::stream)
-        .toList();
-
-    List<BaseTag> allEventTags = incomingFollowSetsEvent.getTags();
-
-    List<IdentifierTag> eventVoteTags = allEventTags.stream()
+    List<IdentifierTag> eventVoteTags = incomingFollowSetsEvent.getTags().stream()
         .filter(AddressTag.class::isInstance)
         .map(AddressTag.class::cast)
         .map(AddressTag::getIdentifierTag)
         .filter(Objects::nonNull)
-        .filter(definitionUuids::contains)
+        .filter(
+            formulaEvents.stream()
+                .map(FormulaEvent::getBadgeDefinitionAwardEvent)
+                .map(BadgeDefinitionAwardEvent::getIdentifierTag).toList()::contains)
         .toList();
 
-    String updatedScore = calculateReputationEventScore(eventVoteTags, previousReputationEvent, formulaEvents);
+    String updatedScore = calculateReputationEventScore(
+        eventVoteTags,
+        previousReputationEvent,
+        formulaEvents);
 
-    EventIF reputationEvent = createReputationEvent(voteReceiverPubkey, updatedScore, previousReputationEvent.getBadgeDefinitionReputationEvent(), formulaEvents);
+    EventIF reputationEvent = createReputationEvent(
+        voteReceiverPubkey,
+        updatedScore,
+        previousReputationEvent.getBadgeDefinitionReputationEvent(),
+        formulaEvents);
+
     return reputationEvent;
   }
 
@@ -64,10 +65,10 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         voteEvents.stream().map(voteEventType ->
                 formulaEvents.stream()
                     .filter(formulaEvent ->
-                        Filterable.getTypeSpecificTagsStream(IdentifierTag.class, formulaEvent).findFirst().orElseThrow().equals(voteEventType)).collect(
+                        formulaEvent.getBadgeDefinitionAwardEvent().getIdentifierTag().equals(voteEventType)).collect(
                         Collectors.toMap(
                             formulaEvent ->
-                                Filterable.getTypeSpecificTagsStream(IdentifierTag.class, formulaEvent).findFirst().orElseThrow().getUuid(),
+                                formulaEvent.getBadgeDefinitionAwardEvent().getIdentifierTag().getUuid(),
                             FormulaEvent::getFormula,
                             (prev, next) -> next, HashMap::new)).get(voteEventType.getUuid()))
             .reduce(previousReputationEvent.getContent(), this::doCalc);
@@ -89,17 +90,12 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
       @NonNull String score,
       @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
       @NonNull List<FormulaEvent> formulaEvents) throws NostrException {
-    List<BaseTag> list = formulaEvents.stream().map(formulaEvent ->
-            Filterable.getTypeSpecificTagsStream(IdentifierTag.class, formulaEvent)
-                .findFirst()
-                .map(BaseTag.class::cast).orElseThrow())
-        .toList();
-    return new BadgeAwardReputationEvent(
+    BadgeAwardReputationEvent badgeAwardReputationEvent = new BadgeAwardReputationEvent(
         aImgIdentity,
         badgeReceiverPubkey,
         badgeDefinitionReputationEvent,
-        list,
         new BigDecimal(score));
+    return badgeAwardReputationEvent;
   }
 
   @Override

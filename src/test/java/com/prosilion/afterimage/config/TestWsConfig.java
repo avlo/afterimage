@@ -1,12 +1,6 @@
 package com.prosilion.afterimage.config;
 
-import com.prosilion.afterimage.config.util.DataLoaderRedis;
-import com.prosilion.afterimage.config.util.DataLoaderRedisIF;
-import com.prosilion.afterimage.db.AfterimageCacheService;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -25,16 +19,20 @@ public class TestWsConfig {
     return new AfterimageMeshRelayService(afterimageRelayUrl);
   }
 
-  @Bean
-  DataLoaderRedisIF dataLoaderRedis(
-      AfterimageCacheService afterimageCacheService,
-      @Qualifier("badgeDefinitionUpvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-      @Qualifier("badgeDefinitionDownvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent,
-      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
-    return new DataLoaderRedis(
-        afterimageCacheService,
-        badgeDefinitionUpvoteEvent,
-        badgeDefinitionDownvoteEvent,
-        badgeDefinitionReputationEvent);
-  }
+//  @Bean
+//  DataLoaderRedisIF dataLoaderRedis(
+//      @NonNull @Qualifier("redisCacheService") CacheServiceIF afterimageCacheService,
+//      @NonNull CacheFormulaEventService cacheFormulaEventService,
+//      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
+//      @Qualifier("badgeDefinitionUpvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
+//      @Qualifier("badgeDefinitionDownvoteEvent") BadgeDefinitionAwardEvent badgeDefinitionDownvoteEvent,
+//      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
+//    return new DataLoaderRedis(
+//        afterimageCacheService,
+//        cacheFormulaEventService,
+//        cacheBadgeDefinitionReputationEventService,
+//        badgeDefinitionUpvoteEvent,
+//        badgeDefinitionDownvoteEvent,
+//        badgeDefinitionReputationEvent);
+//  }
 }

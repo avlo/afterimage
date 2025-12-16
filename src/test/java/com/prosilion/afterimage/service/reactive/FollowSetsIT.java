@@ -1,18 +1,19 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
-import com.prosilion.afterimage.config.AfterimageBaseConfig;
+import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.TestcontainersConfig;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeAwardGenericVoteEvent;
+import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
-import com.prosilion.nostr.event.internal.EventTagAddressTagPair;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -21,13 +22,13 @@ import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.EventTag;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,40 +45,79 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
 public class FollowSetsIT {
-  public static final Identity authorIdentity = Identity.generateRandomIdentity();
-  public static final PublicKey UPVOTED_USER = Identity.create("1231231231231231231231231231231231231231231231231231231231231231").getPublicKey();
-  public static final String EVENT_ID_666 = "6666666666666666666666666666666666666666666666666666666666666666";
-  public static final String EVENT_ID_777 = "7777777777777777777777777777777777777777777777777777777777777777";
-  BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
+  public static final IdentifierTag relaySetsIdentifierTag = new IdentifierTag("TODO:RELAY_SETS_IDENTIFIER_TAG");
+
+  private final Relay relay;
+  public static final String REPUTATION = "TEST_REPUTATION";
+  public static final String UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
+  public static final String PLUS_ONE_FORMULA = "+1";
+
+  public final IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
+  public final IdentifierTag upvoteIdentifierTag = new IdentifierTag(UNIT_UPVOTE);
+
+  public final Identity identity = Identity.generateRandomIdentity();
+
+  public static final String PLATFORM = FollowSetsIT.class.getPackageName();
+  public static final String IDENTITY = FollowSetsIT.class.getSimpleName();
+  public static final String PROOF = String.valueOf(FollowSetsIT.class.hashCode());
+
+  private final BadgeDefinitionAwardEvent awardUpvoteDefinitionEvent;
+  private final FormulaEvent plusOneFormulaEvent;
+  ;
+  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventPlusOneFormula;
+
+  private final PublicKey reputationRecipientPublicKey = Identity.generateRandomIdentity().getPublicKey();
+  private final BadgeAwardGenericVoteEvent badgeAwardUpvoteEvent;
+
   Identity afterimageInstanceIdentity;
-  FollowSetsEvent followSetsEvent;
 
   @Autowired
   public FollowSetsIT(
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
       @NonNull Identity afterimageInstanceIdentity,
-      @NonNull String afterimageRelayUrl) {
+      @NonNull String afterimageRelayUrl,
+      CacheServiceIF cacheService) throws ParseException {
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     System.out.print("voteReceiverPubkey:\n  ");
-    System.out.println(UPVOTED_USER);
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
-    this.badgeDefinitionReputationEvent = badgeDefinitionReputationEvent;
+    relay = new Relay(afterimageRelayUrl);
+
+    this.awardUpvoteDefinitionEvent = new BadgeDefinitionAwardEvent(identity, upvoteIdentifierTag, relay);
+    this.plusOneFormulaEvent = new FormulaEvent(identity, upvoteIdentifierTag, relay, awardUpvoteDefinitionEvent, PLUS_ONE_FORMULA);
+
+    badgeDefinitionReputationEventPlusOneFormula = new BadgeDefinitionReputationEvent(
+        identity,
+        reputationIdentifierTag,
+        relay,
+        new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF),
+        plusOneFormulaEvent);
+
+    badgeAwardUpvoteEvent = new BadgeAwardGenericVoteEvent(
+        identity,
+        reputationRecipientPublicKey,
+        badgeDefinitionReputationEventPlusOneFormula);
+
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
-    this.followSetsEvent = new FollowSetsEvent(
-        authorIdentity,
-        UPVOTED_USER,
-        new IdentifierTag(
-            DynamicReputationCalculator.class.getCanonicalName()),
-        List.of(
-            createPair(EVENT_ID_666, afterimageRelayUrl),
-            createPair(EVENT_ID_777, afterimageRelayUrl)),
-        DynamicReputationCalculator.class.getName());
+
+    cacheService.save(awardUpvoteDefinitionEvent);
+    cacheService.save(plusOneFormulaEvent);
+    cacheService.save(badgeDefinitionReputationEventPlusOneFormula);
+    cacheService.save(badgeAwardUpvoteEvent);
   }
 
   @Test
   void testFollowSetsEvent() throws IOException, InterruptedException {
+    final String FOLLOW_SETS_EVENT = "FOLLOW_SETS_EVENT";
+    final IdentifierTag followSetsIdentifierTag = new IdentifierTag(FOLLOW_SETS_EVENT);
+
+    FollowSetsEvent followSetsEvent = new FollowSetsEvent(
+        identity,
+        reputationRecipientPublicKey,
+        followSetsIdentifierTag,
+        relay,
+        List.of(badgeAwardUpvoteEvent));
+
     String aimg5557 = "ws://localhost:5557";
     new AfterimageMeshRelayService(aimg5557)
         .send(
@@ -102,7 +142,7 @@ public class FollowSetsIT {
     TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
     final AfterimageMeshRelayService afterimageRepRequestClient = new AfterimageMeshRelayService(aimg5556);
     afterimageRepRequestClient.send(
-        createAfterImageReqMessage(Factory.generateRandomHex64String(), UPVOTED_USER),
+        createAfterImageReqMessage(Factory.generateRandomHex64String(), reputationRecipientPublicKey),
         afterImageEventsSubscriber_A);
 
     TimeUnit.MILLISECONDS.sleep(100);
@@ -126,12 +166,13 @@ public class FollowSetsIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                badgeDefinitionReputationEvent.getIdentifierTag())));
+                badgeDefinitionReputationEventPlusOneFormula.getIdentifierTag())));
   }
 
   private BaseEvent createRelaysSetsEventMessage(String uri) {
     return new RelaySetsEvent(
         afterimageInstanceIdentity,
+        relaySetsIdentifierTag,
         "Kind.RELAY_SETS",
         new RelayTag(
             new Relay(uri)));
@@ -145,15 +186,15 @@ public class FollowSetsIT {
         .toList();
   }
 
-  private EventTagAddressTagPair createPair(String eventId, String afterimageRelayUrl) {
-    return new EventTagAddressTagPair(
-        new EventTag(
-            eventId,
-            afterimageRelayUrl),
-        new AddressTag(
-            Kind.BADGE_AWARD_EVENT,
-            authorIdentity.getPublicKey(),
-            new IdentifierTag(
-                new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE).getUuid())));
-  }
+//  private EventTagAddressTagPair createPair(String eventId, String afterimageRelayUrl) {
+//    return new EventTagAddressTagPair(
+//        new EventTag(
+//            eventId,
+//            afterimageRelayUrl),
+//        new AddressTag(
+//            Kind.BADGE_AWARD_EVENT,
+//            authorIdentity.getPublicKey(),
+//            new IdentifierTag(
+//                new IdentifierTag(AfterimageBaseConfig.UNIT_UPVOTE).getUuid())));
+//  }
 }

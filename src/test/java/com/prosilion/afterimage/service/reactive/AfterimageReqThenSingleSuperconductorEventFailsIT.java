@@ -1,17 +1,20 @@
 package com.prosilion.afterimage.service.reactive;
 
+import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.TestcontainersConfig;
 import com.prosilion.afterimage.util.AfterimageMeshRelayService;
-import com.prosilion.afterimage.util.BadgeAwardUpvoteEvent;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeAwardGenericVoteEvent;
 import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -22,6 +25,8 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.AddressTag;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -52,21 +57,48 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
   private final AfterimageMeshRelayService superconductorRelayReactiveClient;
   private final AfterimageMeshRelayService afterimageMeshRelayService;
   private final EventServiceIF eventService;
-  private final BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent;
-  private final BadgeDefinitionReputationEvent badgeReputationDefinitionEvent;
+
+  public static final String REPUTATION = "TEST_REPUTATION";
+  public static final String UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
+  public static final String PLUS_ONE_FORMULA = "+1";
+
+  public final IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
+  public final IdentifierTag upvoteIdentifierTag = new IdentifierTag(UNIT_UPVOTE);
+
+  public final Identity identity = Identity.generateRandomIdentity();
+
+  public static final String PLATFORM = FollowSetsIT.class.getPackageName();
+  public static final String IDENTITY = FollowSetsIT.class.getSimpleName();
+  public static final String PROOF = String.valueOf(FollowSetsIT.class.hashCode());
+
+  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
+
+//  private final String superconductorRelayUri;
+//  private final String afterimageRelayUri;
 
   @Autowired
   public AfterimageReqThenSingleSuperconductorEventFailsIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-      @NonNull BadgeDefinitionAwardEvent badgeDefinitionUpvoteEvent,
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) throws ParseException {
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
-    this.badgeDefinitionUpvoteEvent = badgeDefinitionUpvoteEvent;
-    this.badgeReputationDefinitionEvent = badgeDefinitionReputationEvent;
+
+    Relay relay = new Relay(afterimageRelayUri);
+
+    BadgeDefinitionAwardEvent awardUpvoteDefinitionEvent = new BadgeDefinitionAwardEvent(identity, upvoteIdentifierTag, relay);
+    FormulaEvent plusOneFormulaEvent = new FormulaEvent(identity, upvoteIdentifierTag, relay, awardUpvoteDefinitionEvent, PLUS_ONE_FORMULA);
+
+    badgeDefinitionReputationEvent = new BadgeDefinitionReputationEvent(
+        identity,
+        reputationIdentifierTag,
+        relay,
+        new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF),
+        plusOneFormulaEvent);
+
     this.eventService = eventService;
+//    this.superconductorRelayUri = superconductorRelayUri;
+//    this.afterimageRelayUri = afterimageRelayUri;
   }
 
   @Test
@@ -87,10 +119,10 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
-    BadgeAwardUpvoteEvent badgeAwardUpvoteEvent_1 = new BadgeAwardUpvoteEvent(
+    BadgeAwardGenericVoteEvent badgeAwardUpvoteEvent_1 = new BadgeAwardGenericVoteEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
-        badgeDefinitionUpvoteEvent);
+        badgeDefinitionReputationEvent);
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
 //        new GenericDocumentKindTypeDto(
 //            badgeAwardUpvoteEvent_1,
@@ -179,7 +211,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             new IdentifierTagFilter(
-                badgeReputationDefinitionEvent.getIdentifierTag())));
+                badgeDefinitionReputationEvent.getIdentifierTag())));
   }
 
   private ReqMessage createSuperconductorReqMessage(String subscriberId) {

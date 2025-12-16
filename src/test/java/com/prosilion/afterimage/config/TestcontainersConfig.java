@@ -14,26 +14,20 @@ public class TestcontainersConfig {
   @Bean
   @ServiceConnection
   public ComposeContainer composeContainerLocalDev() {
-    try (ComposeContainer writer =
-             new ComposeContainer(
-                 new File("src/test/resources/docker-compose-local_ws.yml"))
-                 .waitingFor("afterimage-db", Wait.forHealthcheck())
-                 .withRemoveVolumes(true)) {
-      return writer;
-    }
+    return new ComposeContainer(
+        new File("src/test/resources/docker-compose-local_ws.yml"))
+        .waitingFor("afterimage-db", Wait.forHealthcheck())
+        .withRemoveVolumes(true);
   }
 
   @Bean
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
-    try (ComposeContainer container =
-             new ComposeContainer(
-                 new File("src/test/resources/afterimage-docker-compose-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-                 .waitingFor("afterimage-app", Wait.forHealthcheck())
-                 .waitingFor("superconductor-afterimage", Wait.forHealthcheck())
-                 .waitingFor("superconductor-afterimage-two", Wait.forHealthcheck())
-                 .withRemoveVolumes(true)) {
-      return container;
-    }
+    return new ComposeContainer(
+        new File("src/test/resources/afterimage-docker-compose-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
+        .waitingFor("afterimage-app", Wait.forHealthcheck())
+        .waitingFor("superconductor-afterimage", Wait.forHealthcheck())
+        .waitingFor("superconductor-afterimage-two", Wait.forHealthcheck())
+        .withRemoveVolumes(true);
   }
 }

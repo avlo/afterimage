@@ -9,6 +9,7 @@ import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.CacheServiceIF;
@@ -60,10 +61,11 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
   //  TODO: fix sneaky
   @SneakyThrows
   @Override
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewAImgRelays) {
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays) {
     log.debug("{} processing incoming Kind.RELAY_SETS 30_002 event", getClass().getSimpleName());
     return new RelaySetsEvent(
         identity,
+        identifierTag,
         uniqueNewAImgRelays.map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.RELAY_SETS");

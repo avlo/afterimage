@@ -38,6 +38,12 @@ public class ExpressionTest {
   private final ExternalIdentityTag externalIdentityTag = new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF);
   private final Relay relay = new Relay("ws://localhost:5555");
 
+  public static final String FORMULA_PLUS_ONE = "FORMULA_PLUS_ONE";
+  private final IdentifierTag formulaPlusOneIdentifierTag = new IdentifierTag(FORMULA_PLUS_ONE);
+
+  public static final String FORMULA_MINUS_ONE = "FORMULA_MINUS_ONE";
+  private final IdentifierTag formulaMinusOneIdentifierTag = new IdentifierTag(FORMULA_MINUS_ONE);
+
   public ExpressionTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
@@ -52,10 +58,14 @@ public class ExpressionTest {
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
+                formulaPlusOneIdentifierTag,
+                relay,
                 upvoteDefinitionEvent,
                 PLUS_ONE_FORMULA),
             new FormulaEvent(
                 afterimageInstanceIdentity,
+                formulaMinusOneIdentifierTag,
+                relay,
                 downvoteDefinitionEvent,
                 MINUS_ONE_FORMULA)));
 
@@ -68,10 +78,14 @@ public class ExpressionTest {
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
+                formulaPlusOneIdentifierTag,
+                relay,
                 upvoteDefinitionEvent,
                 PLUS_ONE_FORMULA),
             new FormulaEvent(
                 afterimageInstanceIdentity,
+                formulaMinusOneIdentifierTag,
+                relay,
                 downvoteDefinitionEvent,
                 PLUS_ONE_FORMULA)));
   }
