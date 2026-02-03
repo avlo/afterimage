@@ -67,13 +67,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SuperconductorEventThenAfterimageReqIT {
 
   /**
-          definitionsCreatorIdentity:   02d49b23e02985a760e8bc2f5ee86a3089569806f5f6a670fba3317568d14262
-   
-          voteSubmitterIdentity:        611eda70943b4f67d1674068f5c86cedbdc3438bb41245b129a6311e4f308295
-   
-          voteReceierIdentity:          985a5b9ea911bb8f9d9dca82c03f776d68fdc452b774295a874423a0fa5e8879
+   * definitionsCreatorIdentity:   02d49b23e02985a760e8bc2f5ee86a3089569806f5f6a670fba3317568d14262
+   * <p>
+   * voteSubmitterIdentity:        611eda70943b4f67d1674068f5c86cedbdc3438bb41245b129a6311e4f308295
+   * <p>
+   * voteReceierIdentity:          985a5b9ea911bb8f9d9dca82c03f776d68fdc452b774295a874423a0fa5e8879
    */
-  
+
   public static final String REPUTATION = "TEST_REPUTATION";
   public static final String AWARD_UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
   public static final String FORMULA_UNIT_UPVOTE = "FORMULA_UNIT_UPVOTE";
@@ -263,7 +263,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardGenericEvent =
         cacheBadgeAwardGenericEventServiceIF.materialize(returnedScBadgeAwardUpvoteEvent_1a.asGenericEventRecord());
 
-////    simulate Aimg FollowSets handling, inserting SC upvote into aImg
+////    simulate Aimg FollowSets handling, inserting 1st SC upvote into aImg
     eventServiceIF.processIncomingEvent(
         new EventMessage(returnedScBadgeAwardUpvoteEvent_1a.asGenericEventRecord()));
 //    cacheServiceIF.save(returnedScBadgeAwardUpvoteEvent_1a);
@@ -357,7 +357,6 @@ public class SuperconductorEventThenAfterimageReqIT {
 
     log.debug("jjjjjjjjjjjjjj");
     log.debug("jjjjjjjjjjjjjj");
-    log.debug("retrieved afterimage events:");
     List<BaseMessage> superconductorEventsSubscriber_3a_Items = superconductorEventsSubscriber_3a.getItems();
     superconductorRelayReactiveClient_3a.closeSocket();
     List<EventIF> returnedScBadgeAwardUpvoteEvent_3a = getGenericEvents(superconductorEventsSubscriber_3a_Items);
@@ -369,7 +368,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     assertEquals(returnedScBadgeAwardUpvoteEvent_3a.getFirst().getKind(), scBadgeAwardUpvoteEvent_3.getKind());
 
 //    cacheServiceIF.save(returnedScBadgeAwardUpvoteEvent_3a.getFirst());
-    
+
     TimeUnit.MILLISECONDS.sleep(1000);
 
 //    returnedScBadgeAwardUpvoteEvent_3a.forEach(gev ->
@@ -396,7 +395,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     log.debug("------------------");
 
     List<EventIF> returnedVotesFromSc_4 = getGenericEvents(superConductorEventsSubscriber_4.getItems());
-    superconductorRelayReactiveClient_4.closeSocket();;
+    superconductorRelayReactiveClient_4.closeSocket();
 
     log.debug("returnedVotesFromSc:");
     returnedVotesFromSc_4.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
@@ -428,12 +427,12 @@ public class SuperconductorEventThenAfterimageReqIT {
 
     log.debug("mmmmmmmmmmmmmmmm");
     log.debug("mmmmmmmmmmmmmmmm");
-    
+
     TimeUnit.MILLISECONDS.sleep(1000);
 
     List<EventIF> returnedAfterImageEvents_B = getGenericEvents(afterImageEventsSubscriber_B.getItems());
     afterimageRepRequestClient_B.closeSocket();
-    
+
     TimeUnit.MILLISECONDS.sleep(1000);
 
 //    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
@@ -456,7 +455,6 @@ public class SuperconductorEventThenAfterimageReqIT {
             .filter(addressTag -> addressTag.getPublicKey().equals(definitionsCreatorIdentity.getPublicKey()))
             .filter(addressTag -> addressTag.getIdentifierTag().equals(reputationIdentifierTag))
             .toList().isEmpty()));
-//                    .anyMatch(repDefnCreatorPubkey_4444.getPublicKey()::equals)));
 
     assertTrue(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         Filterable.getTypeSpecificTagsStream(ExternalIdentityTag.class, eventIF)
@@ -464,18 +462,15 @@ public class SuperconductorEventThenAfterimageReqIT {
 
     log.debug("nnnnnnnnnnnnnnnnnn");
     log.debug("nnnnnnnnnnnnnnnnnn");
-    
-//    assertEquals(returnedAfterImageEvents.getFirst().getKind(), upvote_2.getKind());
-//    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(upvote_2.getKind())));
 
     log.debug("returnedAfterImageEvents.size() {}", returnedAfterImageEvents_B.size());
     log.debug("------");
     log.debug("returnedAfterImageEvents:\n  {}", returnedAfterImageEvents_B.stream().toString());
     log.debug("------");
     log.debug("content:");
-    log.debug(returnedAfterImageEvents_B.stream().map(EventIF::getContent).map(s -> s+"\n").toList().toString());
+    returnedAfterImageEvents_B.stream().map(EventIF::getContent).forEach(log::debug);
 //    assertTrue(returnedAfterImageEvents_B.stream().anyMatch(genericEvent -> genericEvent.getContent().equals("2")));
-    
+
 //    superconductorRelayReactiveClient_1.closeSocket();
 //    afterimageRepRequestClient_B.closeSocket();
   }
