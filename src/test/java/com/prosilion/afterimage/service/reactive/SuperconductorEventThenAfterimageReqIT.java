@@ -203,7 +203,7 @@ public class SuperconductorEventThenAfterimageReqIT {
             definitionsCreatorIdentity.getPublicKey()),
         reputationRequestSubscriberCheck);
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
     //  test initial aImg events state, should have zero reputation events for voteReceierIdentity
 
     log.debug("AAAAAAAAAAAAAA");
@@ -232,7 +232,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     superconductorEventMessageRelayReactiveClient_1.send(
         new EventMessage(scBadgeAwardUpvoteEvent_1), scOkMessageSubscriber_1);
 
-    TimeUnit.MILLISECONDS.sleep(2500);
+    // TimeUnit.MILLISECONDS.sleep(2500);
 
     List<OkMessage> items_1 = scOkMessageSubscriber_1.getItems();
     superconductorEventMessageRelayReactiveClient_1.closeSocket();
@@ -247,7 +247,7 @@ public class SuperconductorEventThenAfterimageReqIT {
         createSuperconductorReqMessageBadgeAwardEvent(Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()),
         superconductorReqMessageEventsSubscriber_1a);
 
-    TimeUnit.MILLISECONDS.sleep(2500);
+    // TimeUnit.MILLISECONDS.sleep(2500);
 
     log.debug("ffffffffffffff");
     log.debug("ffffffffffffff");
@@ -261,7 +261,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     assertEquals(returnedScBadgeAwardUpvoteEvent_1a.getPublicKey().toHexString(), scBadgeAwardUpvoteEvent_1.getPublicKey().toHexString());
     assertEquals(returnedScBadgeAwardUpvoteEvent_1a.getKind(), scBadgeAwardUpvoteEvent_1.getKind());
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
 ////    simulate Aimg FollowSets handling, inserting 1st SC upvote into aImg
     eventServiceIF.processIncomingEvent(
@@ -281,7 +281,7 @@ public class SuperconductorEventThenAfterimageReqIT {
             definitionsCreatorIdentity.getPublicKey()),
         afterImageEventsSubscriber_A);
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     log.debug("hhhhhhhhhhhhhh");
     log.debug("hhhhhhhhhhhhhh");
@@ -301,10 +301,10 @@ public class SuperconductorEventThenAfterimageReqIT {
     TestSubscriber<OkMessage> scOkMessageSubscriber_2 = new TestSubscriber<>();
     superconductorEventMessageRelayReactiveClient_2.send(
         new EventMessage(scBadgeAwardUpvoteEvent_2), scOkMessageSubscriber_2);
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     List<OkMessage> items2 = scOkMessageSubscriber_2.getItems();
-    TimeUnit.MILLISECONDS.sleep(50);
+    // TimeUnit.MILLISECONDS.sleep(50);
 
     assertEquals(true, items2.getFirst().getFlag());
     log.debug("received 2of2 OkMessage...");
@@ -315,7 +315,7 @@ public class SuperconductorEventThenAfterimageReqIT {
         createSuperconductorReqMessageBadgeAwardEvent(Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()),
         superconductorReqMessageEventsSubscriber_2a);
 
-    TimeUnit.MILLISECONDS.sleep(2500);
+    // TimeUnit.MILLISECONDS.sleep(2500);
 
     log.debug("iiiiiiiiiiiiii");
     log.debug("iiiiiiiiiiiiii");
@@ -342,7 +342,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     TestSubscriber<OkMessage> scOkMessageSubscriber_3 = new TestSubscriber<>();
     superconductorEventMessageRelayReactiveClient_3.send(
         new EventMessage(scBadgeAwardUpvoteEvent_3), scOkMessageSubscriber_3);
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     List<OkMessage> items = scOkMessageSubscriber_3.getItems();
     superconductorEventMessageRelayReactiveClient_3.closeSocket();
@@ -355,7 +355,7 @@ public class SuperconductorEventThenAfterimageReqIT {
         createSuperconductorReqMessageBadgeAwardEvent(Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()),
         superconductorReqMessageEventsSubscriber_3a);
 
-    TimeUnit.MILLISECONDS.sleep(2500);
+    // TimeUnit.MILLISECONDS.sleep(2500);
 
     log.debug("jjjjjjjjjjjjjj");
     log.debug("jjjjjjjjjjjjjj");
@@ -368,7 +368,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     assertEquals(returnedScBadgeAwardUpvoteEvent_3a.getFirst().getPublicKey().toHexString(), scBadgeAwardUpvoteEvent_3.getPublicKey().toHexString());
     assertEquals(returnedScBadgeAwardUpvoteEvent_3a.getFirst().getKind(), scBadgeAwardUpvoteEvent_3.getKind());
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     EventIF eventIF3 = returnedScBadgeAwardUpvoteEvent_3a.stream().max(Comparator.comparing(EventIF::getCreatedAt)).orElseThrow();
     eventServiceIF.processIncomingEvent(
@@ -389,7 +389,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     superconductorRelayReactiveClient_4.send(
         superconductorReqMessage, superconductorReqMessageEventsSubscriber_4);
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     log.debug("------------------");
 
@@ -409,7 +409,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     log.debug("llllllllllllllll");
     log.debug("llllllllllllllll");
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
 //    query Aimg for (as yet to be impl'd) reputation score event
     ReactiveNostrRelayClient afterimageRepRequestClient_B = new ReactiveNostrRelayClient(afterimageRelayUrl);
@@ -423,15 +423,12 @@ public class SuperconductorEventThenAfterimageReqIT {
     log.debug("mmmmmmmmmmmmmmmm");
     log.debug("mmmmmmmmmmmmmmmm");
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     List<EventIF> returnedAfterImageEvents_B = getGenericEvents(afterImageEventsSubscriber_B.getItems());
     afterimageRepRequestClient_B.closeSocket();
 
-    TimeUnit.MILLISECONDS.sleep(1000);
-
-//    assertTrue(returnedAfterImageEvents.stream().anyMatch(genericEvent -> genericEvent.getId().equals(textNoteEvent_1.getId())));
-    returnedAfterImageEvents_B.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
+    // TimeUnit.MILLISECONDS.sleep(1000);
 
     assertTrue(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         Filterable.getTypeSpecificTagsStream(PubKeyTag.class, eventIF)
