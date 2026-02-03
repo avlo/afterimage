@@ -14,4 +14,8 @@ public class InvalidKindException extends NostrException {
             invalidKind,
             Strings.join(validKinds, ',')));
   }
+
+  public static void testBoolean(boolean value, String invalidKind, List<String> validKinds) {
+    if (!value) throw new InvalidKindException(invalidKind, validKinds);
+  }
 }

@@ -33,8 +33,8 @@ public class ReputationCalculatorConfig {
   }
 
   @Bean
-  DynamicReputationCalculator dynamicReputationCalculator(@NonNull Identity aImgIdentity) {
-    return new DynamicReputationCalculator(aImgIdentity);
+  DynamicReputationCalculator dynamicReputationCalculator(@NonNull Identity aImgIdentity, @NonNull String afterimageRelayUrl) {
+    return new DynamicReputationCalculator(afterimageRelayUrl, aImgIdentity);
   }
 
   @Bean

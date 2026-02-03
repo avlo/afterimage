@@ -44,8 +44,9 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   public void processIncomingEvent(@NonNull EventIF relaysEvent) {
     log.debug("processing incoming event: [{}]", relaysEvent);
 
-    Kind kind = getKind();
-    assert relaysEvent.getKind().equals(kind) : new InvalidKindException(relaysEvent.getKind().getName(), List.of(getKind().getName()));
+    InvalidKindException.testBoolean(
+        relaysEvent.getKind().equals(getKind()),
+        relaysEvent.getKind().getName(), List.of(getKind().getName()));
 
     Set<String> eventRelays = getRelayTag(relaysEvent)
         .collect(Collectors.toSet());

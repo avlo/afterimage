@@ -6,9 +6,11 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
@@ -19,6 +21,28 @@ import java.util.Optional;
 public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
   List<KindTypeIF> getKindTypes();
 
+  default String validateExternalIdentityTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
+    List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();
+
+    ExternalIdentityTag userProvidedExternalIdentityTag = userProvidedKindTypes.stream()
+        .flatMap(filters ->
+            filters.getFilterByType(ExternalIdentityTagFilter.FILTER_KEY).stream())
+        .findFirst().orElseThrow(() ->
+            new EmptyFiltersException(
+                userProvidedKindTypes, "ExternalIdentityTag")).getFilterable();
+
+    String userProvidedExternalIdentity = Optional.ofNullable(userProvidedExternalIdentityTag.getIdentity())
+        .map(String::toUpperCase).orElseThrow(() ->
+            new InvalidTagException(userProvidedExternalIdentityTag.getIdentity(), acceptableKindTypeStrings));
+
+    if (!acceptableKindTypeStrings.contains(userProvidedExternalIdentity)) {
+      throw new InvalidKindException(userProvidedExternalIdentity, acceptableKindTypeStrings);
+    }
+
+    return userProvidedExternalIdentity;
+  }
+
+  @Deprecated(since = "validateIdentifierTag is non-sequitur")
   default String validateIdentifierTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
     List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();
 
@@ -39,6 +63,7 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
     return userProvidedUuid;
   }
 
+  @Deprecated(since = "validateAddressTag is non-sequitur")
   default String validateAddressTag(List<Filters> userProvidedKindTypes, List<KindTypeIF> acceptableKindTypes) throws NostrException {
 // TODO: refactor when testing complete
     List<String> acceptableKindTypeStrings = acceptableKindTypes.stream().map(KindTypeIF::getName).map(String::toUpperCase).toList();

@@ -45,7 +45,7 @@ services:
     networks:
       - docker_network
   #        
-  #  SC App 5555
+  #  SC App 5554
   superconductor-afterimage-two:
     image: avlo/superconductor-app-redis:1.17.2
     ports:

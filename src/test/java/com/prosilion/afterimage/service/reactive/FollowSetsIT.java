@@ -6,8 +6,8 @@ import com.prosilion.afterimage.util.AfterimageMeshRelayService;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeAwardGenericVoteEvent;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -22,7 +22,6 @@ import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
@@ -39,6 +38,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
+
+import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -57,17 +59,13 @@ public class FollowSetsIT {
 
   public final Identity identity = Identity.generateRandomIdentity();
 
-  public static final String PLATFORM = FollowSetsIT.class.getPackageName();
-  public static final String IDENTITY = FollowSetsIT.class.getSimpleName();
-  public static final String PROOF = String.valueOf(FollowSetsIT.class.hashCode());
-
-  private final BadgeDefinitionAwardEvent awardUpvoteDefinitionEvent;
+  private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   private final FormulaEvent plusOneFormulaEvent;
   ;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventPlusOneFormula;
 
   private final PublicKey reputationRecipientPublicKey = Identity.generateRandomIdentity().getPublicKey();
-  private final BadgeAwardGenericVoteEvent badgeAwardUpvoteEvent;
+  private final BadgeAwardGenericEvent badgeAwardUpvoteEvent;
 
   Identity afterimageInstanceIdentity;
 
@@ -83,19 +81,20 @@ public class FollowSetsIT {
     System.out.println("VOTE_RECEIVER_PUBKEY-----VOTE_RECEIVER_PUBKEY");
     relay = new Relay(afterimageRelayUrl);
 
-    this.awardUpvoteDefinitionEvent = new BadgeDefinitionAwardEvent(identity, upvoteIdentifierTag, relay);
+    this.awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(identity, upvoteIdentifierTag, relay);
     this.plusOneFormulaEvent = new FormulaEvent(identity, upvoteIdentifierTag, relay, awardUpvoteDefinitionEvent, PLUS_ONE_FORMULA);
 
     badgeDefinitionReputationEventPlusOneFormula = new BadgeDefinitionReputationEvent(
         identity,
         reputationIdentifierTag,
         relay,
-        new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF),
+        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
         plusOneFormulaEvent);
 
-    badgeAwardUpvoteEvent = new BadgeAwardGenericVoteEvent(
+    badgeAwardUpvoteEvent = new BadgeAwardGenericEvent(
         identity,
         reputationRecipientPublicKey,
+        relay,
         badgeDefinitionReputationEventPlusOneFormula);
 
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
@@ -108,13 +107,10 @@ public class FollowSetsIT {
 
   @Test
   void testFollowSetsEvent() throws IOException, InterruptedException {
-    final String FOLLOW_SETS_EVENT = "FOLLOW_SETS_EVENT";
-    final IdentifierTag followSetsIdentifierTag = new IdentifierTag(FOLLOW_SETS_EVENT);
-
     FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         identity,
         reputationRecipientPublicKey,
-        followSetsIdentifierTag,
+        badgeDefinitionReputationEventPlusOneFormula.getIdentifierTag(),
         relay,
         List.of(badgeAwardUpvoteEvent));
 
@@ -153,7 +149,7 @@ public class FollowSetsIT {
 
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
 
-    assert ("2".equals(returnedReqGenericEvents_2.getFirst().getContent()));
+    assertEquals("2", returnedReqGenericEvents_2.getFirst().getContent());
   }
 
   private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey upvotedUserPublicKey) {

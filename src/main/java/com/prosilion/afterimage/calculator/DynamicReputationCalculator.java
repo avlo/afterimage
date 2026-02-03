@@ -1,12 +1,16 @@
 package com.prosilion.afterimage.calculator;
 
 import com.ezylang.evalex.Expression;
+import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
@@ -21,26 +25,30 @@ import org.springframework.lang.NonNull;
 
 public class DynamicReputationCalculator implements ReputationCalculatorIF {
   private final Identity aImgIdentity;
+  private final String afterimageRelayUrl;
 
-  public DynamicReputationCalculator(@NonNull Identity aImgIdentity) {
+  public DynamicReputationCalculator(
+      @NonNull String afterimageRelayUrl,
+      @NonNull Identity aImgIdentity) {
     this.aImgIdentity = aImgIdentity;
+    this.afterimageRelayUrl = afterimageRelayUrl;
   }
 
   public EventIF calculateUpdatedReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull List<FormulaEvent> formulaEvents,
-      @NonNull EventIF incomingFollowSetsEvent) throws NostrException {
+      @NonNull FollowSetsEvent incomingFollowSetsEvent) throws NostrException {
 
-    List<IdentifierTag> eventVoteTags = incomingFollowSetsEvent.getTags().stream()
-        .filter(AddressTag.class::isInstance)
-        .map(AddressTag.class::cast)
+    List<IdentifierTag> eventVoteTags = incomingFollowSetsEvent.getBadgeAwardGenericEvents()
+        .stream().map(BadgeAwardGenericEvent::getBadgeAwardGenericEvent)
+        .map(BadgeDefinitionGenericEvent::asAddressTag)
         .map(AddressTag::getIdentifierTag)
         .filter(Objects::nonNull)
         .filter(
             formulaEvents.stream()
-                .map(FormulaEvent::getBadgeDefinitionAwardEvent)
-                .map(BadgeDefinitionAwardEvent::getIdentifierTag).toList()::contains)
+                .map(FormulaEvent::getBadgeDefinitionGenericEvent)
+                .map(BadgeDefinitionGenericEvent::getIdentifierTag).toList()::contains)
         .toList();
 
     String updatedScore = calculateReputationEventScore(
@@ -51,8 +59,8 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
     EventIF reputationEvent = createReputationEvent(
         voteReceiverPubkey,
         updatedScore,
-        previousReputationEvent.getBadgeDefinitionReputationEvent(),
-        formulaEvents);
+        previousReputationEvent.getBadgeDefinitionReputationEvent()
+    );
 
     return reputationEvent;
   }
@@ -65,10 +73,10 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         voteEvents.stream().map(voteEventType ->
                 formulaEvents.stream()
                     .filter(formulaEvent ->
-                        formulaEvent.getBadgeDefinitionAwardEvent().getIdentifierTag().equals(voteEventType)).collect(
+                        formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().equals(voteEventType)).collect(
                         Collectors.toMap(
                             formulaEvent ->
-                                formulaEvent.getBadgeDefinitionAwardEvent().getIdentifierTag().getUuid(),
+                                formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().getUuid(),
                             FormulaEvent::getFormula,
                             (prev, next) -> next, HashMap::new)).get(voteEventType.getUuid()))
             .reduce(previousReputationEvent.getContent(), this::doCalc);
@@ -88,11 +96,12 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
   private EventIF createReputationEvent(
       @NonNull PublicKey badgeReceiverPubkey,
       @NonNull String score,
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-      @NonNull List<FormulaEvent> formulaEvents) throws NostrException {
+      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) throws NostrException {
     BadgeAwardReputationEvent badgeAwardReputationEvent = new BadgeAwardReputationEvent(
         aImgIdentity,
         badgeReceiverPubkey,
+        new Relay(afterimageRelayUrl),
+        AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
         badgeDefinitionReputationEvent,
         new BigDecimal(score));
     return badgeAwardReputationEvent;

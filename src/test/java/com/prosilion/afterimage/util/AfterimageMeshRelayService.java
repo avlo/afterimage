@@ -20,19 +20,17 @@ public class AfterimageMeshRelayService {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
   public AfterimageMeshRelayService(@NonNull String afterimageRelayUrl) {
-    log.debug("relayUri: \n{}", afterimageRelayUrl);
+    log.debug("{} constructor called with relay url {}", this.getClass().getSimpleName(), afterimageRelayUrl);
     this.nostrRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
-    System.out.println("relayUri: " + afterimageRelayUrl);
   }
 
-  public AfterimageMeshRelayService(@NonNull String relayUri, @NonNull SslBundles sslBundles) {
-    log.debug("relayUri: \n{}", relayUri);
-    log.debug("sslBundles: \n{}", sslBundles);
+  public AfterimageMeshRelayService(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+    log.debug("{} constructor called with relay url {} and sslBundles {}", new Object[]{this.getClass().getSimpleName(), relayUrl, sslBundles});
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
     log.debug("sslBundles protocol: \n{}", server.getProtocol());
-    this.nostrRelayClient = new ReactiveNostrRelayClient(relayUri, sslBundles);
+    this.nostrRelayClient = new ReactiveNostrRelayClient(relayUrl, sslBundles);
   }
 
   public void send(@NonNull EventMessage eventMessage, @NonNull Subscriber<OkMessage> subscriber) throws IOException {

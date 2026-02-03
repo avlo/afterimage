@@ -3,11 +3,10 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
-import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
@@ -18,24 +17,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.IDENTITY;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.MINUS_ONE_FORMULA;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.PLATFORM;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.PLUS_ONE_FORMULA;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.PROOF;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_DOWNVOTE;
-import static com.prosilion.afterimage.config.AfterimageBaseConfig.UNIT_UPVOTE;
-import static com.prosilion.afterimage.enums.AfterimageKindType.UNIT_REPUTATION;
+import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ActiveProfiles("test")
 public class ExpressionTest {
+  public static final String UNIT_UPVOTE = "UNIT_UPVOTE";
+  public static final String UNIT_DOWNVOTE = "UNIT_DOWNVOTE";
+  public static final String UNIT_REPUTATION = "UNIT_REPUTATION";
+  public static final String PLUS_ONE_FORMULA = "+1";
+  public static final String MINUS_ONE_FORMULA = "-1";
+
   public static final IdentifierTag upvoteIdentifierTag = new IdentifierTag(UNIT_UPVOTE);
   public static final IdentifierTag downvoteIdentifierTag = new IdentifierTag(UNIT_DOWNVOTE);
+  public static final IdentifierTag reputationIdentifierTag = new IdentifierTag(UNIT_REPUTATION);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
-  private final ExternalIdentityTag externalIdentityTag = new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF);
   private final Relay relay = new Relay("ws://localhost:5555");
 
   public static final String FORMULA_PLUS_ONE = "FORMULA_PLUS_ONE";
@@ -47,14 +45,13 @@ public class ExpressionTest {
   public ExpressionTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
-    BadgeDefinitionAwardEvent upvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
-    BadgeDefinitionAwardEvent downvoteDefinitionEvent = new BadgeDefinitionAwardEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
-        new IdentifierTag(
-            UNIT_REPUTATION.getName()),
+        reputationIdentifierTag,
         relay,
-        externalIdentityTag,
+        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,
@@ -71,10 +68,9 @@ public class ExpressionTest {
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
-        new IdentifierTag(
-            UNIT_REPUTATION.getName()),
+        reputationIdentifierTag,
         relay,
-        externalIdentityTag,
+        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
         List.of(
             new FormulaEvent(
                 afterimageInstanceIdentity,

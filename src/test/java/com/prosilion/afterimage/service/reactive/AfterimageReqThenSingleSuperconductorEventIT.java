@@ -8,12 +8,11 @@ import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeAwardGenericVoteEvent;
-import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
-import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
@@ -25,13 +24,11 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +42,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
+import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -67,13 +65,11 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 
   public final Identity identity = Identity.generateRandomIdentity();
 
-  public static final String PLATFORM = FollowSetsIT.class.getPackageName();
-  public static final String IDENTITY = FollowSetsIT.class.getSimpleName();
-  public static final String PROOF = String.valueOf(FollowSetsIT.class.hashCode());
-
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
 
-//  private final String superconductorRelayUri;
+  //  private final String superconductorRelayUri;
+  private final Relay afterimageRelay;
+  private final Relay superconductorRelay;
 //  private final String afterimageRelayUri;
 
   @Autowired
@@ -84,16 +80,17 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
     this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
 
-    Relay relay = new Relay(afterimageRelayUri);
+    this.afterimageRelay = new Relay(afterimageRelayUri);
+    this.superconductorRelay = new Relay(superconductorRelayUri);
 
-    BadgeDefinitionAwardEvent awardUpvoteDefinitionEvent = new BadgeDefinitionAwardEvent(identity, upvoteIdentifierTag, relay);
-    FormulaEvent plusOneFormulaEvent = new FormulaEvent(identity, upvoteIdentifierTag, relay, awardUpvoteDefinitionEvent, PLUS_ONE_FORMULA);
+    BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(identity, upvoteIdentifierTag, afterimageRelay);
+    FormulaEvent plusOneFormulaEvent = new FormulaEvent(identity, upvoteIdentifierTag, afterimageRelay, awardUpvoteDefinitionEvent, PLUS_ONE_FORMULA);
 
     badgeDefinitionReputationEvent = new BadgeDefinitionReputationEvent(
         identity,
         reputationIdentifierTag,
-        relay,
-        new ExternalIdentityTag(PLATFORM, IDENTITY, PROOF),
+        afterimageRelay,
+        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
         plusOneFormulaEvent);
 
     this.eventService = eventService;
@@ -113,9 +110,10 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 
     // # --------------------- SC EVENT 1 of 2-------------------
     //    begin event creation for submission to SC
-    BadgeAwardGenericVoteEvent badgeAwardUpvoteEvent_1 = new BadgeAwardGenericVoteEvent(
+    BadgeAwardGenericEvent badgeAwardUpvoteEvent_1 = new BadgeAwardGenericEvent(
         authorIdentity,
         upvotedUser.getPublicKey(),
+        superconductorRelay,
         badgeDefinitionReputationEvent);
 //    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
 //        new GenericDocumentKindTypeDto(
@@ -151,8 +149,9 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     //    should trigger Aimg afterImageEventsSubscriber
 
 
-    List<EventMessage> eventMessages = returnedScEventIFs.stream().map(eventIF ->
-        new EventMessage(createGenericEventRecord(eventIF))).toList();
+    List<EventMessage> eventMessages = returnedScEventIFs.stream()
+        .map(EventIF::asGenericEventRecord)
+        .map(EventMessage::new).toList();
 
     assertTrue(eventMessages.stream().allMatch(eventMessage -> {
       try {
@@ -220,25 +219,6 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     return new ReqMessage(subscriberId,
         new Filters(
             new KindFilter(Kind.BADGE_AWARD_EVENT)));
-  }
-
-  private GenericEventRecord createGenericEventRecord(EventIF event) {
-    GenericEventKind genericEventKind = new GenericEventKind(
-        event.getId(),
-        event.getPublicKey(),
-        event.getCreatedAt(),
-        event.getKind(),
-        event.getTags(),
-        event.getContent(),
-        event.getSignature());
-    return new GenericEventRecord(
-        genericEventKind.getEventId(),
-        genericEventKind.getPublicKey(),
-        genericEventKind.getCreatedAt(),
-        genericEventKind.getKind(),
-        genericEventKind.getTags(),
-        genericEventKind.getContent(),
-        genericEventKind.getSignature());
   }
 
   private String eventAsJson(EventIF event) {
