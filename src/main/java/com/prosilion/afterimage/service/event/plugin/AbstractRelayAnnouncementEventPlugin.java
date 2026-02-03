@@ -9,11 +9,12 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -21,19 +22,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
-  private final RedisCacheServiceIF redisCacheServiceIF;
+  private final CacheServiceIF cacheServiceIF;
   private final Identity aImgIdentity;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin);
-    this.redisCacheServiceIF = redisCacheServiceIF;
+    this.cacheServiceIF = cacheServiceIF;
     this.aImgIdentity = aImgIdentity;
   }
 
@@ -42,13 +44,14 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   public void processIncomingEvent(@NonNull EventIF relaysEvent) {
     log.debug("processing incoming event: [{}]", relaysEvent);
 
-    Kind kind = getKind();
-    assert relaysEvent.getKind().equals(kind) : new InvalidKindException(relaysEvent.getKind().getName(), List.of(getKind().getName()));
+    InvalidKindException.testBoolean(
+        relaysEvent.getKind().equals(getKind()),
+        relaysEvent.getKind().getName(), List.of(getKind().getName()));
 
     Set<String> eventRelays = getRelayTag(relaysEvent)
         .collect(Collectors.toSet());
 
-    Set<Stream<String>> existingKnownRelays = redisCacheServiceIF.getByKind(getKind()).stream()
+    Set<Stream<String>> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
         .map(AbstractRelayAnnouncementEventPlugin::getRelayTag)
         .collect(Collectors.toSet());
 
@@ -62,14 +65,15 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
-    super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream()));
+//    TODO::UNIQUE-RELAY-IDENTIFIER-TAG
+    super.processIncomingEvent(createEvent(aImgIdentity, new IdentifierTag("TODO::UNIQUE-RELAY-IDENTIFIER-TAG"), uniqueNewRelays.stream()));
 
     processIncomingEventAuth(uniqueNewRelays);
   }
 
   protected abstract void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException;
 
-  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewRelays);
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays);
 
   abstract protected Filters getFilters();
 

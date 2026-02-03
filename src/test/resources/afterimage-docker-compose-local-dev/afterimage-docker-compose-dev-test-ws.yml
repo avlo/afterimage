@@ -14,7 +14,7 @@ services:
       - docker_network
 #  SC App 5555
   superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.17.1
+    image: avlo/superconductor-app-redis:1.17.2
     ports:
       - "5555:5555"
     healthcheck:
@@ -45,9 +45,9 @@ services:
     networks:
       - docker_network
   #        
-  #  SC App 5555
+  #  SC App 5554
   superconductor-afterimage-two:
-    image: avlo/superconductor-app-redis:1.17.1
+    image: avlo/superconductor-app-redis:1.17.2
     ports:
       - "5554:5555"
     healthcheck:

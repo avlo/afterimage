@@ -1,11 +1,13 @@
 package com.prosilion.afterimage.service.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,20 +15,23 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class ReqKindTypeService implements ReqKindTypeServiceIF {
   private final Map<Kind, Map<KindTypeIF, ReqKindTypePluginIF>> reqKindTypePluginMap;
 
   @Autowired
-  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF> reqKindTypePlugins) {
+  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF> reqKindTypePlugins) throws JsonProcessingException {
     reqKindTypePluginMap = reqKindTypePlugins.stream()
         .filter(Objects::nonNull)
         .collect(Collectors.groupingBy(ReqKindTypePluginIF::getKind, Collectors.toMap(
             ReqKindTypePluginIF::getKindType, Function.identity())));
+    log.debug("reqKindTypePluginMap loaded values: {}", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(reqKindTypePluginMap));
   }
 
   @Override
@@ -41,7 +46,7 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
                 new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()))
             .get(getKindTypes().stream().filter(kindTypeIF ->
                 kindTypeIF.getName().equalsIgnoreCase(
-                    validateIdentifierTag(
+                    validateExternalIdentityTag(
                         filtersList,
                         getKindTypes()))).findFirst().orElseThrow())
             .processIncomingRequest(filtersList);

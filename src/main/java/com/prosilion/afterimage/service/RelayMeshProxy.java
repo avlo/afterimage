@@ -12,6 +12,7 @@ import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
@@ -44,7 +45,8 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   }
 
   public void addRelay(@NonNull Map<String, String> relays) {
-    relays.forEach(relayRequestConsolidator::addRelay);
+    BiConsumer<String, String> addRelay = relayRequestConsolidator::addRelay;
+    relays.forEach(addRelay);
   }
 
   public void setUpRequestFlux(Filters filters) throws JsonProcessingException, NostrException {

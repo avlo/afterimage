@@ -5,8 +5,8 @@ services:
     hostname: localhost
     ports:
       - "6380:6379"
-    environment:
-      - "REDIS_ARGS=--appendonly yes"
+#    environment:
+#      - "REDIS_ARGS=--appendonly yes"
     networks:
       - docker_network
 volumes:

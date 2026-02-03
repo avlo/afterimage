@@ -1,15 +1,18 @@
 package com.prosilion.afterimage.calculator;
 
+import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.FollowSetsEvent;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.user.PublicKey;
-import java.util.Optional;
-import org.springframework.lang.NonNull;
+import java.util.List;
 
 public interface ReputationCalculatorIF {
-  EventIF calculateReputationEvent(
-      @NonNull PublicKey voteReceiverPubkey,
-      @NonNull Optional<EventIF> previousReputationEvent,
-      @NonNull EventIF incomingFollowSetsEvent);
+  EventIF calculateUpdatedReputationEvent(
+      PublicKey voteReceiverPubkey,
+      BadgeAwardReputationEvent previousReputationEvent,
+      List<FormulaEvent> formulaEvents,
+      FollowSetsEvent incomingFollowSetsEvent);
 
   String getFullyQualifiedCalculatorName();
 }

@@ -11,8 +11,6 @@ services:
       timeout: 10s
     networks:
       docker-network:
-#    environment:
-#      - "REDIS_ARGS=--appendonly yes"
 volumes:
   afterimage-db-UNIQUE_NAME:
     driver: local

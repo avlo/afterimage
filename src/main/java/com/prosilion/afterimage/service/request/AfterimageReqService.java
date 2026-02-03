@@ -28,7 +28,7 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
-    reqService.processIncoming(new ReqMessage(
+    ReqMessage reqMessageAdaptedFilters = new ReqMessage(
         reqMessage.getSubscriptionId(),
         reqKindService.getKinds().stream()
             .anyMatch(kind ->
@@ -42,7 +42,9 @@ public class AfterimageReqService implements ReqServiceIF {
                         .findAny().orElseThrow(() ->
                             new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
             processReqKindService(reqMessage) :
-            processReqKindTypeService(reqMessage)), sessionId);
+            processReqKindTypeService(reqMessage));
+    
+    reqService.processIncoming(reqMessageAdaptedFilters, sessionId);
   }
 
   private Filters processReqKindTypeService(ReqMessage reqMessage) {

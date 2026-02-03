@@ -4,7 +4,6 @@ import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.enums.KindTypeIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
@@ -12,6 +11,7 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReputationRequestPlugin extends ReqKindTypePlugin {
   public static final String REF_PUBKEY_FILTER_KEY = ReferencedPublicKeyFilter.FILTER_KEY;
-  public static final String IDENTIFIER_TAG_FILTER_KEY = IdentifierTagFilter.FILTER_KEY;
 
   @Autowired
   public ReputationRequestPlugin(@NonNull Identity aImgIdentity) {
@@ -33,26 +32,57 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
+<<<<<<< HEAD
     return
         new Filters(
             new KindFilter(getKind()),
+=======
+    ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
+        .map(filters1 ->
+            filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
+        .flatMap(Collection::stream)
+        .map(ReferencedPublicKeyFilter.class::cast)
+        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY.concat(" tag")));
+
+    AddressTagFilter addressTagFilter = getAddressTagFilter(filtersList);
+
+    Filters filters = new Filters(
+        new KindFilter(getKind()),
+        referencedPublicKeyFilter,
+        addressTagFilter);
+
+    return filters;
+  }
+
+  private AddressTagFilter getAddressTagFilter(List<Filters> filtersList) {
+//    return getTagFilterViaIdentifierTag(filtersList);
+    return getTagFilterViaAddressTagTag(filtersList);
+  }
+
+  private AddressTagFilter getTagFilterViaAddressTagTag(List<Filters> filtersList) {
+    AddressTagFilter addressTagFilter = filtersList.stream()
+        .map(filters ->
+            filters.getFilterByType(AddressTagFilter.FILTER_KEY))
+        .flatMap(Collection::stream)
+        .map(AddressTagFilter.class::cast)
+        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, AddressTagFilter.FILTER_KEY.concat(" tag")));
+    return addressTagFilter;
+  }
+
+  private AddressTagFilter getTagFilterViaIdentifierTag(List<Filters> filtersList) {
+    AddressTagFilter addressTagFilter = new AddressTagFilter(
+        new AddressTag(
+            Kind.BADGE_DEFINITION_EVENT,
+            getAImgIdentity().getPublicKey(),
+>>>>>>> initial_test_pass
             filtersList.stream()
-                .map(filters1 ->
-                    filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
+                .map(filters ->
+                    filters.getFilterByType(IdentifierTagFilter.FILTER_KEY))
                 .flatMap(Collection::stream)
-                .map(ReferencedPublicKeyFilter.class::cast)
-                .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY)),
-            new AddressTagFilter(
-                new AddressTag(
-                    Kind.BADGE_DEFINITION_EVENT,
-                    getAImgIdentity().getPublicKey(),
-                    filtersList.stream()
-                        .map(filters ->
-                            filters.getFilterByType(IDENTIFIER_TAG_FILTER_KEY))
-                        .flatMap(Collection::stream)
-                        .map(IdentifierTagFilter.class::cast)
-                        .map(IdentifierTagFilter::getFilterable)
-                        .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IDENTIFIER_TAG_FILTER_KEY)))));
+                .map(IdentifierTagFilter.class::cast)
+                .map(IdentifierTagFilter::getFilterable)
+                .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, IdentifierTagFilter.FILTER_KEY.concat(" tag")))));
+    return addressTagFilter;
   }
 
   @Override
@@ -62,6 +92,6 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public KindTypeIF getKindType() {
-    return AfterimageKindType.UNIT_REPUTATION;
+    return AfterimageKindType.BADGE_AWARD_REPUTATION_KIND_TYPE;
   }
 }

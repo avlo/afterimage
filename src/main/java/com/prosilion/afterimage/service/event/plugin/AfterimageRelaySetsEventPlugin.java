@@ -9,17 +9,19 @@ import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.service.event.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -29,9 +31,9 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
   public AfterimageRelaySetsEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
       @NonNull EventKindServiceIF eventKindServiceIF,
-      @NonNull RedisCacheServiceIF redisCacheServiceIF,
+      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPlugin, redisCacheServiceIF, aImgIdentity);
+    super(eventKindPlugin, cacheServiceIF, aImgIdentity);
     this.eventKindServiceIF = eventKindServiceIF;
   }
 
@@ -59,10 +61,11 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
   //  TODO: fix sneaky
   @SneakyThrows
   @Override
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewAImgRelays) {
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays) {
     log.debug("{} processing incoming Kind.RELAY_SETS 30_002 event", getClass().getSimpleName());
     return new RelaySetsEvent(
         identity,
+        identifierTag,
         uniqueNewAImgRelays.map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.RELAY_SETS");
