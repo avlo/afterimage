@@ -54,7 +54,7 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
         uniqueNewRelays.stream().collect(
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
-                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, getKind().getName())))),
+                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.RELAY_SETS.getName())))),
         eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
   }
 
@@ -73,13 +73,13 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 
   @Override
   protected Filters getFilters() {
-    log.debug("{} getFilters() of Kind.FOLLOW_SETS", getClass().getSimpleName());
+    log.debug("{} getFilters() of {} : {}}", getClass().getSimpleName(), Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue());
     return new Filters(new KindFilter(Kind.FOLLOW_SETS)); // kind 30_000 "p"
   }
 
   @Override
   public Kind getKind() {
-    log.debug("{} getKind of Kind.RELAY_SETS", getClass().getSimpleName());
+    log.debug("{} getKind of {} : {}}", getClass().getSimpleName(), Kind.RELAY_SETS.getName(), Kind.RELAY_SETS.getValue());
     return Kind.RELAY_SETS; // kind 30_002 "relays"
   }
 }

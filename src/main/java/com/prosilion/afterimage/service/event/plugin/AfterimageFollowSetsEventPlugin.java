@@ -58,7 +58,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   @Override
   public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
-    log.debug("{}} processing incoming Kind.FOLLOW_SETS 30_000 : [{}]", getClass().getSimpleName(), incomingFollowSetsEvent);
+    log.debug("{}} processing incoming {} : {} : [{}]", getClass().getSimpleName(), Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue(), incomingFollowSetsEvent);
 
     FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent.asGenericEventRecord());
     Optional<FollowSetsEvent> existingFollowSetsEvent = cacheFollowSetsEventServiceIF.getEvent(
@@ -137,7 +137,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   @Override
   public Kind getKind() {
-    log.debug("{} getKind of Kind.FOLLOW_SETS 30_000", getClass().getSimpleName());
+    log.debug("{} getKind of {} : {}}", getClass().getSimpleName(), Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue());
     return Kind.FOLLOW_SETS; // 30_000
   }
 }
