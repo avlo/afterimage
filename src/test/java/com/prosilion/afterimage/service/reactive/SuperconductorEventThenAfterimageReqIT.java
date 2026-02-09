@@ -33,13 +33,11 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
-import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.MethodOrderer;
@@ -64,7 +62,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(TestcontainersConfig.class)
-//@Import(value = {AfterimageWsConfig.class, TestcontainersConfig.class})
 public class SuperconductorEventThenAfterimageReqIT {
 
   /**
@@ -85,11 +82,10 @@ public class SuperconductorEventThenAfterimageReqIT {
   private final IdentifierTag upvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_UPVOTE);
   private final IdentifierTag formulaIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
 
-  private final Identity definitionsCreatorIdentity = Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
+  private final Identity definitionsCreatorIdentity = Identity.generateRandomIdentity();
+//      Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
   private final EventServiceIF eventServiceIF;
-  private final RedisCacheServiceIF cacheServiceIF;
-  private final CacheBadgeAwardGenericEventServiceIF cacheBadgeAwardGenericEventServiceIF;
 
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventPlusOneFormula;
   private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
@@ -103,14 +99,11 @@ public class SuperconductorEventThenAfterimageReqIT {
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull RedisCacheServiceIF cacheServiceIF,
-      @NonNull @Qualifier("cacheBadgeAwardGenericEventService") CacheBadgeAwardGenericEventServiceIF cacheBadgeAwardGenericEventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, IOException {
     this.superconductorRelayUrl = superconductorRelayUrl;
-    this.cacheBadgeAwardGenericEventServiceIF = cacheBadgeAwardGenericEventServiceIF;
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.eventServiceIF = eventServiceIF;
-    this.cacheServiceIF = cacheServiceIF;
 
     Relay afterimageRelay = new Relay(afterimageRelayUrl);
     this.superconductorRelay = new Relay(superconductorRelayUrl);
@@ -189,9 +182,11 @@ public class SuperconductorEventThenAfterimageReqIT {
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
-    final Identity voteSubmitterIdentity = Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
+    final Identity voteSubmitterIdentity = Identity.generateRandomIdentity();
+    //Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
     log.debug("voteSubmitterIdentity: [{}]", voteSubmitterIdentity.getPublicKey().toHexString());
-    final Identity voteReceierIdentity = Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+    final Identity voteReceierIdentity = Identity.generateRandomIdentity();
+//        Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
     log.debug("voteReceierIdentity: [{}]", voteReceierIdentity.getPublicKey().toHexString());
 
     TestSubscriber<BaseMessage> reputationRequestSubscriberCheck = new TestSubscriber<>();
@@ -503,23 +498,6 @@ public class SuperconductorEventThenAfterimageReqIT {
                 new PubKeyTag(
                     upvotedUserPublicKey)),
             externalIdentityTagFilter));
-
-//    ReqMessage without = new ReqMessage(
-//        subscriberId,
-//        new Filters(
-//            new KindFilter(
-//                Kind.BADGE_AWARD_EVENT),
-////            new IdentifierTagFilter(reputationIdentifierTag),
-////            new AddressTagFilter(
-////                new AddressTag(
-////                    Kind.BADGE_DEFINITION_EVENT,
-////                    definitionCreatorIdentity.getPublicKey(),
-////                    reputationIdentifierTag)),
-//            new ReferencedPublicKeyFilter(
-//                new PubKeyTag(
-//                    upvotedUserPublicKey))
-//            , externalIdentityTagFilter
-//        ));
 
     ReqMessage reqMessage = reqMessageWithStuff;
     log.debug(Util.prettyFormatJson(reqMessage.encode()));

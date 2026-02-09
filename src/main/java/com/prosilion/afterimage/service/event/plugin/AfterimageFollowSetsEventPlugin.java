@@ -66,12 +66,10 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
     PublicKey publicKey = materializediIcomingFollowSetsEvent.getBadgeAwardGenericEvents().stream().map(b -> b.getTypeSpecificTags(PubKeyTag.class).getFirst()).map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
-    IdentifierTag identifierTag1 = materializediIcomingFollowSetsEvent.getIdentifierTag();
-
     Optional<GenericEventRecord> eventsByKindAndPubKeyTagAndIdentifierTag = cacheServiceIF.getEventsByKindAndPubKeyTagAndIdentifierTag(
         Kind.FOLLOW_SETS,
         publicKey,
-        identifierTag1).stream().findFirst();
+        materializediIcomingFollowSetsEvent.getIdentifierTag()).stream().findFirst();
 
     Optional<FollowSetsEvent> existingFollowSetsEvent = eventsByKindAndPubKeyTagAndIdentifierTag.stream()
         .map(genericEventRecord ->
