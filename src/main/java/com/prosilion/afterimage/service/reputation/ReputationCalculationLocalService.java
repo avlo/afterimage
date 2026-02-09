@@ -2,7 +2,6 @@ package com.prosilion.afterimage.service.reputation;
 
 import com.prosilion.afterimage.calculator.ReputationCalculatorIF;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.user.PublicKey;
@@ -17,7 +16,7 @@ public class ReputationCalculationLocalService implements ReputationCalculationS
   }
 
   @Override
-  public EventIF calculateReputationEvent(
+  public BadgeAwardReputationEvent calculateReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull List<FormulaEvent> formulaEvents,

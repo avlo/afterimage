@@ -5,6 +5,7 @@ import com.prosilion.afterimage.InvalidTagException;
 import com.prosilion.afterimage.service.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
@@ -12,10 +13,10 @@ import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.service.EventKindServiceIF;
-import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.kind.EventKindServiceIF;
+import com.prosilion.superconductor.base.service.event.kind.type.EventKindTypeServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +59,9 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
             Collectors.toMap(unused ->
                 generateRandomHex64String(), relayUri ->
                 Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.SEARCH_RELAYS_LIST.getName())))),
-        eventKindServiceIF::processIncomingEvent).setUpRequestFlux(getFilters());
+        eventKindServiceIF::processIncomingEvent,
+        eventIF -> new SearchRelaysListEvent(eventIF.asGenericEventRecord()))
+        .setUpRequestFlux(getFilters());
   }
 
   //  TODO: fix sneaky
@@ -70,6 +73,11 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
         uniqueNewSuperconductorRelays.map(relayString ->
             new RelayTag(new Relay(relayString))).toList(),
         "Kind.SEARCH_RELAYS_LIST");
+  }
+
+  @Override
+  public BaseEvent materialize(EventIF eventIF) {
+    return new SearchRelaysListEvent(eventIF.asGenericEventRecord());
   }
 
   @Override

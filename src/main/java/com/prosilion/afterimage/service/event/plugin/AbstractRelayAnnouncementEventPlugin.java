@@ -12,9 +12,9 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,7 +41,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
   @SneakyThrows
   @Override
-  public void processIncomingEvent(@NonNull EventIF relaysEvent) {
+  public <T extends BaseEvent> void processIncomingEvent(@NonNull T relaysEvent) {
     log.debug("processing incoming event: [{}]", relaysEvent);
 
     InvalidKindException.testBoolean(

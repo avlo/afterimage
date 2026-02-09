@@ -10,7 +10,7 @@
 //import com.prosilion.nostr.message.EventMessage;
 //import com.prosilion.nostr.message.ReqMessage;
 //import com.prosilion.nostr.tag.AddressTag;
-//import com.prosilion.superconductor.base.service.CacheDereferenceAddressTagServiceIF;
+//import com.prosilion.superconductor.base.cache.tag.CacheDereferenceAddressTagServiceIF;
 //import java.util.List;
 //import java.util.Optional;
 //import java.util.UUID;

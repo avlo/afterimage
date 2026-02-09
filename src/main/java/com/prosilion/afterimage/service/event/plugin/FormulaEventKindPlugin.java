@@ -1,11 +1,12 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
-import com.prosilion.superconductor.base.service.CacheFormulaEventServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -21,15 +22,19 @@ public class FormulaEventKindPlugin extends NonPublishingEventKindPlugin {
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF incomingFormulaEvent) {
-    log.debug("processing incoming EventIF as FORMULA EVENT: [{}]", incomingFormulaEvent);
-    FormulaEvent materializedIncomingFormulaEvent = cacheFormulaEventServiceIF.materialize(incomingFormulaEvent.asGenericEventRecord());
-    super.processIncomingEvent(materializedIncomingFormulaEvent);
+  public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFormulaEvent) {
+    super.processIncomingEvent(
+        cacheFormulaEventServiceIF.materialize(
+            incomingFormulaEvent));
   }
 
   @Override
   public Kind getKind() {
     return Kind.ARBITRARY_CUSTOM_APP_DATA;
   }
-}
 
+  @Override
+  public FormulaEvent materialize(EventIF eventIF) {
+    return cacheFormulaEventServiceIF.materialize(eventIF);
+  }
+}

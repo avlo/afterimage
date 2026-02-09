@@ -7,7 +7,7 @@ import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

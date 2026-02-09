@@ -34,14 +34,14 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
     this.afterimageRelayUrl = afterimageRelayUrl;
   }
 
-  public EventIF calculateUpdatedReputationEvent(
+  public BadgeAwardReputationEvent calculateUpdatedReputationEvent(
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull BadgeAwardReputationEvent previousReputationEvent,
       @NonNull List<FormulaEvent> formulaEvents,
       @NonNull FollowSetsEvent incomingFollowSetsEvent) throws NostrException {
 
     List<IdentifierTag> eventVoteTags = incomingFollowSetsEvent.getBadgeAwardGenericEvents()
-        .stream().map(BadgeAwardGenericEvent::getBadgeAwardGenericEvent)
+        .stream().map(BadgeAwardGenericEvent::getBadgeDefinitionGenericEvent)
         .map(BadgeDefinitionGenericEvent::asAddressTag)
         .map(AddressTag::getIdentifierTag)
         .filter(Objects::nonNull)
@@ -56,10 +56,10 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         previousReputationEvent,
         formulaEvents);
 
-    EventIF reputationEvent = createReputationEvent(
+    BadgeAwardReputationEvent reputationEvent = createReputationEvent(
         voteReceiverPubkey,
         updatedScore,
-        previousReputationEvent.getBadgeDefinitionReputationEvent()
+        previousReputationEvent.getBadgeDefinitionGenericEvent()
     );
 
     return reputationEvent;
@@ -93,7 +93,7 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
     return result.toString();
   }
 
-  private EventIF createReputationEvent(
+  private BadgeAwardReputationEvent createReputationEvent(
       @NonNull PublicKey badgeReceiverPubkey,
       @NonNull String score,
       @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent) throws NostrException {

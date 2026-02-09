@@ -12,7 +12,7 @@ import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import com.prosilion.superconductor.base.util.EmptyFiltersException;
 import java.util.List;
 import java.util.Optional;

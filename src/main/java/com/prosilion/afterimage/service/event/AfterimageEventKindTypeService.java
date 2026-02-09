@@ -2,8 +2,8 @@
 //
 //import com.prosilion.nostr.enums.Kind;
 //import com.prosilion.nostr.event.EventIF;
-//import com.prosilion.superconductor.base.service.event.service.EventKindTypeServiceIF;
-//import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+//import com.prosilion.superconductor.base.service.event.kind.type.EventKindTypeServiceIF;
+//import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 //import java.util.List;
 //import org.springframework.lang.NonNull;
 //

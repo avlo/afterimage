@@ -2,13 +2,15 @@ package com.prosilion.afterimage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.base.service.event.type.EventPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.EventPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventMaterializer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,15 +24,18 @@ import reactor.core.publisher.BaseSubscriber;
 public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator relayRequestConsolidator;
   private final EventPluginIF eventPlugin;
+  private final EventMaterializer eventMaterializer;
 
   private Subscription subscription;
   private final String subscriptionId = generateRandomHex64String();
 
   public RelayMeshProxy(
       @NonNull Map<String, String> relaysNameUrlMap,
-      @NonNull EventPluginIF eventPlugin) {
+      @NonNull EventPluginIF eventPlugin,
+      @NonNull EventMaterializer eventMaterializer) {
     this.relayRequestConsolidator = new ReactiveRequestConsolidator();
     this.eventPlugin = eventPlugin;
+    this.eventMaterializer = eventMaterializer;
     addRelay(relaysNameUrlMap);
     log.debug("RelayMeshProxy ctor() connecting to relays: [{}]", relaysNameUrlMap);
   }
@@ -38,9 +43,11 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   public RelayMeshProxy(
       @NonNull String relayName,
       @NonNull String relayUrl,
-      @NonNull EventPluginIF eventPlugin) {
+      @NonNull EventPluginIF eventPlugin,
+      @NonNull EventMaterializer eventMaterializer) {
     this.relayRequestConsolidator = new ReactiveRequestConsolidator();
     this.eventPlugin = eventPlugin;
+    this.eventMaterializer = eventMaterializer;
     addRelay(relayName, relayUrl);
   }
 
@@ -66,8 +73,10 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   }
 
   private void processIncoming(EventIF eventIF) {
-    relayRequestConsolidator.getRelayNames().forEach(s ->
-        eventPlugin.processIncomingEvent(eventIF));
+    BaseEvent materialized = eventMaterializer.materialize(eventIF);
+    relayRequestConsolidator.getRelayNames()
+        .forEach(s ->
+            eventPlugin.processIncomingEvent(materialized));
   }
 
   private Optional<EventIF> filterEventMessageEvent(BaseMessage returnedBaseMessage) {

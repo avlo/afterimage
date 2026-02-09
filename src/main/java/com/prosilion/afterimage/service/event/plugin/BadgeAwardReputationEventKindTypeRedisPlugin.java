@@ -3,8 +3,11 @@ package com.prosilion.afterimage.service.event.plugin;
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -12,18 +15,22 @@ import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.CacheBadgeAwardReputationEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheBadgeDefinitionReputationEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheFormulaEventServiceIF;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindTypePluginIF;
-import com.prosilion.superconductor.base.service.event.type.PublishingEventKindTypePlugin;
-import com.prosilion.superconductor.base.service.request.NotifierService;
+import com.prosilion.superconductor.base.cache.CacheBadgeAwardReputationEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.PublishingEventKindTypePlugin;
+import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -40,10 +47,12 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
   private final String afterimageRelayUrl;
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
+  private final CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF;
   private final ReputationCalculationServiceIF reputationCalculationServiceIF;
   private final CacheBadgeAwardReputationEventServiceIF cacheBadgeAwardReputationEventService;
   private final CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF;
   private final CacheFormulaEventServiceIF cacheFormulaEventServiceIF;
+  private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
 
   public BadgeAwardReputationEventKindTypeRedisPlugin(
       @NonNull String afterimageRelayUrl,
@@ -52,34 +61,71 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
       @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
+      @NonNull CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF,
       @NonNull CacheBadgeAwardReputationEventServiceIF cacheBadgeAwardReputationEventService,
       @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
-      @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF) {
+      @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
+      @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF) {
     super(notifierService, eventKindTypePlugin);
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
     this.reputationCalculationServiceIF = reputationCalculationServiceIF;
+    this.cacheBadgeDefinitionGenericEventServiceIF = cacheBadgeDefinitionGenericEventServiceIF;
     this.cacheBadgeAwardReputationEventService = cacheBadgeAwardReputationEventService;
     this.cacheBadgeDefinitionReputationEventServiceIF = cacheBadgeDefinitionReputationEventServiceIF;
     this.cacheFormulaEventServiceIF = cacheFormulaEventServiceIF;
+    this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventServiceIF;
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
+  public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFollowSetsEventAsReputationEvent) {
     PublicKey awardRecipientPublicKey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEventAsReputationEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
 
-    Relay incomingFollowSetsRelay = Filterable.getTypeSpecificTags(RelayTag.class, incomingFollowSetsEventAsReputationEvent)
-        .stream()
-        .map(RelayTag::getRelay)
-        .findFirst().orElseThrow();
+    EventTag followSetsFirstEventTagToVotePointer =
+        cacheFollowSetsEventServiceIF
+            .materialize(
+                incomingFollowSetsEventAsReputationEvent)
+            .getContainedAddressableEvents().getFirst();
 
-    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = cacheBadgeAwardReputationEventService.getEvent(
-        awardRecipientPublicKey,
-        incomingFollowSetsEventAsReputationEvent.getPublicKey());
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVote =
+        cacheFollowSetsEventServiceIF
+            .getEventTagEvent(
+                followSetsFirstEventTagToVotePointer.getIdEvent(),
+                followSetsFirstEventTagToVotePointer.getRecommendedRelayUrl()).orElseThrow();
+
+    BadgeDefinitionGenericEvent existingBadgeDefinitionGenericEvent =
+        cacheBadgeDefinitionGenericEventServiceIF
+            .getAddressTagEvent(reconstructedVote.getAddressTag()).orElseThrow();
+
+    // kind 8
+    // i tag contains "aimg:badge..."
+    // awardrep p_tag matches vote recipient pubkey 
+    // awardrep a_tag pubkey matches badgedefn creator pubkey
+    // awardrep a_tag UUID matches badgedefn d_tag
+
+    Optional<GenericEventRecord> existingBadgeAwardReputationEventGer =
+        cacheServiceIF.getEventsByKindAndPubKeyTagAndAddressTag(
+                Kind.BADGE_AWARD_EVENT,
+                awardRecipientPublicKey,
+                new AddressTag(
+                    Kind.BADGE_DEFINITION_EVENT,
+                    existingBadgeDefinitionGenericEvent.getPublicKey(),
+                    existingBadgeDefinitionGenericEvent.getIdentifierTag()))
+            .stream()
+            .filter(genericEventRecord ->
+                genericEventRecord.getTags().stream().anyMatch(baseTag ->
+                    baseTag.getClass().equals(ExternalIdentityTag.class)))
+            .findFirst();
+
+    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = existingBadgeAwardReputationEventGer.stream().map(e ->
+            cacheBadgeAwardReputationEventService.getEvent(
+                e.getId(),
+                Filterable.getTypeSpecificTagsStream(RelayTag.class, e).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow()))
+        .flatMap(Optional::stream).findFirst();
 
     existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent);
 
@@ -110,15 +156,15 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
                 existingReputationDefinitionEvent,
                 existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO))).toList();
 
-    List<EventIF> newReputationEvents =
-        existingReputationDefinitionEvents.stream()
-            .map(existingReputationDefinitionEvent ->
-                updatedBadgeAwardReputationEvents.stream().map(updatedBadgeAwardReputationEvent ->
-                    reputationCalculationServiceIF.calculateReputationEvent(
-                        awardRecipientPublicKey,
-                        updatedBadgeAwardReputationEvent,
-                        existingReputationDefinitionEvent.getFormulaEvents(),
-                        (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent)).toList()).flatMap(Collection::stream).toList();
+    List<BadgeAwardReputationEvent> newReputationEvents
+        = existingReputationDefinitionEvents.stream()
+        .map(existingReputationDefinitionEvent ->
+            updatedBadgeAwardReputationEvents.stream().map(updatedBadgeAwardReputationEvent ->
+                reputationCalculationServiceIF.calculateReputationEvent(
+                    awardRecipientPublicKey,
+                    updatedBadgeAwardReputationEvent,
+                    existingReputationDefinitionEvent.getFormulaEvents(),
+                    (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent)).toList()).flatMap(Collection::stream).toList();
 
     newReputationEvents.forEach(newReputationEvent ->
         super.processIncomingEvent(newReputationEvent));
@@ -144,5 +190,10 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
+  }
+
+  @Override
+  public BadgeAwardReputationEvent materialize(EventIF eventIF) {
+    return cacheBadgeAwardReputationEventService.materialize(eventIF);
   }
 }

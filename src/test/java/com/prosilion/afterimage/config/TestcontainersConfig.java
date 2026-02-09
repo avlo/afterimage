@@ -12,6 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EmbeddedRedisStandalone
 public class TestcontainersConfig {
   @Bean
+//  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerLocalDev() {
     return new ComposeContainer(
@@ -21,6 +22,7 @@ public class TestcontainersConfig {
   }
 
   @Bean
+//  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(

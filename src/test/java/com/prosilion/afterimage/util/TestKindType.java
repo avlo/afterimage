@@ -2,7 +2,7 @@
 //
 //import com.fasterxml.jackson.annotation.JsonValue;
 //import com.prosilion.nostr.enums.Kind;
-//import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+//import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 //import lombok.AllArgsConstructor;
 //import lombok.Generated;
 //import lombok.Getter;

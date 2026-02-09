@@ -8,7 +8,7 @@
 //import com.prosilion.nostr.tag.IdentifierTag;
 //import com.prosilion.nostr.user.PublicKey;
 //import com.prosilion.superconductor.autoconfigure.base.service.CacheBadgeAwardReputationEventService;
-//import com.prosilion.superconductor.autoconfigure.base.service.CacheBadgeDefinitionReputationEventService;
+//import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
 //import java.util.List;
 //import java.util.Optional;
 //import org.springframework.lang.NonNull;

@@ -33,7 +33,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
-import com.prosilion.superconductor.base.service.CacheBadgeAwardGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.io.IOException;
@@ -465,7 +465,8 @@ public class SuperconductorEventThenAfterimageReqIT {
 
     log.debug("------");
     log.debug("------");
-//    assertEquals(3, returnedAfterImageEvents_B.size());
+    assertEquals(1, returnedAfterImageEvents_B.size());
+    assertEquals("3", returnedAfterImageEvents_B.getFirst().getContent());
   }
 
   private @NotNull BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createScUpvoteEvent(Identity voteSubmitterIdentity, Identity voteReceierIdentity) {

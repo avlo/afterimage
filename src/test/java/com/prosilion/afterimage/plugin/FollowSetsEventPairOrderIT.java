@@ -15,7 +15,7 @@
 //import com.prosilion.nostr.user.Identity;
 //import com.prosilion.nostr.user.PublicKey;
 //import com.prosilion.superconductor.base.service.event.service.GenericEventKind;
-//import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+//import com.prosilion.superconductor.base.service.event.plugin.kind.ParameterizedEventKindPluginIF;
 //import io.github.tobi.laa.spring.boot.embedded.redis.standalone.EmbeddedRedisStandalone;
 //import java.util.List;
 //import java.util.Optional;

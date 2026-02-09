@@ -5,6 +5,7 @@ import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -17,14 +18,14 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.service.CacheBadgeAwardGenericEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheBadgeDefinitionGenericEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheBadgeDefinitionReputationEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheFollowSetsEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheFormulaEventServiceIF;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
-import com.prosilion.superconductor.base.service.event.type.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -36,10 +37,10 @@ import org.springframework.lang.NonNull;
 // our SportsCar extends CarDecorator
 public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlugin {
   private final CacheServiceIF cacheServiceIF;
-  private final CacheBadgeAwardGenericEventServiceIF cacheBadgeAwardGenericEventServiceIF;
   private final CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF;
   private final CacheFormulaEventServiceIF cacheFormulaEventServiceIF;
   private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
+  private final CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF;
   private final CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF;
   private final AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin;
   private final Identity aImgIdentity;
@@ -48,10 +49,10 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   public AbstractVoteEventPlugin(
       @NonNull String afterimageRelayUrl,
       @NonNull CacheServiceIF cacheServiceIF,
-      @NonNull CacheBadgeAwardGenericEventServiceIF cacheBadgeAwardGenericEventServiceIF,
       @NonNull CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF,
       @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
       @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
+      @NonNull CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
       @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
       @NonNull EventKindPluginIF eventKindPluginIF,
@@ -59,9 +60,9 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     super(eventKindPluginIF);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-    this.cacheBadgeAwardGenericEventServiceIF = cacheBadgeAwardGenericEventServiceIF;
     this.cacheBadgeDefinitionGenericEventServiceIF = cacheBadgeDefinitionGenericEventServiceIF;
     this.cacheFormulaEventServiceIF = cacheFormulaEventServiceIF;
+    this.cacheBadgeAwardGenericEventServiceIF = cacheBadgeAwardGenericEventServiceIF;
     this.cacheBadgeDefinitionReputationEventServiceIF = cacheBadgeDefinitionReputationEventServiceIF;
     this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventServiceIF;
     this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
@@ -69,20 +70,27 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF voteEvent) {
+  public <T extends BaseEvent> void processIncomingEvent(@NonNull T voteEvent) {
     PublicKey awardRecipientPublicKey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
 
     AddressTag addressTag = Filterable.getTypeSpecificTagsStream(AddressTag.class, voteEvent).findFirst().orElseThrow();
-    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventServiceIF.getEvent(addressTag).orElseThrow();
+    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventServiceIF.getAddressTagEvent(addressTag).orElseThrow();
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVoteEvent = new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionAwardEvent);
 
     List<BadgeDefinitionReputationEvent> badgeDefinitionReputationEventCandidates = cacheBadgeDefinitionReputationEventServiceIF.getExistingReputationDefinitionEvents();
 
-    List<AddressTag> formulasTarget = cacheFormulaEventServiceIF.getFormulaEventsGivenAssociatedBadgeDefinitionGenericEvent(badgeDefinitionAwardEvent).stream().map(FormulaEvent::asAddressTag).toList();
+//    List<AddressTag> formulasTarget = cacheFormulaEventServiceIF.getEvent(
+//        badgeDefinitionAwardEvent.getId(),
+//        badgeDefinitionAwardEvent.getRelayTagRelay().getUrl()).stream().map(FormulaEvent::asAddressTag).toList();
+
+    List<AddressTag> formulasTarget = badgeDefinitionReputationEventCandidates.stream()
+        .flatMap(badgeDefinitionReputationEvent ->
+            badgeDefinitionReputationEvent.getFormulaEvents()
+                .stream().map(AddressableEvent::asAddressTag)).toList();
 
     List<BadgeDefinitionReputationEvent> matchingBadgeDefinitionReputationEvents =
         badgeDefinitionReputationEventCandidates.stream()
@@ -95,14 +103,17 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
               return match;
             }).toList();
 
-    List<FollowSetsEvent> awardRecipientFollowSets =
-        cacheFollowSetsEventServiceIF.getEventsByPubkeyTag(awardRecipientPublicKey).stream()
+//    cacheServiceIF.getEventsByKindAndPubKeyTag(getKind(), badgeAwardRecipientPublicKey);
+
+    List<FollowSetsEvent> awardRecipientExistingFollowSets =
+        cacheServiceIF.getEventsByKindAndPubKeyTag(Kind.FOLLOW_SETS, awardRecipientPublicKey).stream()
+            .map(cacheFollowSetsEventServiceIF::materialize)
             .filter(followSetsEvent ->
                 matchingBadgeDefinitionReputationEvents.stream()
                     .map(BadgeDefinitionReputationEvent::getIdentifierTag)
                     .anyMatch(followSetsEvent.getIdentifierTag()::equals)).toList();
 
-    List<FollowSetsEvent> followSetsEvents = awardRecipientFollowSets.stream().map(followSetsEvent ->
+    List<FollowSetsEvent> awardRecipientDifferentiatedFollowSetsEvents = awardRecipientExistingFollowSets.stream().map(followSetsEvent ->
         createFollowSetsEvent(
             followSetsEvent.getTypeSpecificTags(PubKeyTag.class).stream().map(PubKeyTag::getPublicKey).findFirst().orElseThrow(),
             followSetsEvent.getIdentifierTag(),
@@ -111,7 +122,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
                     Stream.of(reconstructedVoteEvent))
                 .toList())).toList();
 
-    List<FollowSetsEvent> listToSend = !followSetsEvents.isEmpty() ? followSetsEvents :
+    List<FollowSetsEvent> listToSend = !awardRecipientDifferentiatedFollowSetsEvents.isEmpty() ? awardRecipientDifferentiatedFollowSetsEvents :
         cacheServiceIF.getByKind(
                 Kind.BADGE_DEFINITION_EVENT).stream().filter(ger ->
                 !Filterable.getTypeSpecificTags(ExternalIdentityTag.class, ger).isEmpty())
@@ -126,7 +137,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
             .flatMap(Optional::stream)
             .toList();
 
-    listToSend.stream().map(FollowSetsEvent::getGenericEventRecord).forEach(afterimageFollowSetsEventPlugin::processIncomingEvent);
+    listToSend.stream().forEach(afterimageFollowSetsEventPlugin::processIncomingEvent);
   }
 
   @SneakyThrows
@@ -141,6 +152,12 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
         relay,
         badgeAwardGenericVoteEvent);
     return followSetsEvent;
+  }
+
+  @Override
+  public BaseEvent materialize(EventIF eventIF) {
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> materialize = cacheBadgeAwardGenericEventServiceIF.materialize(eventIF);
+    return materialize;
   }
 
   @Override

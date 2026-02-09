@@ -8,7 +8,7 @@ import com.prosilion.nostr.user.PublicKey;
 import java.util.List;
 
 public interface ReputationCalculationServiceIF {
-  EventIF calculateReputationEvent(
+  BadgeAwardReputationEvent calculateReputationEvent(
       PublicKey voteReceiverPubkey,
       BadgeAwardReputationEvent previousReputationEvent,
       List<FormulaEvent> formulaEvents,

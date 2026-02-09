@@ -11,7 +11,7 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.event.type.KindTypeIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;

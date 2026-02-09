@@ -1,13 +1,15 @@
 package com.prosilion.afterimage.service.event.plugin;
 
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.service.CacheBadgeAwardGenericEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheBadgeDefinitionGenericEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheBadgeDefinitionReputationEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheFollowSetsEventServiceIF;
-import com.prosilion.superconductor.base.service.CacheFormulaEventServiceIF;
-import com.prosilion.superconductor.base.service.event.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.service.plugin.EventKindPluginIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionGenericEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -16,9 +18,9 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
   public UniversalVoteEventPlugin(
       @NonNull String afterimageRelayUrl,
       @NonNull CacheServiceIF cacheServiceIF,
-      @NonNull CacheBadgeAwardGenericEventServiceIF cacheBadgeAwardGenericEventServiceIF,
       @NonNull CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF,
       @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
+      @NonNull CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF,
       @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
       @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
@@ -27,10 +29,10 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
     super(
         afterimageRelayUrl,
         cacheServiceIF,
-        cacheBadgeAwardGenericEventServiceIF,
         cacheBadgeDefinitionGenericEventServiceIF,
         cacheFormulaEventServiceIF,
         cacheBadgeDefinitionReputationEventServiceIF,
+        cacheBadgeAwardGenericEventServiceIF,
         cacheFollowSetsEventServiceIF,
         afterimageFollowSetsEventPlugin,
         eventKindPluginIF,
