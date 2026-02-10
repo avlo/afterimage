@@ -96,21 +96,20 @@ public abstract class AfterimageBaseConfig {
     return eventMessageDeserializer;
   }
 
-  @Bean(name = "defaultEventKindPlugin")
-  @Primary
-  EventKindPluginIF defaultEventKindPlugin(
+  @Bean
+  ParameterizedEventKindPlugin defaultEventKindPlugin(
       @NonNull NotifierService notifierService,
       @NonNull @Qualifier("eventPlugin") EventPluginIF eventPlugin,
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
       @NonNull @Qualifier("kindClassStringMap") Map<String, String> kindClassStringMap) {
-    ParameterizedEventKindPlugin canonicalEventKindPlugin = new ParameterizedEventKindPlugin(
+    ParameterizedEventKindPlugin parameterizedEventKindPlugin = new ParameterizedEventKindPlugin(
         notifierService,
         new MaterializedEventKindPlugin(
             Kind.TEXT_NOTE, eventPlugin, cacheBadgeAwardGenericEventService),
         kindClassStringMap);
-    System.out.printf("[%s] loaded custom defaultEventKindPlugin bean", canonicalEventKindPlugin.getClass().getSimpleName());
+    System.out.printf("[%s] loaded custom defaultEventKindPlugin bean", parameterizedEventKindPlugin.getClass().getSimpleName());
     System.out.printf("with kindClassStringMap contents:\n{%s}%n", kindClassStringMap.entrySet());
-    return canonicalEventKindPlugin;
+    return parameterizedEventKindPlugin;
   }
 
   @Bean("badgeAwardReputationEventKindTypePlugin")
