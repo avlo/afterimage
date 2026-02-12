@@ -54,6 +54,8 @@ import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,6 +98,17 @@ public abstract class AfterimageBaseConfig {
     return eventMessageDeserializer;
   }
 
+  @Bean("kindClassStringMap")
+  public Map<String, String> kindClassStringMap() {
+    ResourceBundle relaysBundle = ResourceBundle.getBundle("kind-class-map");
+    Map<String, String> collect = relaysBundle.keySet().stream()
+        .collect(Collectors.toMap(key -> key, relaysBundle::getString));
+//    log.debug("{} loading kindClassStringMap contents:\n{}", getClass().getSimpleName(), collect.entrySet());
+    System.out.printf("ResourceBundle loaded kindClassStringMap contents:\n%s\n",
+        prettyPrintKindClassStringMap(collect));
+    return collect;
+  }
+
   @Bean
   ParameterizedEventKindPlugin defaultEventKindPlugin(
       @NonNull NotifierService notifierService,
@@ -107,9 +120,17 @@ public abstract class AfterimageBaseConfig {
         new MaterializedEventKindPlugin(
             Kind.TEXT_NOTE, eventPlugin, cacheBadgeAwardGenericEventService),
         kindClassStringMap);
-    System.out.printf("[%s] loaded custom defaultEventKindPlugin bean", parameterizedEventKindPlugin.getClass().getSimpleName());
-    System.out.printf("with kindClassStringMap contents:\n{%s}%n", kindClassStringMap.entrySet());
+    System.out.printf("%s loaded custom defaultEventKindPlugin bean ", parameterizedEventKindPlugin.getClass().getSimpleName());
+    System.out.printf("with kindClassStringMap contents:\n%s\n", prettyPrintKindClassStringMap(kindClassStringMap));
     return parameterizedEventKindPlugin;
+  }
+
+  private String prettyPrintKindClassStringMap(Map<String, String> kindClassStringMap) {
+    final String formatter = "     %-5s   :   %s";
+    return kindClassStringMap.entrySet().stream().map(entry ->
+            String.format(formatter, entry.getKey(), entry.getValue()))
+        .sorted()
+        .collect(Collectors.joining("\n"));
   }
 
   @Bean("badgeAwardReputationEventKindTypePlugin")

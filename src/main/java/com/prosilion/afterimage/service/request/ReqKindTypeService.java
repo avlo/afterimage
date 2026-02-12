@@ -31,12 +31,20 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
         .filter(Objects::nonNull)
         .collect(Collectors.groupingBy(ReqKindTypePluginIF::getKind, Collectors.toMap(
             ReqKindTypePluginIF::getKindType, Function.identity())));
-    log.debug("reqKindTypePluginMap loaded values: {}", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(reqKindTypePluginMap));
+    log.debug("{} Ctor() loaded values:\n{}",
+        getClass().getSimpleName(),
+        new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(reqKindTypePluginMap));
   }
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
-    final Kind kind = getReqKindPlugin(filtersList, reqKindTypePluginMap.keySet().stream().toList());
+    log.debug("ReqKindTypeService processIncoming(List<Filters>) with List<Filters>:\n{}", 
+        filtersList.stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining(",\n")));
+
+    final Kind kind = getReqKindPlugin(filtersList, reqKindTypePluginMap.keySet().stream().toList(), log);
+
     validateReferencedPubkeyTag(filtersList);
 
     return
@@ -54,11 +62,13 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
 
   @Override
   public List<Kind> getKinds() {
+//    TODO: check 30009 BADGE_DEFINITION_REPUTATION_EVENT vs 30009 BADGE_DEFINITION_AWARD(UP/DOWNVOTE)_EVENT  
     return reqKindTypePluginMap.keySet().stream().toList();
   }
 
   @Override
   public List<KindTypeIF> getKindTypes() {
+//    TODO: check 30009 BADGE_DEFINITION_REPUTATION_EVENT vs 30009 BADGE_DEFINITION_AWARD(UP/DOWNVOTE)_EVENT    
     return reqKindTypePluginMap.values().stream()
         .map(Map::keySet)
         .flatMap(Collection::stream)

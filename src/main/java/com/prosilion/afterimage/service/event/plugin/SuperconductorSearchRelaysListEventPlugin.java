@@ -11,7 +11,7 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.nostr.tag.RelayTag;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.kind.EventKindServiceIF;
@@ -71,7 +71,7 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
     return new SearchRelaysListEvent(
         identity,
         uniqueNewSuperconductorRelays.map(relayString ->
-            new RelayTag(new Relay(relayString))).toList(),
+            new RelaysTag(new Relay(relayString))).toList(),
         "Kind.SEARCH_RELAYS_LIST");
   }
 

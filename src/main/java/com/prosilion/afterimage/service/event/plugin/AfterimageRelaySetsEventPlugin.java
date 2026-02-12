@@ -11,11 +11,12 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.nostr.tag.RelayTag;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.kind.EventKindServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,11 +52,12 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 //  }
 
   public void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException {
+    Map<String, String> subscriberIdRelayMap = uniqueNewRelays.stream().collect(
+        Collectors.toMap(unused ->
+            generateRandomHex64String(), relayUri ->
+            Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.RELAY_SETS.getName()))));
     new RelayMeshProxy(
-        uniqueNewRelays.stream().collect(
-            Collectors.toMap(unused ->
-                generateRandomHex64String(), relayUri ->
-                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.RELAY_SETS.getName())))),
+        subscriberIdRelayMap,
         eventKindServiceIF::processIncomingEvent,
         eventIF -> new RelaySetsEvent(eventIF.asGenericEventRecord()))
         .setUpRequestFlux(getFilters());
@@ -70,7 +72,7 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
         identity,
         identifierTag,
         uniqueNewAImgRelays.map(relayString ->
-            new RelayTag(new Relay(relayString))).toList(),
+            new RelaysTag(new Relay(relayString))).toList(),
         "Kind.RELAY_SETS");
   }
 

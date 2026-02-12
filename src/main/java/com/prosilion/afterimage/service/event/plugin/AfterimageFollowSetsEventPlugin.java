@@ -60,7 +60,11 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   @Override
   public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFollowSetsEvent) {
-    log.debug("{}} processing incoming {} : {} : [{}]", getClass().getSimpleName(), Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue(), incomingFollowSetsEvent);
+    log.debug("{} processing incoming {} : {} : [{}]", 
+        getClass().getSimpleName(),
+        Kind.FOLLOW_SETS.getName(),
+        Kind.FOLLOW_SETS.getValue(),
+        incomingFollowSetsEvent.createPrettyPrintJson());
 
     FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent.asGenericEventRecord());
 

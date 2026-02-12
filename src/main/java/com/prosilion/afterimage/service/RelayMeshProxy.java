@@ -57,6 +57,7 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   }
 
   public void setUpRequestFlux(Filters filters) throws JsonProcessingException, NostrException {
+    log.debug("{} setUpRequestFlux called with filters:\n{}", getClass().getSimpleName(), filters.toString());
     relayRequestConsolidator.send(
         new ReqMessage(subscriptionId, filters),
         this);

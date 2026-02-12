@@ -67,8 +67,8 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEvent;
 
-    private final Relay afterimageRelay;
-    private final Relay superconductorRelay;
+  private final Relay afterimageRelay;
+  private final Relay superconductorRelay;
 
   @Autowired
   public AfterimageReqThenSingleSuperconductorEventFailsIT(

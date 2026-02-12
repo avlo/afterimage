@@ -4,6 +4,7 @@ import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
@@ -11,9 +12,11 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -32,10 +35,27 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    ReferencedPublicKeyFilter referencedPublicKeyFilter = filtersList.stream()
+    log.debug("{} processIncoming(List<Filters>)\n  with List<Filters>:\n{}",
+        getClass().getSimpleName(),
+        filtersList.stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining(",\n")));
+
+    List<Filterable> filterableStream = filtersList.stream()
         .map(filters1 ->
             filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
-        .flatMap(Collection::stream)
+        .flatMap(Collection::stream).toList();
+
+    final String RED_BOLD_BRIGHT = "\033[1;91m";
+    final String GREEN_BOLD = "\033[1;32m";
+    final String RESET = "\033[0m";
+    String greenFont = GREEN_BOLD + "%s" + RESET;
+    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
+
+    log.debug("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [{}]", !filterableStream.isEmpty() ?
+        String.format(greenFont, "TRUE(ReptationRequestPlugin)") : String.format(redFont, "FALSE(ReptationRequestPlugin)"));
+
+    ReferencedPublicKeyFilter referencedPublicKeyFilter = filterableStream.stream()
         .map(ReferencedPublicKeyFilter.class::cast)
         .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList, REF_PUBKEY_FILTER_KEY.concat(" tag")));
 

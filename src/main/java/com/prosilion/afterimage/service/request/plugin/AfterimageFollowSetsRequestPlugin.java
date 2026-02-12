@@ -4,6 +4,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -17,8 +18,31 @@ public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // k
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) {
-    log.debug("{} processing incoming Kind.FOLLOW_SETS 30_000 event", getClass().getSimpleName());
-    return new Filters(new KindFilter(getKind()));
+    System.out.println("0000000000000000000000");
+    System.out.println("0000000000000000000000");
+    log.debug("{} processIncomingRequest with List<Filters>:\n{}", getClass().getSimpleName(),
+        filtersList.stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining(",\n")));
+
+    System.out.println(" ------- ");
+
+    Filters suspectOverridenFilters = new Filters(new KindFilter(getKind()));
+    log.debug("suspectOverridenFilters Filters:\n{}",
+        suspectOverridenFilters.toString());
+
+    System.out.println(" ------- ");
+
+    filtersList.add(suspectOverridenFilters);
+    log.debug("{} concatted filtersList.add(suspectOverridenFilters) List<Filters>:\n{}", getClass().getSimpleName(),
+        filtersList.stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining("\n")));
+
+    System.out.println("0000000000000000000000");
+    System.out.println("0000000000000000000000");
+    System.out.println("returning suspectOverridenFilters Filters");
+    return suspectOverridenFilters;
   }
 
   @Override

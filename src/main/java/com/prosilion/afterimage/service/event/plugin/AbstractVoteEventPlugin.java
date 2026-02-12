@@ -12,10 +12,8 @@ import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
@@ -27,7 +25,6 @@ import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -115,26 +112,20 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
 
     List<FollowSetsEvent> awardRecipientDifferentiatedFollowSetsEvents = awardRecipientExistingFollowSets.stream().map(followSetsEvent ->
         createFollowSetsEvent(
-            followSetsEvent.getTypeSpecificTags(PubKeyTag.class).stream().map(PubKeyTag::getPublicKey).findFirst().orElseThrow(),
+            awardRecipientPublicKey,
             followSetsEvent.getIdentifierTag(),
             Stream.concat(
                     followSetsEvent.getBadgeAwardGenericEvents().stream(),
                     Stream.of(reconstructedVoteEvent))
                 .toList())).toList();
 
-    List<FollowSetsEvent> listToSend = !awardRecipientDifferentiatedFollowSetsEvents.isEmpty() ? awardRecipientDifferentiatedFollowSetsEvents :
-        cacheServiceIF.getByKind(
-                Kind.BADGE_DEFINITION_EVENT).stream().filter(ger ->
-                !Filterable.getTypeSpecificTags(ExternalIdentityTag.class, ger).isEmpty())
-            .map(genericEventRecord ->
-                cacheBadgeDefinitionReputationEventServiceIF.getEvent(genericEventRecord.getId(),
-                        Filterable.getTypeSpecificTagsStream(RelayTag.class, genericEventRecord).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow())
-                    .map(AddressableEvent::getIdentifierTag).map(identifierTag ->
-                        createFollowSetsEvent(
-                            reconstructedVoteEvent.getTypeSpecificTags(PubKeyTag.class).stream().map(PubKeyTag::getPublicKey).findFirst().orElseThrow(),
-                            identifierTag,
-                            List.of(reconstructedVoteEvent))))
-            .flatMap(Optional::stream)
+    List<FollowSetsEvent> listToSend = !awardRecipientDifferentiatedFollowSetsEvents.isEmpty() ? awardRecipientDifferentiatedFollowSetsEvents
+        :
+        matchingBadgeDefinitionReputationEvents.stream().map(badgeDefinitionReputationEvent ->
+                createFollowSetsEvent(
+                    awardRecipientPublicKey,
+                    badgeDefinitionReputationEvent.getIdentifierTag(),
+                    List.of(reconstructedVoteEvent)))
             .toList();
 
     listToSend.stream().forEach(afterimageFollowSetsEventPlugin::processIncomingEvent);

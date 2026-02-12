@@ -9,8 +9,11 @@ import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
+@Slf4j
 public class AfterimageReqService implements ReqServiceIF {
   private final ReqServiceIF reqService;
 
@@ -28,6 +31,12 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
+    log.debug("{} processIncoming(reqMessage, sessionId) with List<Filters>:\n{}",
+        getClass().getSimpleName(),
+        reqMessage.getFiltersList().stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining(",\n")));
+
     ReqMessage reqMessageAdaptedFilters = new ReqMessage(
         reqMessage.getSubscriptionId(),
         reqKindService.getKinds().stream()
@@ -43,20 +52,31 @@ public class AfterimageReqService implements ReqServiceIF {
                             new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
             processReqKindService(reqMessage) :
             processReqKindTypeService(reqMessage));
-    
+
     reqService.processIncoming(reqMessageAdaptedFilters, sessionId);
   }
 
   private Filters processReqKindTypeService(ReqMessage reqMessage) {
+    log.debug("{} processReqKindTypeService(reqMessage)...", getClass().getSimpleName());
     return reqKindTypeService.processIncoming(reqMessage.getFiltersList());
   }
 
   private Filters processReqKindService(ReqMessage reqMessage) {
+    log.debug("{} processReqKindService(reqMessage)...", getClass().getSimpleName());
     return reqKindService.processIncoming(reqMessage.getFiltersList());
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {
+    System.out.println("1111111111111111");
+    System.out.println("1111111111111111");
+    log.debug("{} validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
+        getClass().getSimpleName(), filtersList.stream()
+            .map(Filters::toString)
+            .collect(Collectors.joining("\n")));
+    System.out.println("successful filtering will result in 111111 again twice displayed");
     filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));
+    System.out.println("1111111111111111");
+    System.out.println("1111111111111111");
     return filtersList;
   }
 }

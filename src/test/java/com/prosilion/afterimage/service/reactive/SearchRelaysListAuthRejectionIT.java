@@ -9,7 +9,7 @@ import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
-import com.prosilion.nostr.tag.RelayTag;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +75,7 @@ public class SearchRelaysListAuthRejectionIT {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
         "Kind.SEARCH_RELAYS_LIST",
-        new RelayTag(
+        new RelaysTag(
             new Relay(uri)));
   }
 }

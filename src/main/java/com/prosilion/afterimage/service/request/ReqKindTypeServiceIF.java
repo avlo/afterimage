@@ -88,12 +88,23 @@ public interface ReqKindTypeServiceIF extends ReqKindServiceIF {
     return userProvidedUuid;
   }
 
-  default void validateReferencedPubkeyTag(List<Filters> userProvidedKindTypes) throws NostrException {
-    userProvidedKindTypes.stream()
+  default void validateReferencedPubkeyTag(List<Filters> userProvidedFilterTypes) throws NostrException {
+    final String RED_BOLD_BRIGHT = "\033[1;91m";
+    final String GREEN_BOLD = "\033[1;32m";
+    final String RESET = "\033[0m";
+    String greenFont = GREEN_BOLD + "%s" + RESET;
+    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
+
+    List<Filterable> filterableStream = userProvidedFilterTypes.stream()
         .flatMap(filters ->
-            filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY).stream())
+            filters.getFilterByType(ReferencedPublicKeyFilter.FILTER_KEY).stream()).toList();
+
+    System.out.printf("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [%s]", !filterableStream.isEmpty() ?
+        String.format(greenFont, "TRUE(ReqKindTypeServiceIF)") : String.format(redFont, "FALSE(ReqKindTypeServiceIF)"));
+
+    filterableStream.stream()
         .findFirst().orElseThrow(() ->
             new EmptyFiltersException(
-                userProvidedKindTypes, "PubKeyTag"));
+                userProvidedFilterTypes, String.format(redFont, "PubKeyTag")));
   }
 }
