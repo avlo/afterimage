@@ -12,10 +12,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // kind 30_000
-  public AfterimageFollowSetsRequestPlugin() {
-    log.debug("loaded {} bean", getClass().getSimpleName());
-  }
-
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) {
     System.out.println("0000000000000000000000");
