@@ -67,7 +67,7 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
   @SneakyThrows
   @Override
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays) {
-    log.debug("{} processing incoming Kind.RELAY_SETS 30_002 event", getClass().getSimpleName());
+    log.debug("processing incoming Kind.RELAY_SETS 30_002 event");
     return new RelaySetsEvent(
         identity,
         identifierTag,
@@ -83,13 +83,15 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 
   @Override
   protected Filters getFilters() {
-    log.debug("{} getFilters() of {} : {}}", getClass().getSimpleName(), Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue());
+    log.debug("getFilters() of {} : {}}", Kind.FOLLOW_SETS.getName(), Kind.FOLLOW_SETS.getValue());
     return new Filters(new KindFilter(Kind.FOLLOW_SETS)); // kind 30_000 "p"
   }
 
   @Override
   public Kind getKind() {
-    log.debug("{} getKind of {} : {}}", getClass().getSimpleName(), Kind.RELAY_SETS.getName(), Kind.RELAY_SETS.getValue());
+    log.debug("getKind Kind[{}]: {}}",
+        Kind.RELAY_SETS.getValue(),
+        Kind.RELAY_SETS.getName());
     return Kind.RELAY_SETS; // kind 30_002 "relays"
   }
 }

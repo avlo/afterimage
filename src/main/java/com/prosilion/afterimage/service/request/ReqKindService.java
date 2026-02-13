@@ -27,24 +27,28 @@ public class ReqKindService implements ReqKindServiceIF {
                 ReqKindPluginIF::getKind,
                 Function.identity()));
 
-    log.debug("{} ctor (List<ReqKindPluginIF>) with values:\n{}", getClass().getSimpleName(),
+    log.debug("Ctor (List<ReqKindPluginIF>) loaded values:\n{}",
         reqKindPlugins.stream()
             .map(reqKindPluginIF ->
-                String.format("  %s:%s -> %s",
+                String.format("  Kind[%s]:%s -> %s",
                     reqKindPluginIF.getKind().getValue(),
-                    reqKindPluginIF.getKind().getName(),
+                    reqKindPluginIF.getKind().getName().toUpperCase(),
                     reqKindPluginIF.getClass().getSimpleName()))
             .collect(Collectors.joining("\n")));
   }
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
+    log.debug("ReqKindService processIncoming(List<Filters>) with List<Filters>:\n{}",
+        filtersList.stream()
+            .map(filters -> filters.toString(2))
+            .collect(Collectors.joining(",\n")));
+
     Kind reqKindPlugin = getReqKindPlugin(
         filtersList,
         reqKindPluginsMap.keySet().stream().toList());
 
-    log.debug("{} processIncoming(List<Filters>) using reqKindPlugin kind:\n  {}",
-        getClass().getSimpleName(),
+    log.debug("processIncoming(List<Filters>) using reqKindPlugin kind:\n  {}",
         String.format("%s:%s",
             reqKindPlugin.getValue(),
             reqKindPlugin.getName()));

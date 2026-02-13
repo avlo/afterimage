@@ -27,7 +27,7 @@ public class AfterimageCommandLineArgs {
             .toList().get(1))
         .orElse(afterimageRelayUrl);
 
-    log.debug("{} afterimageRelayUrl [{}]", getClass().getSimpleName(), url);
+    log.debug("afterimageRelayUrl [{}]", url);
     return url;
   }
 }

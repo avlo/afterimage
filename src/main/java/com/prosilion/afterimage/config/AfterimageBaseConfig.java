@@ -87,7 +87,7 @@ public abstract class AfterimageBaseConfig {
   @Bean
   List<KindTypeIF> kindTypes() {
     List<KindTypeIF> values = List.of(AfterimageKindType.values());
-    log.info("Loading custom AfterImage kind types [{}]", values);
+    log.info("Loading custom AfterImage kind types\n{}", values);
     return values;
   }
 
@@ -117,8 +117,8 @@ public abstract class AfterimageBaseConfig {
         new MaterializedEventKindPlugin(
             Kind.TEXT_NOTE, eventPlugin, cacheBadgeAwardGenericEventService),
         kindClassStringMap);
-    log.debug("{} loaded custom defaultEventKindPlugin bean ", parameterizedEventKindPlugin.getClass().getSimpleName());
-    log.debug("with kindClassStringMap contents:\n{}\n", prettyPrintKindClassStringMap(kindClassStringMap));
+    log.debug("loaded custom defaultEventKindPlugin bean {}", parameterizedEventKindPlugin.getClass().getSimpleName());
+    log.debug("with kindClassStringMap contents:\n{}", prettyPrintKindClassStringMap(kindClassStringMap));
     return parameterizedEventKindPlugin;
   }
 

@@ -37,6 +37,5 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
         afterimageFollowSetsEventPlugin,
         eventKindPluginIF,
         aImgIdentity);
-    log.debug("{} loaded", getClass().getSimpleName());
   }
 }

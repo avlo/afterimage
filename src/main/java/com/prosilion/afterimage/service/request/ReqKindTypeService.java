@@ -1,8 +1,5 @@
 package com.prosilion.afterimage.service.request;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.service.request.plugin.ReqKindTypePluginIF;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
@@ -12,7 +9,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -26,44 +22,56 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
   private final Map<Kind, Map<KindTypeIF, ReqKindTypePluginIF>> reqKindTypePluginMap;
 
   @Autowired
-  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF> reqKindTypePlugins) throws JsonProcessingException {
+  public ReqKindTypeService(@NonNull List<ReqKindTypePluginIF> reqKindTypePlugins) {
     reqKindTypePluginMap = reqKindTypePlugins.stream()
         .filter(Objects::nonNull)
         .collect(Collectors.groupingBy(ReqKindTypePluginIF::getKind, Collectors.toMap(
             ReqKindTypePluginIF::getKindType, Function.identity())));
 
-    log.debug("{} ctor (List<ReqKindTypePluginIF>) with values:\n{}", getClass().getSimpleName(),
+    log.debug("Ctor (List<ReqKindTypePluginIF>) loaded values:\n{}",
         reqKindTypePlugins.stream()
             .map(reqKindTypePluginIF ->
-                String.format("  %s:%s -> %s",
+                String.format("  Kind[%s]:%s -> KindType[%s]:%s -> %s",
                     reqKindTypePluginIF.getKind().getValue(),
-                    reqKindTypePluginIF.getKind().getName(),
+                    reqKindTypePluginIF.getKind().getName().toUpperCase(),
+                    reqKindTypePluginIF.getKindType().getKindDefinition().getValue(),
+                    reqKindTypePluginIF.getKindType().getKindDefinition().getName().toUpperCase(),
                     reqKindTypePluginIF.getClass().getSimpleName()))
             .collect(Collectors.joining("\n")));
   }
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
-    log.debug("ReqKindTypeService processIncoming(List<Filters>) with List<Filters>:\n{}", 
+    log.debug("ReqKindTypeService processIncoming(List<Filters>) with List<Filters>:\n{}",
         filtersList.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
-    final Kind kind = getReqKindPlugin(filtersList, reqKindTypePluginMap.keySet().stream().toList(), log);
+    String validatedExternalIdentityTag = validateExternalIdentityTag(
+        filtersList,
+        getKindTypes());
 
-    validateReferencedPubkeyTag(filtersList);
+    final Kind reqKindPlugin = getReqKindPlugin(
+        filtersList,
+        reqKindTypePluginMap.keySet().stream().toList());
 
-    return
-        Optional
-            .ofNullable(
-                reqKindTypePluginMap.get(kind)).orElseThrow(() ->
-                new InvalidKindException(kind.getName(), getKinds().stream().map(Kind::getName).toList()))
+    log.debug("... using reqKindPlugin kind:\n  {}",
+        String.format("%s:%s",
+            reqKindPlugin.getName().toUpperCase(),
+            reqKindPlugin.getValue()));
+
+    ReqKindTypePluginIF reqKindTypePluginIF =
+        reqKindTypePluginMap.get(reqKindPlugin)
             .get(getKindTypes().stream().filter(kindTypeIF ->
                 kindTypeIF.getName().equalsIgnoreCase(
-                    validateExternalIdentityTag(
-                        filtersList,
-                        getKindTypes()))).findFirst().orElseThrow())
-            .processIncomingRequest(filtersList);
+                    validatedExternalIdentityTag)).findFirst().orElseThrow());
+    log.debug("which maps to ReqKindTypePluginIF impl:\n  {}",
+        reqKindTypePluginIF.getClass().getSimpleName());
+
+    Filters filters = reqKindTypePluginIF
+        .processIncomingRequest(filtersList);
+
+    return filters;
   }
 
   @Override

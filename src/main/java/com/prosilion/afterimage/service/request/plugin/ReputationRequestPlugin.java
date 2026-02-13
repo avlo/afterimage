@@ -12,7 +12,6 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.Collection;
 import java.util.List;
@@ -35,8 +34,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    log.debug("{} processIncoming(List<Filters>)\n  with List<Filters>:\n{}",
-        getClass().getSimpleName(),
+    log.debug("processIncoming(List<Filters>)\n  with List<Filters>:\n{}",
         filtersList.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));

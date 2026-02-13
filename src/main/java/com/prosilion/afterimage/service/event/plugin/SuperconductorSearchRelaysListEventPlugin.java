@@ -52,7 +52,7 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
 //  }
 
   public void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException {
-    log.debug("{} processing incoming {} : {}", getClass().getSimpleName(), Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
+    log.debug("processing incoming {} : {}", Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
     log.debug("unique new relays [{}]", uniqueNewRelays);
     new RelayMeshProxy(
         uniqueNewRelays.stream().collect(
@@ -67,7 +67,7 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
   //  TODO: fix sneaky
   @SneakyThrows
   public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewSuperconductorRelays) {
-    log.debug("{} processing incoming {} {} event", getClass().getSimpleName(), Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
+    log.debug("processing incoming {} {} event", Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
     return new SearchRelaysListEvent(
         identity,
         uniqueNewSuperconductorRelays.map(relayString ->
@@ -82,13 +82,15 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
 
   @Override
   protected Filters getFilters() {
-    log.debug("{} getFilters() of {} : {}}", getClass().getSimpleName(), Kind.BADGE_AWARD_EVENT.getName(), Kind.BADGE_AWARD_EVENT.getValue());
+    log.debug("getFilters() of {} : {}}", Kind.BADGE_AWARD_EVENT.getName(), Kind.BADGE_AWARD_EVENT.getValue());
     return new Filters(new KindFilter(Kind.BADGE_AWARD_EVENT)); // kind 8
   }
 
   @Override
   public Kind getKind() {
-    log.debug("{} getKind of {} : {}}", getClass().getSimpleName(), Kind.SEARCH_RELAYS_LIST, Kind.SEARCH_RELAYS_LIST.getValue());
+    log.debug("getKind Kind[{}]: {}}",
+        Kind.SEARCH_RELAYS_LIST.getValue(),
+        Kind.SEARCH_RELAYS_LIST.getName());
     return Kind.SEARCH_RELAYS_LIST; // kind 10_007
   }
 }

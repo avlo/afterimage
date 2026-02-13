@@ -31,8 +31,7 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
-    log.debug("{} processIncoming(reqMessage, sessionId) with List<Filters>:\n{}",
-        getClass().getSimpleName(),
+    log.debug("processIncoming(reqMessage, sessionId) with List<Filters>:\n{}",
         reqMessage.getFiltersList().stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
@@ -57,20 +56,20 @@ public class AfterimageReqService implements ReqServiceIF {
   }
 
   private Filters processReqKindTypeService(ReqMessage reqMessage) {
-    log.debug("{} processReqKindTypeService(reqMessage)...", getClass().getSimpleName());
+    log.debug("processReqKindTypeService(reqMessage)...");
     return reqKindTypeService.processIncoming(reqMessage.getFiltersList());
   }
 
   private Filters processReqKindService(ReqMessage reqMessage) {
-    log.debug("{} processReqKindService(reqMessage)...", getClass().getSimpleName());
+    log.debug("processReqKindService(reqMessage)...");
     return reqKindService.processIncoming(reqMessage.getFiltersList());
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {
     System.out.println("1111111111111111");
     System.out.println("1111111111111111");
-    log.debug("{} validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
-        getClass().getSimpleName(), filtersList.stream()
+    log.debug("validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
+        filtersList.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining("\n")));
     System.out.println("successful filtering will result in 111111 again twice displayed");

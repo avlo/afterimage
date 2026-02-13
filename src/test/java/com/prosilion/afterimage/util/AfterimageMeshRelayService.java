@@ -20,12 +20,12 @@ public class AfterimageMeshRelayService {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
   public AfterimageMeshRelayService(@NonNull String afterimageRelayUrl) {
-    log.debug("{} constructor called with relay url {}", this.getClass().getSimpleName(), afterimageRelayUrl);
+    log.debug("constructor called with relay url {}", afterimageRelayUrl);
     this.nostrRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
   }
 
   public AfterimageMeshRelayService(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
-    log.debug("{} constructor called with relay url {} and sslBundles {}", new Object[]{this.getClass().getSimpleName(), relayUrl, sslBundles});
+    log.debug("constructor called with relay url {} and sslBundles {}", relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);
     log.debug("sslBundles key: \n{}", server.getKey());
