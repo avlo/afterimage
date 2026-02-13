@@ -34,7 +34,7 @@ public class AfterimageReqService implements ReqServiceIF {
     log.debug("{} processIncoming(reqMessage, sessionId) with List<Filters>:\n{}",
         getClass().getSimpleName(),
         reqMessage.getFiltersList().stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
     ReqMessage reqMessageAdaptedFilters = new ReqMessage(
@@ -71,7 +71,7 @@ public class AfterimageReqService implements ReqServiceIF {
     System.out.println("1111111111111111");
     log.debug("{} validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
         getClass().getSimpleName(), filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining("\n")));
     System.out.println("successful filtering will result in 111111 again twice displayed");
     filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));

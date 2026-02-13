@@ -38,7 +38,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
     log.debug("{} processIncoming(List<Filters>)\n  with List<Filters>:\n{}",
         getClass().getSimpleName(),
         filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
     List<Filterable> filterableStream = filtersList.stream()
@@ -52,7 +52,7 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
     String greenFont = GREEN_BOLD + "%s" + RESET;
     String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    log.debug("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [{}]", !filterableStream.isEmpty() ?
+    log.debug("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [{}] \n", !filterableStream.isEmpty() ?
         String.format(greenFont, "TRUE(ReptationRequestPlugin)") : String.format(redFont, "FALSE(ReptationRequestPlugin)"));
 
     ReferencedPublicKeyFilter referencedPublicKeyFilter = filterableStream.stream()

@@ -22,7 +22,7 @@ public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // k
     System.out.println("0000000000000000000000");
     log.debug("{} processIncomingRequest with List<Filters>:\n{}", getClass().getSimpleName(),
         filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
     System.out.println(" ------- ");
@@ -36,7 +36,7 @@ public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // k
     filtersList.add(suspectOverridenFilters);
     log.debug("{} concatted filtersList.add(suspectOverridenFilters) List<Filters>:\n{}", getClass().getSimpleName(),
         filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining("\n")));
 
     System.out.println("0000000000000000000000");

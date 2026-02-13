@@ -5,7 +5,6 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.util.Util;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
@@ -18,10 +17,10 @@ public interface ReqKindServiceIF {
   List<Kind> getKinds();
 
   default Kind getReqKindPlugin(List<Filters> filtersList, List<Kind> kinds, Logger log) throws NostrException {
-    log.debug("ReqKindServiceIF impl class {} processIncoming(List<Filters>) with List<Filters>:\n  {}\nfiltered by kinds:\n  {}",
+    log.debug("ReqKindServiceIF impl class {} processIncoming(List<Filters>) with List<Filters>:\n{}\nfiltered by kinds:\n  {}",
         getClass().getSimpleName(),
         filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")),
         kinds.stream()
             .map(kind ->

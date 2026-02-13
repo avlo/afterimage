@@ -103,9 +103,6 @@ public abstract class AfterimageBaseConfig {
     ResourceBundle relaysBundle = ResourceBundle.getBundle("kind-class-map");
     Map<String, String> collect = relaysBundle.keySet().stream()
         .collect(Collectors.toMap(key -> key, relaysBundle::getString));
-//    log.debug("{} loading kindClassStringMap contents:\n{}", getClass().getSimpleName(), collect.entrySet());
-    System.out.printf("ResourceBundle loaded kindClassStringMap contents:\n%s\n",
-        prettyPrintKindClassStringMap(collect));
     return collect;
   }
 
@@ -120,8 +117,8 @@ public abstract class AfterimageBaseConfig {
         new MaterializedEventKindPlugin(
             Kind.TEXT_NOTE, eventPlugin, cacheBadgeAwardGenericEventService),
         kindClassStringMap);
-    System.out.printf("%s loaded custom defaultEventKindPlugin bean ", parameterizedEventKindPlugin.getClass().getSimpleName());
-    System.out.printf("with kindClassStringMap contents:\n%s\n", prettyPrintKindClassStringMap(kindClassStringMap));
+    log.debug("{} loaded custom defaultEventKindPlugin bean ", parameterizedEventKindPlugin.getClass().getSimpleName());
+    log.debug("with kindClassStringMap contents:\n{}\n", prettyPrintKindClassStringMap(kindClassStringMap));
     return parameterizedEventKindPlugin;
   }
 

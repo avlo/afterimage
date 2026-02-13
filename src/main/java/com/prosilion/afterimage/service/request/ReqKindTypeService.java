@@ -31,16 +31,22 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
         .filter(Objects::nonNull)
         .collect(Collectors.groupingBy(ReqKindTypePluginIF::getKind, Collectors.toMap(
             ReqKindTypePluginIF::getKindType, Function.identity())));
-    log.debug("{} Ctor() loaded values:\n{}",
-        getClass().getSimpleName(),
-        new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(reqKindTypePluginMap));
+
+    log.debug("{} ctor (List<ReqKindTypePluginIF>) with values:\n{}", getClass().getSimpleName(),
+        reqKindTypePlugins.stream()
+            .map(reqKindTypePluginIF ->
+                String.format("  %s:%s -> %s",
+                    reqKindTypePluginIF.getKind().getValue(),
+                    reqKindTypePluginIF.getKind().getName(),
+                    reqKindTypePluginIF.getClass().getSimpleName()))
+            .collect(Collectors.joining("\n")));
   }
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
     log.debug("ReqKindTypeService processIncoming(List<Filters>) with List<Filters>:\n{}", 
         filtersList.stream()
-            .map(Filters::toString)
+            .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
     final Kind kind = getReqKindPlugin(filtersList, reqKindTypePluginMap.keySet().stream().toList(), log);
