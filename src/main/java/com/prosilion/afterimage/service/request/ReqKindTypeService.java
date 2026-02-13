@@ -6,6 +6,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +31,8 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
 
     log.debug("Ctor (List<ReqKindTypePluginIF>) loaded values:\n{}",
         reqKindTypePlugins.stream()
+            .sorted(Comparator.comparing(reqKindTypePluginIF ->
+                reqKindTypePluginIF.getKind().getValue()))
             .map(reqKindTypePluginIF ->
                 String.format("  Kind[%s]:%s -> KindType[%s]:%s -> %s",
                     reqKindTypePluginIF.getKind().getValue(),
@@ -47,26 +50,27 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
-    String validatedExternalIdentityTag = validateExternalIdentityTag(
-        filtersList,
-        getKindTypes());
+    final Kind validatedReqKind = getReqKindPluginKind(filtersList, getKinds());
+    log.debug("... with (1 of 4) validated reqKindTypePlugin kind:\n  {}",
+        String.format("[%s]:%s",
+            validatedReqKind.getValue(),
+            validatedReqKind.getName().toUpperCase()));
 
-    final Kind reqKindPlugin = getReqKindPlugin(
-        filtersList,
-        reqKindTypePluginMap.keySet().stream().toList());
+    KindTypeIF validKindTypeIF = validatedReqKindType(validatedReqKind, getKindTypes());
+    log.debug("... and (2 of 4) validated validKindTypeIF:\n  {}", validKindTypeIF);
 
-    log.debug("... using reqKindPlugin kind:\n  {}",
-        String.format("%s:%s",
-            reqKindPlugin.getName().toUpperCase(),
-            reqKindPlugin.getValue()));
+    ReqKindTypePluginIF reqKindTypePluginIF = reqKindTypePluginMap
+        .get(validatedReqKind)
+        .get(validKindTypeIF);
+    log.debug("... and (3 of 4) validated reqKindTypePluginIF KindTypeIF:\n  {}", reqKindTypePluginIF);
 
-    ReqKindTypePluginIF reqKindTypePluginIF =
-        reqKindTypePluginMap.get(reqKindPlugin)
-            .get(getKindTypes().stream().filter(kindTypeIF ->
-                kindTypeIF.getName().equalsIgnoreCase(
-                    validatedExternalIdentityTag)).findFirst().orElseThrow());
-    log.debug("which maps to ReqKindTypePluginIF impl:\n  {}",
-        reqKindTypePluginIF.getClass().getSimpleName());
+    log.debug("... which (4 of 4) maps to ReqKindTypePluginIF impl:\n  {}",
+        String.format("[%s]:%s -> %s, class: %s",
+            reqKindTypePluginIF.getKind().getValue(),
+            reqKindTypePluginIF.getKind().getName(),
+            String.format("%s",
+                reqKindTypePluginIF.getKindType().getKind().getName()),
+            reqKindTypePluginIF.getClass().getSimpleName()));
 
     Filters filters = reqKindTypePluginIF
         .processIncomingRequest(filtersList);
@@ -76,13 +80,11 @@ public class ReqKindTypeService implements ReqKindTypeServiceIF {
 
   @Override
   public List<Kind> getKinds() {
-//    TODO: check 30009 BADGE_DEFINITION_REPUTATION_EVENT vs 30009 BADGE_DEFINITION_AWARD(UP/DOWNVOTE)_EVENT  
     return reqKindTypePluginMap.keySet().stream().toList();
   }
 
   @Override
   public List<KindTypeIF> getKindTypes() {
-//    TODO: check 30009 BADGE_DEFINITION_REPUTATION_EVENT vs 30009 BADGE_DEFINITION_AWARD(UP/DOWNVOTE)_EVENT    
     return reqKindTypePluginMap.values().stream()
         .map(Map::keySet)
         .flatMap(Collection::stream)

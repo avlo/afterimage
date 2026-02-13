@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum AfterimageKindType implements KindTypeIF {
-  BADGE_AWARD_REPUTATION_KIND_TYPE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_DEFINITION_EVENT, "badge_award_reputation"),
+  BADGE_AWARD_REPUTATION_KIND_TYPE(Kind.BADGE_AWARD_EVENT, Kind.BADGE_AWARD_EVENT, "badge_award_reputation"),
   BADGE_DEFINITION_REPUTATION_KIND_TYPE(Kind.BADGE_DEFINITION_EVENT, Kind.BADGE_DEFINITION_EVENT, "badge_definition_reputation");
 
   public static final String PLATFORM = "afterimage";

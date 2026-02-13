@@ -5,6 +5,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,6 +30,8 @@ public class ReqKindService implements ReqKindServiceIF {
 
     log.debug("Ctor (List<ReqKindPluginIF>) loaded values:\n{}",
         reqKindPlugins.stream()
+            .sorted(Comparator.comparing(reqKindPluginIF -> 
+                reqKindPluginIF.getKind().getValue()))
             .map(reqKindPluginIF ->
                 String.format("  Kind[%s]:%s -> %s",
                     reqKindPluginIF.getKind().getValue(),
@@ -44,7 +47,7 @@ public class ReqKindService implements ReqKindServiceIF {
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));
 
-    Kind reqKindPlugin = getReqKindPlugin(
+    Kind reqKindPlugin = getReqKindPluginKind(
         filtersList,
         reqKindPluginsMap.keySet().stream().toList());
 
