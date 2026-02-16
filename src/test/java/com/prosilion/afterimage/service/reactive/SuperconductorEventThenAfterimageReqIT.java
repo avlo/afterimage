@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.config.TestcontainersConfig;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
@@ -61,7 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(TestcontainersConfig.class)
+@Import(SingleContainerTestConfig.class)
 public class SuperconductorEventThenAfterimageReqIT {
 
   /**
@@ -176,6 +176,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     assertEquals(returnedAImgBadgeDefinitionReputationEvents.getFirst().getContent(), badgeDefinitionReputationEventPlusOneFormula.getContent());
     assertEquals(returnedAImgBadgeDefinitionReputationEvents.getFirst().getPublicKey().toHexString(), badgeDefinitionReputationEventPlusOneFormula.getPublicKey().toHexString());
     assertEquals(returnedAImgBadgeDefinitionReputationEvents.getFirst().getKind(), badgeDefinitionReputationEventPlusOneFormula.getKind());
+    superconductorRelayClient.closeSocket();
 //    END AFTERIMAGE section
 ////////////////////////////////
   }
@@ -302,6 +303,7 @@ public class SuperconductorEventThenAfterimageReqIT {
     // TimeUnit.MILLISECONDS.sleep(50);
 
     assertEquals(true, items2.getFirst().getFlag());
+    superconductorEventMessageRelayReactiveClient_2.closeSocket();
     log.debug("received 2of2 OkMessage...");
 
     ReactiveNostrRelayClient superconductorRelayReactiveClient_2a = new ReactiveNostrRelayClient(superconductorRelayUrl); // TODO: should be replaceable with afterimageRelayClient, try later
@@ -316,8 +318,8 @@ public class SuperconductorEventThenAfterimageReqIT {
     log.debug("iiiiiiiiiiiiii");
     log.debug("retrieved afterimage events:");
     List<BaseMessage> superconductorEventsSubscriber_2a_Items = superconductorReqMessageEventsSubscriber_2a.getItems();
-    superconductorEventMessageRelayReactiveClient_2.closeSocket();
     List<EventIF> returnedScBadgeAwardUpvoteEvent_2a = getGenericEvents(superconductorEventsSubscriber_2a_Items);
+    superconductorRelayReactiveClient_2a.closeSocket();
 
     assertEquals(returnedScBadgeAwardUpvoteEvent_2a.getFirst().getId(), scBadgeAwardUpvoteEvent_2.getId());
     assertEquals(returnedScBadgeAwardUpvoteEvent_2a.getFirst().getContent(), scBadgeAwardUpvoteEvent_2.getContent());

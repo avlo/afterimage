@@ -80,6 +80,11 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
 
   @Override
   public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFollowSetsEventAsReputationEvent) {
+    log.debug("processing incoming Kind[{}]:{}\n{}",
+        incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
+        incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
+        incomingFollowSetsEventAsReputationEvent.createPrettyPrintJson());
+
     PublicKey awardRecipientPublicKey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEventAsReputationEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)

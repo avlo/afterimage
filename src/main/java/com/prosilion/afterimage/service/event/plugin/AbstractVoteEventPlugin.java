@@ -68,15 +68,25 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
 
   @Override
   public <T extends BaseEvent> void processIncomingEvent(@NonNull T voteEvent) {
+    log.debug("\n\n\n#########  voteEvent class: [{}]\n\n", voteEvent.getClass().getSimpleName());
+    log.debug("processing incoming Kind[{}]:{}\n{}",
+        voteEvent.getKind().getValue(),
+        voteEvent.getKind().getName().toUpperCase(),
+        voteEvent.createPrettyPrintJson());
+
     PublicKey awardRecipientPublicKey = Filterable.getTypeSpecificTags(PubKeyTag.class, voteEvent)
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
 
-    AddressTag addressTag = Filterable.getTypeSpecificTagsStream(AddressTag.class, voteEvent).findFirst().orElseThrow();
-    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventServiceIF.getAddressTagEvent(addressTag).orElseThrow();
+//    AddressTag addressTag = Filterable.getTypeSpecificTagsStream(AddressTag.class, voteEvent).findFirst().orElseThrow();
+//    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventServiceIF.getAddressTagEvent(addressTag).orElseThrow();
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVoteEvent = new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionAwardEvent);
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVoteEvent =
+//        new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionAwardEvent);
+        cacheBadgeAwardGenericEventServiceIF.materialize(voteEvent);
+
+    log.debug("reconstructedVoteEvent:\n{}", reconstructedVoteEvent.createPrettyPrintJson());
 
     List<BadgeDefinitionReputationEvent> badgeDefinitionReputationEventCandidates = cacheBadgeDefinitionReputationEventServiceIF.getExistingReputationDefinitionEvents();
 
@@ -84,7 +94,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
 //        badgeDefinitionAwardEvent.getId(),
 //        badgeDefinitionAwardEvent.getRelayTagRelay().getUrl()).stream().map(FormulaEvent::asAddressTag).toList();
 
-    List<AddressTag> formulasTarget = badgeDefinitionReputationEventCandidates.stream()
+    List<AddressTag> formulasAsAddressTags = badgeDefinitionReputationEventCandidates.stream()
         .flatMap(badgeDefinitionReputationEvent ->
             badgeDefinitionReputationEvent.getFormulaEvents()
                 .stream().map(AddressableEvent::asAddressTag)).toList();
@@ -96,7 +106,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
               List<AddressTag> formulaEvents = badgeDefinitionReputationEvent
                   .getFormulaEvents().stream()
                   .map(FormulaEvent::asAddressTag).toList();
-              boolean match = formulaEvents.stream().anyMatch(formulasTarget::contains);
+              boolean match = formulaEvents.stream().anyMatch(formulasAsAddressTags::contains);
               return match;
             }).toList();
 

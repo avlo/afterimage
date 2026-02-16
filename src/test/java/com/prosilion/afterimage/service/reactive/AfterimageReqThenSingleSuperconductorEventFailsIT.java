@@ -2,8 +2,8 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.AfterimageMeshRelayService;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
@@ -50,10 +50,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(TestcontainersConfig.class)
+@Import(SingleContainerTestConfig.class)
 public class AfterimageReqThenSingleSuperconductorEventFailsIT {
-  private final AfterimageMeshRelayService superconductorRelayReactiveClient;
-  private final AfterimageMeshRelayService afterimageMeshRelayService;
+  private final AfterimageReactiveRelayClient superconductorRelayReactiveClient;
+  private final AfterimageReactiveRelayClient afterimageReactiveRelayClient;
   private final EventServiceIF eventService;
 
   public static final String REPUTATION = "TEST_REPUTATION";
@@ -75,8 +75,8 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) throws ParseException {
-    this.superconductorRelayReactiveClient = new AfterimageMeshRelayService(superconductorRelayUri);
-    this.afterimageMeshRelayService = new AfterimageMeshRelayService(afterimageRelayUri);
+    this.superconductorRelayReactiveClient = new AfterimageReactiveRelayClient(superconductorRelayUri);
+    this.afterimageReactiveRelayClient = new AfterimageReactiveRelayClient(afterimageRelayUri);
 
     this.afterimageRelay = new Relay(afterimageRelayUri);
     this.superconductorRelay = new Relay(superconductorRelayUri);
@@ -106,7 +106,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 //    // # --------------------- Aimg REQ -------------------
 //    //   results should process at end of test once SC vote events have completed
     TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
-    afterimageMeshRelayService.send(
+    afterimageReactiveRelayClient.send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             upvotedUser.getPublicKey()),

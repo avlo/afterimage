@@ -74,6 +74,11 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   }
 
   private void processIncoming(EventIF eventIF) {
+    log.debug("**** RelayMeshProxy **** sending incoming Kind[{}]:{}\ncontent:\n{}",
+        eventIF.getKind().getValue(),
+        eventIF.getKind().getName().toUpperCase(),
+        eventIF.createPrettyPrintJson());
+    
     BaseEvent materialized = eventMaterializer.materialize(eventIF);
     relayRequestConsolidator.getRelayNames()
         .forEach(s ->

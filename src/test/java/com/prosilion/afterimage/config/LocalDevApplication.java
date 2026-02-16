@@ -20,7 +20,7 @@ public class LocalDevApplication {
   public static final String EXIT_WHILE_LOOP = "m";
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    SpringApplication.Augmented ctxt = SpringApplication.from(AfterimageApplication::main).with(TestcontainersConfig.class);
+    SpringApplication.Augmented ctxt = SpringApplication.from(AfterimageApplication::main).with(MultiContainerTestConfig.class);
     SpringApplication.Running run = ctxt.run(args);
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     clearWithLinuxCommand();

@@ -16,15 +16,15 @@ import org.springframework.boot.ssl.SslBundles;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AfterimageMeshRelayService {
+public class AfterimageReactiveRelayClient {
   private final ReactiveNostrRelayClient nostrRelayClient;
 
-  public AfterimageMeshRelayService(@NonNull String afterimageRelayUrl) {
+  public AfterimageReactiveRelayClient(@NonNull String afterimageRelayUrl) {
     log.debug("constructor called with relay url {}", afterimageRelayUrl);
     this.nostrRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
   }
 
-  public AfterimageMeshRelayService(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
+  public AfterimageReactiveRelayClient(@NonNull String relayUrl, @NonNull SslBundles sslBundles) {
     log.debug("constructor called with relay url {} and sslBundles {}", relayUrl, sslBundles);
     final SslBundle server = sslBundles.getBundle("server");
     log.debug("sslBundles name: \n{}", server);

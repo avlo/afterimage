@@ -10,13 +10,11 @@ import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.kind.EventKindServiceIF;
-import com.prosilion.superconductor.base.service.event.kind.type.EventKindTypeServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,15 +26,15 @@ import org.springframework.lang.NonNull;
 
 @Slf4j
 public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnnouncementEventPlugin { // Kind.SEARCH_RELAYS_LIST 10_007
-  private final EventKindServiceIF eventKindServiceIF;
+  private final EventKindPluginIF universalVoteEventPlugin;
 
   public SuperconductorSearchRelaysListEventPlugin(
       @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull EventKindTypeServiceIF eventKindTypeService,
+      @NonNull UniversalVoteEventPlugin universalVoteEventPlugin,
       @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
       @NonNull Identity aImgIdentity) {
     super(eventKindPlugin, cacheServiceIF, aImgIdentity);
-    this.eventKindServiceIF = eventKindTypeService;
+    this.universalVoteEventPlugin = universalVoteEventPlugin;
   }
 
 //  start with pre-defined Map<String, String> superconductorRelays
@@ -52,32 +50,33 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
 //  }
 
   public void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException {
-    log.debug("processing incoming {} : {}", Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
-    log.debug("unique new relays [{}]", uniqueNewRelays);
-    new RelayMeshProxy(
-        uniqueNewRelays.stream().collect(
-            Collectors.toMap(unused ->
-                generateRandomHex64String(), relayUri ->
-                Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.SEARCH_RELAYS_LIST.getName())))),
-        eventKindServiceIF::processIncomingEvent,
-        eventIF -> new SearchRelaysListEvent(eventIF.asGenericEventRecord()))
-        .setUpRequestFlux(getFilters());
+    log.debug("processIncomingEventAuth(), unique new relays\n[{}]", uniqueNewRelays.stream()
+        .map(s -> String.format("\n  %s", s))
+        .map(s -> String.join(",", s)));
+
+    Map<String, String> subscriberIdRelayMap = uniqueNewRelays.stream().collect(
+        Collectors.toMap(unused ->
+            generateRandomHex64String(), relayUri ->
+            Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.SEARCH_RELAYS_LIST.getName()))));
+    RelayMeshProxy relayMeshProxy = new RelayMeshProxy(
+        subscriberIdRelayMap, 
+        universalVoteEventPlugin, universalVoteEventPlugin::materialize);
+
+    Filters filters = getFilters();
+    relayMeshProxy.setUpRequestFlux(filters);
   }
 
   //  TODO: fix sneaky
   @SneakyThrows
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewSuperconductorRelays) {
-    log.debug("processing incoming {} {} event", Kind.SEARCH_RELAYS_LIST.getName(), Kind.SEARCH_RELAYS_LIST.getValue());
-    return new SearchRelaysListEvent(
-        identity,
-        uniqueNewSuperconductorRelays.map(relayString ->
-            new RelaysTag(new Relay(relayString))).toList(),
-        "Kind.SEARCH_RELAYS_LIST");
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> relays) {
+    log.debug("createEvent() using Kind[{}]: {}", Kind.SEARCH_RELAYS_LIST.getValue(), Kind.SEARCH_RELAYS_LIST.getName());
+    return new SearchRelaysListEvent(identity, new RelaysTag(relays.map(Relay::new).toList()), "custom SEARCH_RELAYS_LIST content");
   }
 
   @Override
   public BaseEvent materialize(EventIF eventIF) {
-    return new SearchRelaysListEvent(eventIF.asGenericEventRecord());
+    SearchRelaysListEvent searchRelaysListEvent = new SearchRelaysListEvent(eventIF.asGenericEventRecord());
+    return searchRelaysListEvent;
   }
 
   @Override

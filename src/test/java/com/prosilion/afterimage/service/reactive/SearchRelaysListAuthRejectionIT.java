@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.config.TestcontainersConfig;
-import com.prosilion.afterimage.util.AfterimageMeshRelayService;
+import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
 import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 //    "server.port=5560",
 //    "spring.data.redis.port=6390"
 })
-@Import(TestcontainersConfig.class)
+@Import(MultiContainerTestConfig.class)
 public class SearchRelaysListAuthRejectionIT {
   private final Identity afterimageInstanceIdentity;
   private final String afterimageRelayUri;
@@ -52,7 +52,7 @@ public class SearchRelaysListAuthRejectionIT {
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
     TestSubscriber<OkMessage> rejectionClient = new TestSubscriber<>();
-    final AfterimageMeshRelayService aImgSearchRelaysListRejectionSubscriber = new AfterimageMeshRelayService(afterimageRelayUri);
+    final AfterimageReactiveRelayClient aImgSearchRelaysListRejectionSubscriber = new AfterimageReactiveRelayClient(afterimageRelayUri);
 
     aImgSearchRelaysListRejectionSubscriber.send(
         new EventMessage(
@@ -74,8 +74,8 @@ public class SearchRelaysListAuthRejectionIT {
   private BaseEvent createSearchRelaysListEventMessage(String uri) {
     return new SearchRelaysListEvent(
         afterimageInstanceIdentity,
-        "Kind.SEARCH_RELAYS_LIST",
         new RelaysTag(
-            new Relay(uri)));
+            new Relay(uri)),
+        "custom SEARCH_RELAYS_LIST content");
   }
 }

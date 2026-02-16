@@ -211,7 +211,7 @@ public abstract class AfterimageBaseConfig {
   SuperconductorSearchRelaysListEventPlugin superconductorSearchRelaysListEventPlugin(
       @NonNull EventPluginIF eventPlugin,
       @NonNull CacheServiceIF cacheService,
-      @NonNull EventKindTypeServiceIF eventKindTypeService,
+      @NonNull UniversalVoteEventPlugin universalVoteEventPlugin,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService) {
     return new SuperconductorSearchRelaysListEventPlugin(
@@ -219,17 +219,17 @@ public abstract class AfterimageBaseConfig {
             Kind.SEARCH_RELAYS_LIST,
             eventPlugin,
             cacheBadgeAwardGenericEventService),
-        eventKindTypeService,
+        universalVoteEventPlugin,
         cacheService,
         afterimageInstanceIdentity);
   }
 
   @Bean("afterimageRelaySetsEventPlugin")
   AfterimageRelaySetsEventPlugin afterimageRelaySetsEventPlugin(
-      EventPluginIF eventPlugin,
-      CacheServiceIF cacheService,
-      List<EventKindPluginIF> eventKindPlugins,
-      Identity afterimageInstanceIdentity,
+      @NonNull EventPluginIF eventPlugin,
+      @NonNull CacheServiceIF cacheService,
+      @NonNull List<EventKindPluginIF> eventKindPlugins,
+      @NonNull Identity afterimageInstanceIdentity,
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService) {
     return new AfterimageRelaySetsEventPlugin(
         new MaterializedEventKindPlugin(

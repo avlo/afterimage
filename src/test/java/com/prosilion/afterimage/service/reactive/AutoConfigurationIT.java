@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.AfterimageWsConfig;
-import com.prosilion.afterimage.config.TestcontainersConfig;
+import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.superconductor.base.service.event.EventService;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(value = {AfterimageWsConfig.class, TestcontainersConfig.class})
+@Import(MultiContainerTestConfig.class)
 public class AutoConfigurationIT {
   private final ApplicationContextRunner contextRunner;
 

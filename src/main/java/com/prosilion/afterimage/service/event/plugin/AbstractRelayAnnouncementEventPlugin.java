@@ -9,12 +9,12 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.nostr.tag.RelayTag;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -42,7 +42,10 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   @SneakyThrows
   @Override
   public <T extends BaseEvent> void processIncomingEvent(@NonNull T relaysEvent) {
-    log.debug("processing incoming event: [{}]", relaysEvent);
+    log.debug("processing incoming Kind[{}]:{}\n{}",
+        relaysEvent.getKind().getValue(),
+        relaysEvent.getKind().getName().toUpperCase(),
+        relaysEvent.createPrettyPrintJson());
 
     InvalidKindException.testBoolean(
         relaysEvent.getKind().equals(getKind()),
@@ -65,23 +68,23 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
     log.debug("uniqueNewRelays: [{}]", uniqueNewRelays);
-//    TODO::UNIQUE-RELAY-IDENTIFIER-TAG
-    super.processIncomingEvent(createEvent(aImgIdentity, new IdentifierTag("TODO::UNIQUE-RELAY-IDENTIFIER-TAG"), uniqueNewRelays.stream()));
+   super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays.stream()));
 
     processIncomingEventAuth(uniqueNewRelays);
   }
 
   protected abstract void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException;
 
-  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays);
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewAImgRelays);
 
   abstract protected Filters getFilters();
 
   public abstract Kind getKind();
 
   private static Stream<String> getRelayTag(EventIF eventIF) {
-    return Filterable.getTypeSpecificTagsStream(RelayTag.class, eventIF)
-        .map(RelayTag::getRelay)
+    return Filterable.getTypeSpecificTagsStream(RelaysTag.class, eventIF)
+        .map(RelaysTag::getRelays)
+        .flatMap(Collection::stream)
         .map(Relay::getUrl);
   }
 

@@ -31,7 +31,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: superconductor-db
-#  SC Redis 6379
+#  SC Redis 6378
   superconductor-db-two:
     image: "redis:8.0.0"
     hostname: superconductor-db-two

@@ -23,6 +23,11 @@ public class BadgeDefinitionReputationEventKindTypeRedisPlugin extends NonPublis
 
   @Override
   public <T extends BaseEvent> void processIncomingEvent(@NonNull T event) {
+    log.debug("processing incoming Kind[{}]:{}\n{}",
+        event.getKind().getValue(),
+        event.getKind().getName().toUpperCase(),
+        event.createPrettyPrintJson());
+
     super.processIncomingEvent(cacheBadgeDefinitionReputationEventService.materialize(event));
   }
 

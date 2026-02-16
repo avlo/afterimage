@@ -10,7 +10,6 @@ import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
@@ -52,28 +51,25 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 //  }
 
   public void processIncomingEventAuth(@NonNull Set<String> uniqueNewRelays) throws JsonProcessingException {
+    log.debug("processIncomingEventAuth(), unique new relays\n[{}]", uniqueNewRelays.stream()
+        .map(s -> String.format("\n  %s", s))
+        .map(s -> String.join(",", s)));
+
     Map<String, String> subscriberIdRelayMap = uniqueNewRelays.stream().collect(
         Collectors.toMap(unused ->
             generateRandomHex64String(), relayUri ->
             Optional.of(relayUri).orElseThrow(() -> new InvalidTagException(relayUri, Kind.RELAY_SETS.getName()))));
-    new RelayMeshProxy(
-        subscriberIdRelayMap,
-        eventKindServiceIF::processIncomingEvent,
-        eventIF -> new RelaySetsEvent(eventIF.asGenericEventRecord()))
+
+    new RelayMeshProxy(subscriberIdRelayMap, eventKindServiceIF::processIncomingEvent, this::materialize)
         .setUpRequestFlux(getFilters());
   }
 
   //  TODO: fix sneaky
   @SneakyThrows
   @Override
-  public BaseEvent createEvent(@NonNull Identity identity, @NonNull IdentifierTag identifierTag, @NonNull Stream<String> uniqueNewAImgRelays) {
-    log.debug("processing incoming Kind.RELAY_SETS 30_002 event");
-    return new RelaySetsEvent(
-        identity,
-        identifierTag,
-        uniqueNewAImgRelays.map(relayString ->
-            new RelaysTag(new Relay(relayString))).toList(),
-        "Kind.RELAY_SETS");
+  public BaseEvent createEvent(@NonNull Identity identity, @NonNull Stream<String> uniqueNewAImgRelays) {
+    log.debug("createEvent() using Kind[{}]: {}}", Kind.RELAY_SETS.getValue(), Kind.RELAY_SETS.getName());
+    return new RelaySetsEvent(identity, new RelaysTag(uniqueNewAImgRelays.map(Relay::new).toList()), "Kind.RELAY_SETS");
   }
 
   @Override

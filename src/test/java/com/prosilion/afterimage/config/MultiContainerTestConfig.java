@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @EmbeddedRedisStandalone
-public class TestcontainersConfig {
+public class MultiContainerTestConfig {
   @Bean
 //  @RestartScope
   @ServiceConnection
@@ -20,7 +20,7 @@ public class TestcontainersConfig {
         .waitingFor("afterimage-db", Wait.forHealthcheck())
         .withRemoveVolumes(true);
   }
-
+  
   @Bean
 //  @RestartScope
   @ServiceConnection
