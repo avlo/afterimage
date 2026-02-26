@@ -8,7 +8,7 @@ services:
     environment:
       - "REDIS_ARGS=--appendonly yes"
     networks:
-      - docker_network
+      - docker-network
   afterimage-app:
     container_name: afterimage-app-redis-dev_ws
     image: avlo/afterimage-nostr-reputation-relay:1.1.0
@@ -17,7 +17,7 @@ services:
     depends_on:
       - afterimage-db
     networks:
-      - docker_network
+      - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: afterimage-db
@@ -25,5 +25,5 @@ volumes:
   afterimage-db:
     driver: local
 networks:
-  docker_network:
+  docker-network:
     driver: bridge

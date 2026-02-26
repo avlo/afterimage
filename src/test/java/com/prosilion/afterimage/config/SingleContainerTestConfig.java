@@ -27,7 +27,8 @@ public class SingleContainerTestConfig {
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
         new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-        .waitingFor("superconductor-afterimage", Wait.forHealthcheck())
+//      .waitingFor("superconductor-afterimage", Wait.forHealthcheck())  // does not work due to wget unavailable in container
+        .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
         .withRemoveVolumes(true);
   }
 }

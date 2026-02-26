@@ -8,10 +8,10 @@ services:
 #    environment:
 #      - "REDIS_ARGS=--appendonly yes"
     networks:
-      - docker_network
+      - docker-network
 volumes:
   afterimage-db:
     driver: local
 networks:
-  docker_network:
+  docker-network:
     driver: bridge

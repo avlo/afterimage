@@ -9,7 +9,7 @@ import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEve
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -24,7 +24,7 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
       @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
       @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF,
+      @NonNull EventPlugin eventPlugin,
       @NonNull Identity aImgIdentity) {
     super(
         afterimageRelayUrl,
@@ -35,7 +35,7 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
         cacheBadgeAwardGenericEventServiceIF,
         cacheFollowSetsEventServiceIF,
         afterimageFollowSetsEventPlugin,
-        eventKindPluginIF,
+        eventPlugin,
         aImgIdentity);
   }
 }

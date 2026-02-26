@@ -24,7 +24,6 @@
     <awaitility.version>4.2.0</awaitility.version>
     <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
-    <guava.version>33.2.1-jre</guava.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jackson-module-afterburner.version>2.18.3</jackson-module-afterburner.version>
     <junit-jupiter.version>5.13.4</junit-jupiter.version>
@@ -35,7 +34,7 @@
     <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
     <maven-failsafe-plugin.version>3.3.0</maven-failsafe-plugin.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    
+
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <postgresql.version>42.7.3</postgresql.version>
@@ -61,11 +60,11 @@
       <artifactId>spring-boot-starter</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <version>${spring-boot.version}</version>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>org.springframework.boot</groupId>-->
+    <!--      <artifactId>spring-boot-devtools</artifactId>-->
+    <!--      <version>${spring-boot.version}</version>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
@@ -97,22 +96,17 @@
       <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.prosilion</groupId>
       <artifactId>subdivisions</artifactId>
       <version>${subdivisions.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-afterburner</artifactId>
       <version>${jackson-module-afterburner.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -221,12 +215,21 @@
       <!--        </executions>-->
       <!--      </plugin>-->
 
+
       <plugin>
+        <!--      <plugin>-->
+        <!--        <groupId>org.graalvm.buildtools</groupId>-->
+        <!--        <artifactId>native-maven-plugin</artifactId>-->
+        <!--      </plugin>-->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <image>
+            <env>
+              <BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>
+            </env>
             <builder>bellsoft/buildpacks.builder:musl</builder>
+            <!--            <builder>paketobuildpacks/builder-jammy-base:latest</builder>-->
           </image>
         </configuration>
       </plugin>
@@ -250,9 +253,9 @@
               <goal>integration-test</goal>
               <goal>verify</goal>
             </goals>
-              <configuration>
-                  <rerunFailingTestsCount>1</rerunFailingTestsCount>
-              </configuration>
+            <configuration>
+              <rerunFailingTestsCount>1</rerunFailingTestsCount>
+            </configuration>
           </execution>
         </executions>
       </plugin>

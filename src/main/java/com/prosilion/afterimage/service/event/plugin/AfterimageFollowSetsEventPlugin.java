@@ -4,7 +4,6 @@ import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -20,7 +19,7 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -43,13 +41,13 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   public AfterimageFollowSetsEventPlugin(
       @NonNull String afterimageRelayUrl,
       @NonNull NotifierService notifierService,
-      @NonNull EventKindPluginIF eventKindPlugin,
-      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
+      @NonNull EventPlugin eventPlugin,
+      @NonNull CacheServiceIF cacheServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
       @NonNull CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF,
       @NonNull Identity aImgIdentity,
       @NonNull EventKindTypePluginIF reputationEventPlugin) {
-    super(notifierService, eventKindPlugin);
+    super(notifierService, eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
     this.reputationEventPlugin = reputationEventPlugin;
@@ -59,7 +57,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   }
 
   @Override
-  public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFollowSetsEvent) {
+  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         incomingFollowSetsEvent.getKind().getValue(),
         incomingFollowSetsEvent.getKind().getName().toUpperCase(),
@@ -157,11 +155,6 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousFollowSetsEvent.getId())), "aImg delete previous FOLLOW_SETS event"));
-  }
-
-  @Override
-  public FollowSetsEvent materialize(EventIF eventIF) {
-    return cacheFollowSetsEventServiceIF.materialize(eventIF);
   }
 
   @Override

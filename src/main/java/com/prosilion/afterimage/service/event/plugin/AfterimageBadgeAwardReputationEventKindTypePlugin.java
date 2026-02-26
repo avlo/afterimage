@@ -7,7 +7,6 @@ import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -22,28 +21,33 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFormulaEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
 import com.prosilion.superconductor.base.cache.CacheBadgeAwardReputationEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionGenericEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.BadgeAwardReputationEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePluginIF;
-import com.prosilion.superconductor.base.service.event.plugin.kind.type.PublishingEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 
 @Slf4j
 // our SportsCar extends CarDecorator
-public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEventKindTypePlugin {
+public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwardReputationEventKindTypePlugin {
   private final String afterimageRelayUrl;
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
@@ -54,32 +58,32 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
   private final CacheFormulaEventServiceIF cacheFormulaEventServiceIF;
   private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
 
-  public BadgeAwardReputationEventKindTypeRedisPlugin(
+  public AfterimageBadgeAwardReputationEventKindTypePlugin(
       @NonNull String afterimageRelayUrl,
       @NonNull Identity aImgIdentity,
       @NonNull NotifierService notifierService,
       @NonNull EventKindTypePluginIF eventKindTypePlugin,
-      @NonNull @Qualifier("redisCacheService") CacheServiceIF cacheServiceIF,
+      @NonNull RedisCacheService redisCacheService,
       @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
-      @NonNull CacheBadgeDefinitionGenericEventServiceIF cacheBadgeDefinitionGenericEventServiceIF,
-      @NonNull CacheBadgeAwardReputationEventServiceIF cacheBadgeAwardReputationEventService,
-      @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
-      @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
-      @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF) {
+      @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
+      @NonNull CacheBadgeAwardReputationEventService cacheBadgeAwardReputationEventService,
+      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
+      @NonNull CacheFormulaEventService cacheFormulaEventService,
+      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService) {
     super(notifierService, eventKindTypePlugin);
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.aImgIdentity = aImgIdentity;
-    this.cacheServiceIF = cacheServiceIF;
+    this.cacheServiceIF = redisCacheService;
     this.reputationCalculationServiceIF = reputationCalculationServiceIF;
-    this.cacheBadgeDefinitionGenericEventServiceIF = cacheBadgeDefinitionGenericEventServiceIF;
+    this.cacheBadgeDefinitionGenericEventServiceIF = cacheBadgeDefinitionGenericEventService;
     this.cacheBadgeAwardReputationEventService = cacheBadgeAwardReputationEventService;
-    this.cacheBadgeDefinitionReputationEventServiceIF = cacheBadgeDefinitionReputationEventServiceIF;
-    this.cacheFormulaEventServiceIF = cacheFormulaEventServiceIF;
-    this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventServiceIF;
+    this.cacheBadgeDefinitionReputationEventServiceIF = cacheBadgeDefinitionReputationEventService;
+    this.cacheFormulaEventServiceIF = cacheFormulaEventService;
+    this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventService;
   }
 
   @Override
-  public <T extends BaseEvent> void processIncomingEvent(@NonNull T incomingFollowSetsEventAsReputationEvent) {
+  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
         incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
@@ -195,10 +199,5 @@ public class BadgeAwardReputationEventKindTypeRedisPlugin extends PublishingEven
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
-  }
-
-  @Override
-  public BadgeAwardReputationEvent materialize(EventIF eventIF) {
-    return cacheBadgeAwardReputationEventService.materialize(eventIF);
   }
 }

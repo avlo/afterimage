@@ -10,7 +10,7 @@ services:
       interval: 3s
       timeout: 10s
     networks:
-      docker-network:
+      - docker-network
 volumes:
   afterimage-db:
     driver: local

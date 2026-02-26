@@ -5,7 +5,6 @@ import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -22,7 +21,7 @@ import com.prosilion.superconductor.base.cache.CacheBadgeDefinitionReputationEve
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.List;
 import java.util.stream.Stream;
@@ -52,9 +51,9 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
       @NonNull CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
       @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF,
+      @NonNull EventPlugin eventPlugin,
       @NonNull Identity aImgIdentity) {
-    super(eventKindPluginIF);
+    super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
     this.cacheBadgeDefinitionGenericEventServiceIF = cacheBadgeDefinitionGenericEventServiceIF;
@@ -67,7 +66,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   @Override
-  public <T extends BaseEvent> void processIncomingEvent(@NonNull T voteEvent) {
+  public void processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("\n\n\n#########  voteEvent class: [{}]\n\n", voteEvent.getClass().getSimpleName());
     log.debug("processing incoming Kind[{}]:{}\n{}",
         voteEvent.getKind().getValue(),
@@ -153,12 +152,6 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
         relay,
         badgeAwardGenericVoteEvent);
     return followSetsEvent;
-  }
-
-  @Override
-  public BaseEvent materialize(EventIF eventIF) {
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> materialize = cacheBadgeAwardGenericEventServiceIF.materialize(eventIF);
-    return materialize;
   }
 
   @Override

@@ -11,7 +11,7 @@ services:
       interval: 1s
       timeout: 2s
     networks:
-      - docker_network
+      - docker-network
 #  SC App 5555
   superconductor-afterimage:
     image: avlo/superconductor-app-redis:1.17.2
@@ -27,7 +27,7 @@ services:
       superconductor-db:
         condition: service_healthy
     networks:
-      - docker_network
+      - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: superconductor-db
@@ -43,7 +43,7 @@ services:
       interval: 1s
       timeout: 2s
     networks:
-      - docker_network
+      - docker-network
   #        
   #  SC App 5554
   superconductor-afterimage-two:
@@ -60,7 +60,7 @@ services:
       superconductor-db-two:
         condition: service_healthy
     networks:
-      - docker_network
+      - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: superconductor-db-two
@@ -77,7 +77,7 @@ services:
       interval: 1s
       timeout: 2s
     networks:
-      - docker_network
+      - docker-network
 #  
 # aImg App2 5557 (docker container)
   afterimage-app:
@@ -94,7 +94,7 @@ services:
       afterimage-db-two:
         condition: service_healthy
     networks:
-      - docker_network
+      - docker-network
 #    links:
 #      - superconductor-afterimage-two
     environment:
@@ -109,5 +109,5 @@ volumes:
   afterimage-db-two:
     driver: local
 networks:
-  docker_network:
+  docker-network:
     driver: bridge
