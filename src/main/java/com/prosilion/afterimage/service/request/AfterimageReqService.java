@@ -66,16 +66,11 @@ public class AfterimageReqService implements ReqServiceIF {
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {
-    System.out.println("1111111111111111");
-    System.out.println("1111111111111111");
     log.debug("validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
         filtersList.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining("\n")));
-    System.out.println("successful filtering will result in 111111 again twice displayed");
     filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));
-    System.out.println("1111111111111111");
-    System.out.println("1111111111111111");
     return filtersList;
   }
 }

@@ -39,7 +39,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <postgresql.version>42.7.3</postgresql.version>
     <subdivisions.version>1.3.2</subdivisions.version>
-    <superconductor.version>1.17.2</superconductor.version>
+    <superconductor.version>1.17.3</superconductor.version>
     <testcontainers.version>1.21.3</testcontainers.version>
     <EvalEx.version>3.5.0</EvalEx.version>
   </properties>

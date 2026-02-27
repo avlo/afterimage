@@ -1,12 +1,53 @@
 #!/bin/bash
 
-DIR=~/temp/scan-containers
-OUTPUT_FILE_PREFIX=$DIR/outfile-scan
-EXISTING_TERMINAL_PIDS_FILE=$DIR/term.pre
-NEW_TERMINAL_PIDS_FILE=$DIR/term.post
-CONTAINER_IDS_AND_NAMES=$DIR/container_ids_and_names
-CONTAINER_IDS=$DIR/container_ids
-CONTAINER_NAMES=$DIR/container_names
+#HOME_DIR=~/temp/scan-containers
+HOME_DIR=.
+SCAN_TEMP_DIR=$HOME_DIR/temp-scan-pids
+EXISTING_TERMINAL_PIDS_FILE=$SCAN_TEMP_DIR/term.pre
+NEW_TERMINAL_PIDS_FILE=$SCAN_TEMP_DIR/term.post
+CONTAINER_IDS_AND_NAMES=$SCAN_TEMP_DIR/container_ids_and_names
+CONTAINER_IDS=$SCAN_TEMP_DIR/container_ids
+CONTAINER_NAMES=$SCAN_TEMP_DIR/container_names
+
+horizontal_terminal_count=4
+vertical_terminal_count=2
+zoom_factor=.6
+
+get_screen_x_resolution() {
+  screen_x_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
+}
+get_screen_y_resolution() {
+  screen_y_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
+}
+
+get_screen_resolution() {
+  get_screen_x_resolution;
+  get_screen_y_resolution;
+  x_position_increment=$((screen_x_resolution / horizontal_terminal_count))
+  y_position_increment=$((screen_y_resolution / vertical_terminal_count))
+  
+#  terminal_width=$((x_position_increment / horizontal_terminal_count))
+#  echo "terminal_width: $terminal_width"
+  
+#  delta=$(echo "scale=2; 1 - $zoom_factor" | bc)
+#  echo "delta: $delta"
+#  
+#  deltatwo=$(echo "scale=2; $delta * .1" | bc)
+#  echo "delta2: $deltatwo"
+#  
+#  zoom_factor_decimal=$(echo "scale=2; $x_position_increment * $deltatwo" | bc)
+#  scaling_zoom_factor=${zoom_factor_decimal/\.*/}
+#  echo "zoom_factor_decimal: $zoom_factor_decimal"
+#  echo "scaling_zoom_factor: $scaling_zoom_factor"
+#  x_geometry=$((terminal_width + scaling_zoom_factor))
+
+  x_geometry=154
+  y_geometry=50
+  
+  echo "x resolution: $screen_x_resolution, x increment: $x_position_increment,  x geometry: $x_geometry"
+  echo "y resolution: $screen_y_resolution, y increment: $y_position_increment, y geometry: $y_geometry"
+  echo ""
+}
 
 ls_docker_containers() {
 	docker container ls --format "{{.ID}} {{.Names}}"|grep -e super -e after
@@ -19,7 +60,11 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 #  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- docker logs -f "$1" > $OUTPUT_FILE_PREFIX."$2" & tail -f "$OUTPUT_FILE_PREFIX."$2"
-  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry="$x_geometry"x"$y_geometry"+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+}
+
+create_temp_dir() {
+  mkdir -p $SCAN_TEMP_DIR
 }
 
 get_existing_terminal_pids() {
@@ -41,7 +86,6 @@ create_terminals() {
   loop_limit=$(wc $CONTAINER_IDS_AND_NAMES | awk '{ print $1 }')
   x_position=1
   y_position=1 
-  horizontal_terminal_count=4
   j_counter=1
   j_iterations=$(($((loop_limit / horizontal_terminal_count)) + 1 ))
   for (( j = 0; j < j_iterations; j++ )); do # number of columns
@@ -50,11 +94,11 @@ create_terminals() {
       pid=$(sed "${line_number}b;d" $CONTAINER_IDS)
       name=$(sed "${line_number}b;d" $CONTAINER_NAMES)
       display_pid_term "$pid" "$name" "$x_position" "$y_position"
-      x_position=$((x_position + 480)) # increment x position by 480
+      x_position=$((x_position + "$x_position_increment")) # increment x position by 480
     done
     j_counter=$((j_counter + horizontal_terminal_count))
     x_position=1
-    y_position=$((y_position + 520)) # increment y position by 500
+    y_position=$((y_position + "$y_position_increment")) # increment y position by 500
   done
 }
 
@@ -63,16 +107,18 @@ kill_terminals() {
 }
   
 cleanup() {
-	rm $CONTAINER_IDS_AND_NAMES 
-	rm $CONTAINER_IDS
-	rm $CONTAINER_NAMES
-	rm $EXISTING_TERMINAL_PIDS_FILE
-	rm $NEW_TERMINAL_PIDS_FILE
+#	rm $CONTAINER_IDS_AND_NAMES 
+#	rm $CONTAINER_IDS
+#	rm $CONTAINER_NAMES
+#	rm $EXISTING_TERMINAL_PIDS_FILE
+#	rm $NEW_TERMINAL_PIDS_FILE
+	rm -rf $SCAN_TEMP_DIR;
 }
 
 usage() { echo "Usage:  once containers have properly started, press any key to launch terminals then any key to close terminals" 1>&2; exit 1; }
 
 user_prompt_start_terminals() {
+  get_screen_resolution
   while true; do
     read -p "container scan:
   (enter/default) -> start): " -a args_array
@@ -97,6 +143,7 @@ user_prompt_stop_terminals() {
 }
 
 ###########     main    ################
+create_temp_dir
 get_existing_terminal_pids
 user_prompt_start_terminals
 user_prompt_stop_terminals

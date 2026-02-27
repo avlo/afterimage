@@ -14,7 +14,7 @@ services:
       - docker-network
 #  SC App 5555
   superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.17.2
+    image: avlo/superconductor-app-redis:1.17.3
     ports:
       - "5555:5555"
 # below commented due to wget unavailable in container, instead use SingleContainerTestConfig Wait.defaultWaitStrategy()

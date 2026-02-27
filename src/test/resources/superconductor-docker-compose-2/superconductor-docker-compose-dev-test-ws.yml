@@ -14,7 +14,7 @@ services:
     networks:
       docker-network:
   superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.17.2
+    image: avlo/superconductor-app-redis:1.17.3
     ports:
       - "5554:5555"
     depends_on:

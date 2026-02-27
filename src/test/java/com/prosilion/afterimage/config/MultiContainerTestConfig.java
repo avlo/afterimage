@@ -20,16 +20,17 @@ public class MultiContainerTestConfig {
         .waitingFor("afterimage-db", Wait.forHealthcheck())
         .withRemoveVolumes(true);
   }
-  
+
   @Bean
 //  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
         new File("src/test/resources/afterimage-docker-compose-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-        .waitingFor("afterimage-app", Wait.forHealthcheck())
-        .waitingFor("superconductor-afterimage", Wait.forHealthcheck())
-        .waitingFor("superconductor-afterimage-two", Wait.forHealthcheck())
+// original Wait.forHealthcheck() calls do not work due to wget unavailable in container
+        .waitingFor("afterimage-app", Wait.defaultWaitStrategy())
+        .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
+        .waitingFor("superconductor-afterimage-two", Wait.defaultWaitStrategy())
         .withRemoveVolumes(true);
   }
 }

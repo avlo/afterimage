@@ -67,7 +67,6 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
 
   @Override
   public void processIncomingEvent(@NonNull EventIF voteEvent) {
-    log.debug("\n\n\n#########  voteEvent class: [{}]\n\n", voteEvent.getClass().getSimpleName());
     log.debug("processing incoming Kind[{}]:{}\n{}",
         voteEvent.getKind().getValue(),
         voteEvent.getKind().getName().toUpperCase(),
