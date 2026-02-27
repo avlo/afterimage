@@ -20,7 +20,7 @@ get_screen_y_resolution() {
   screen_y_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
 }
 
-echo_content() {
+display_resolution_operands() {
   words=("$@")
   for element in $words;do
     numeric=$(echo "$element" | grep -oE '[0-9]+([.][0-9]+)?')
@@ -58,8 +58,8 @@ get_screen_resolution() {
   x_geometry=154
   y_geometry=50
   
-  echo_content "x-resolution: $screen_x_resolution, x-increment: $x_position_increment,  x-geometry: $x_geometry"
-  echo_content "y-resolution: $screen_y_resolution, y-increment: $y_position_increment, y-geometry: $y_geometry"
+  display_resolution_operands "x-resolution: $screen_x_resolution, x-increment: $x_position_increment,  x-geometry: $x_geometry"
+  display_resolution_operands "y-resolution: $screen_y_resolution, y-increment: $y_position_increment, y-geometry: $y_geometry"
   echo ""
 }
 
@@ -73,7 +73,6 @@ display_pid_term() {
   echo "    y: [$4]"
   echo "   id: [$1]"
   echo "title: [$2]"
-#  gnome-terminal --geometry=115x50+"$3"+"$4" --title="$2" --zoom=.6 -- docker logs -f "$1" > $OUTPUT_FILE_PREFIX."$2" & tail -f "$OUTPUT_FILE_PREFIX."$2"
   gnome-terminal --geometry="$x_geometry"x"$y_geometry"+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
 }
 
