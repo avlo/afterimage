@@ -83,7 +83,7 @@ services:
 #  
 # aImg App2 5557 (docker container)
   afterimage-app:
-    image: afterimage-nostr-reputation-relay:1.1.0
+    image: afterimage-nostr-reputation-relay:1.2.0
     ports:
       - "5557:5556"
 # below commented due to wget unavailable in container, instead use MultiContainerTestConfig Wait.defaultWaitStrategy()
