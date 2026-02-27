@@ -68,12 +68,18 @@ ls_docker_containers() {
 }
 
 display_pid_term() {
+  if [ -z "$1" ]; then
+    return
+  fi
+  
   echo "--------"
   echo "    x: [$3]"
   echo "    y: [$4]"
   echo "   id: [$1]"
   echo "title: [$2]"
+
   gnome-terminal --geometry="$x_geometry"x"$y_geometry"+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  (docker logs -f "$1" > "$2_not_really_java.java") &
 }
 
 create_temp_dir() {
