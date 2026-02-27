@@ -20,6 +20,20 @@ get_screen_y_resolution() {
   screen_y_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
 }
 
+echo_content() {
+  words=("$@")
+  for element in $words;do
+    numeric=$(echo "$element" | grep -oE '[0-9]+([.][0-9]+)?')
+    if [[ -n "$numeric" ]]; then
+      printf "$(tput bold) %s $(tput sgr0)" "$numeric"
+    else
+      printf $element
+    fi
+  done
+  echo
+}
+
+
 get_screen_resolution() {
   get_screen_x_resolution;
   get_screen_y_resolution;
@@ -44,8 +58,8 @@ get_screen_resolution() {
   x_geometry=154
   y_geometry=50
   
-  echo "x resolution: $screen_x_resolution, x increment: $x_position_increment,  x geometry: $x_geometry"
-  echo "y resolution: $screen_y_resolution, y increment: $y_position_increment, y geometry: $y_geometry"
+  echo_content "x-resolution: $screen_x_resolution, x-increment: $x_position_increment,  x-geometry: $x_geometry"
+  echo_content "y-resolution: $screen_y_resolution, y-increment: $y_position_increment, y-geometry: $y_geometry"
   echo ""
 }
 
