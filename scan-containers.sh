@@ -9,6 +9,8 @@ CONTAINER_IDS_AND_NAMES=$SCAN_TEMP_DIR/container_ids_and_names
 CONTAINER_IDS=$SCAN_TEMP_DIR/container_ids
 CONTAINER_NAMES=$SCAN_TEMP_DIR/container_names
 
+suffix=scan-suffix-for-sublime.java
+
 horizontal_terminal_count=4
 vertical_terminal_count=2
 zoom_factor=.6
@@ -79,7 +81,7 @@ display_pid_term() {
   echo "title: [$2]"
 
   gnome-terminal --geometry="$x_geometry"x"$y_geometry"+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
-  (docker logs -f "$1" > "$2_not_really_java.java") &
+  (docker logs -f "$1" > "$2_$suffix") &
 }
 
 create_temp_dir() {
