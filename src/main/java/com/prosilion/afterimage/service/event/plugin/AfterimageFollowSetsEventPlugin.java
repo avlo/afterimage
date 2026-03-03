@@ -25,6 +25,7 @@ import com.prosilion.superconductor.base.service.request.subscriber.NotifierServ
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -85,8 +86,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
                 FollowSetsEvent::getContainedAddressableEvents)
             .orElse(List.of())
             .stream()
-            .map(eventTag ->
-                cacheBadgeAwardGenericEventServiceIF.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl()))
+            .map(this::apply)
             .flatMap(Optional::stream).toList();
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
@@ -119,6 +119,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
     return genericEventRecord;
   }
 
+  @SneakyThrows
   private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, FollowSetsEvent materializediIcomingFollowSetsEvent) {
     Optional<FollowSetsEvent> event = cacheFollowSetsEventServiceIF.getEvent(
         genericEventRecord.getId(),
@@ -152,5 +153,10 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         Kind.FOLLOW_SETS.getValue(),
         Kind.FOLLOW_SETS.getName().toUpperCase());
     return Kind.FOLLOW_SETS;
+  }
+
+  @SneakyThrows
+  private Optional<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> apply(EventTag eventTag) {
+    return cacheBadgeAwardGenericEventServiceIF.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl());
   }
 }

@@ -61,6 +61,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   @Override
+  @SneakyThrows
   public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         voteEvent.getKind().getValue(),

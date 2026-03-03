@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.DurationFactory;
 import org.springframework.lang.NonNull;
@@ -103,14 +104,10 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
             .getContainedAddressableEvents().getFirst();
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVote =
-        cacheFollowSetsEventServiceIF
-            .getEventTagEvent(
-                followSetsFirstEventTagToVotePointer.getIdEvent(),
-                followSetsFirstEventTagToVotePointer.getRecommendedRelayUrl()).orElseThrow();
+        getReconstructedVote(followSetsFirstEventTagToVotePointer);
 
     BadgeDefinitionGenericEvent existingBadgeDefinitionGenericEvent =
-        cacheBadgeDefinitionGenericEventServiceIF
-            .getAddressTagEvent(reconstructedVote.getAddressTag(), DurationFactory.of(10L, TimeUnit.SECONDS)).orElseThrow();
+        getExistingBadgeDefinitionGenericEvent(reconstructedVote);
 
     Optional<GenericEventRecord> existingBadgeAwardReputationEventGer =
         cacheServiceIF.getEventsByKindAndPubKeyTagAndAddressTag(
@@ -126,10 +123,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                     baseTag.getClass().equals(ExternalIdentityTag.class)))
             .findFirst();
 
-    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = existingBadgeAwardReputationEventGer.stream().map(e ->
-            cacheBadgeAwardReputationEventService.getEvent(
-                e.getId(),
-                Filterable.getTypeSpecificTagsStream(RelayTag.class, e).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow()))
+    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = existingBadgeAwardReputationEventGer.stream().map(this::apply)
         .flatMap(Optional::stream).findFirst();
 
     existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent);
@@ -138,9 +132,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
         Kind.ARBITRARY_CUSTOM_APP_DATA);
 
     List<FormulaEvent> formulaEvents = formulaEventsAsGenericEventRecords.stream()
-        .map(genericEventRecord -> cacheFormulaEventServiceIF.getEvent(
-            genericEventRecord.getId(),
-            Filterable.getTypeSpecificTagsStream(RelayTag.class, genericEventRecord).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow()))
+        .map(this::apply2)
         .flatMap(Optional::stream).toList();
 
     List<BadgeDefinitionReputationEvent> existingReputationDefinitionEvents =
@@ -172,6 +164,21 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
     return newReputationEvents.stream().map(super::processIncomingEvent).toList().getFirst();
   }
 
+  @SneakyThrows
+  private BadgeDefinitionGenericEvent getExistingBadgeDefinitionGenericEvent(BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVote) {
+    return cacheBadgeDefinitionGenericEventServiceIF
+        .getAddressTagEvent(reconstructedVote.getAddressTag(), DurationFactory.of(10L, TimeUnit.SECONDS)).orElseThrow();
+  }
+
+
+  @SneakyThrows
+  private BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> getReconstructedVote(EventTag followSetsFirstEventTagToVotePointer) {
+    return cacheFollowSetsEventServiceIF
+        .getEventTagEvent(
+            followSetsFirstEventTagToVotePointer.getIdEvent(),
+            followSetsFirstEventTagToVotePointer.getRecommendedRelayUrl()).orElseThrow();
+  }
+
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(
       PublicKey badgeReceiverPubkey,
       BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
@@ -190,5 +197,19 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
         new DeletionEvent(
             aImgIdentity,
             List.of(new EventTag(previousReputationEvent.getId())), "aImg delete previous REPUTATION event"));
+  }
+
+  @SneakyThrows
+  private Optional<BadgeAwardReputationEvent> apply(GenericEventRecord e) {
+    return cacheBadgeAwardReputationEventService.getEvent(
+        e.getId(),
+        Filterable.getTypeSpecificTagsStream(RelayTag.class, e).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow());
+  }
+
+  @SneakyThrows
+  private Optional<FormulaEvent> apply2(GenericEventRecord genericEventRecord) {
+    return cacheFormulaEventServiceIF.getEvent(
+        genericEventRecord.getId(),
+        Filterable.getTypeSpecificTagsStream(RelayTag.class, genericEventRecord).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow());
   }
 }
