@@ -4,7 +4,6 @@ import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.afterimage.util.Factory;
-import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -32,6 +31,7 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.util.RequestSubscriber;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.io.IOException;
 import java.util.List;
@@ -110,7 +110,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 //    create then submit SC awardUpvoteDefinitionEvent
     awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(definitionsCreatorIdentity, upvoteIdentifierTag, superconductorRelay); // 4444
     log.debug("sending awardUpvoteDefinitionEvent {} to superconductorRelayUrl", awardUpvoteDefinitionEvent);
-    TestSubscriber<OkMessage> scAwardDefinitionOkMessageSubscriber = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> scAwardDefinitionOkMessageSubscriber = new RequestSubscriber<>();
     ReactiveNostrRelayClient superconductorRelayClient = new ReactiveNostrRelayClient(superconductorRelayUrl);
     superconductorRelayClient.send(
         new EventMessage(awardUpvoteDefinitionEvent),
@@ -119,7 +119,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
     assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
 
 //    validate SC awardUpvoteDefinitionEvent item
-    TestSubscriber<BaseMessage> scAwardUpvoteDefinitionReqBaseMessageSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> scAwardUpvoteDefinitionReqBaseMessageSubscriber = new RequestSubscriber<>();
     superconductorRelayClient.send(
         createSuperconductorReqMessageBadgeDefinitionEvent(
             Factory.generateRandomHex64String(),
@@ -190,7 +190,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 
 //  submit first Event to superconductor
     ReactiveNostrRelayClient superconductorEventMessageRelayReactiveClient_1 = new ReactiveNostrRelayClient(superconductorRelayUrl);
-    TestSubscriber<OkMessage> scOkMessageSubscriber_1 = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> scOkMessageSubscriber_1 = new RequestSubscriber<>();
     superconductorEventMessageRelayReactiveClient_1.send(
         new EventMessage(scBadgeAwardUpvoteEvent_1), scOkMessageSubscriber_1);
 
@@ -202,7 +202,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 
 //    validate by submit Req for above badgeAwardUpvoteEvent to superconductor
     ReactiveNostrRelayClient superconductorRelayReactiveClient_1a = new ReactiveNostrRelayClient(superconductorRelayUrl); // TODO: should be replaceable with afterimageRelayClient, try later
-    TestSubscriber<BaseMessage> superconductorReqMessageEventsSubscriber_1a = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> superconductorReqMessageEventsSubscriber_1a = new RequestSubscriber<>();
     superconductorRelayReactiveClient_1a.send(
         createSuperconductorReqMessageBadgeAwardEvent(Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()),
         superconductorReqMessageEventsSubscriber_1a);
@@ -227,7 +227,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 
 //    query Aimg for above badgeAwardUpvoteEvent
     log.debug("query Aimg for above badgeAwardUpvoteEvent:");
-    TestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new RequestSubscriber<>();
     ReactiveNostrRelayClient afterimageRepRequestClient_A = new ReactiveNostrRelayClient(afterimageRelayUrl);
     afterimageRepRequestClient_A.send(
         createAfterImageReqMessage(

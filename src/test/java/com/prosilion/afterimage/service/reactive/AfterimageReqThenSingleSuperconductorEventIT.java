@@ -4,7 +4,6 @@ import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.afterimage.util.Factory;
-import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -34,6 +33,7 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.util.RequestSubscriber;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.io.IOException;
 import java.util.Comparator;
@@ -109,7 +109,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 //    create then submit SC awardUpvoteDefinitionEvent
     awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(definitionsCreatorIdentity, upvoteIdentifierTag, superconductorRelay); // 4444
     log.debug("sending awardUpvoteDefinitionEvent {} to superconductorRelayUrl", awardUpvoteDefinitionEvent);
-    TestSubscriber<OkMessage> scAwardDefinitionOkMessageSubscriber = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> scAwardDefinitionOkMessageSubscriber = new RequestSubscriber<>();
     ReactiveNostrRelayClient superconductorRelayClient = new ReactiveNostrRelayClient(superconductorRelay.getUrl());
     superconductorRelayClient.send(
         new EventMessage(awardUpvoteDefinitionEvent),
@@ -118,7 +118,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
 
 //    validate SC awardUpvoteDefinitionEvent item
-    TestSubscriber<BaseMessage> scAwardUpvoteDefinitionReqBaseMessageSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> scAwardUpvoteDefinitionReqBaseMessageSubscriber = new RequestSubscriber<>();
     superconductorRelayClient.send(
         createSuperconductorReqMessageBadgeDefinitionEvent(
             Factory.generateRandomHex64String(),
@@ -182,7 +182,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 //    // # --------------------- Aimg REQ -------------------
 //    //   results should process at end of test once SC vote events have completed
 
-    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
     ReactiveNostrRelayClient afterimageMeshRelayService = new ReactiveNostrRelayClient(afterimageRelay.getUrl());
     afterimageMeshRelayService.send(
         createAfterImageReqMessage(
@@ -202,7 +202,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 //            .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
-    TestSubscriber<OkMessage> scEventSubmitter_1 = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> scEventSubmitter_1 = new RequestSubscriber<>();
     ReactiveNostrRelayClient superconductorRelayReactiveClient = new ReactiveNostrRelayClient(superconductorRelay.getUrl());
 
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), scEventSubmitter_1);
@@ -213,7 +213,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     //    submit matching author & vote tag Req to superconductor
 
     ReactiveNostrRelayClient superconductorEventMessageRelayReactiveClient_1 = new ReactiveNostrRelayClient(superconductorRelay.getUrl());
-    TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> superConductorEventsSubscriber = new RequestSubscriber<>();
     superconductorEventMessageRelayReactiveClient_1.send(
         createSuperconductorReqMessageBadgeAwardEvent(
             Factory.generateRandomHex64String(),

@@ -10,6 +10,9 @@ import com.prosilion.superconductor.autoconfigure.base.service.event.award.Cache
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceAddressTagService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceEventTagService;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -19,11 +22,27 @@ import org.springframework.lang.NonNull;
 
 @Configuration
 public class AfterimageEventKindPluginConfig {
+  @Bean
+  CacheDereferenceAddressTagService cacheDereferenceAddressTagService(
+      @NonNull RedisCacheService redisCacheService,
+      @NonNull String afterimageRelayUrl) {
+    CacheDereferenceAddressTagService cacheDereferenceAddressTagService = new CacheDereferenceAddressTagService(redisCacheService, afterimageRelayUrl);
+    return cacheDereferenceAddressTagService;
+  }
+
+  @Bean
+  CacheDereferenceEventTagService cacheDereferenceEventTagService(
+      @NonNull RedisCacheService redisCacheService,
+      @NonNull String afterimageRelayUrl) {
+    CacheDereferenceEventTagService cacheDereferenceEventTagService = new CacheDereferenceEventTagService(redisCacheService, afterimageRelayUrl);
+    return cacheDereferenceEventTagService;
+  }
 
   @Bean("eventKindMaterializers")
   Map<Kind, Function<EventIF, BaseEvent>> eventKindMaterializers(
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
       @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
+      @NonNull CacheBadgeAwardReputationEventService cacheBadgeDefinitionReputationEventService,
       @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
       @NonNull CacheFormulaEventService cacheFormulaEventService) {
     Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
@@ -35,6 +54,10 @@ public class AfterimageEventKindPluginConfig {
     kindFxnMap.put(
         Kind.BADGE_DEFINITION_EVENT,
         cacheBadgeDefinitionGenericEventService::materialize);
+
+    kindFxnMap.put(
+        Kind.RELAY_SETS,
+        cacheBadgeDefinitionReputationEventService::materialize);
 
     kindFxnMap.put(
         Kind.FOLLOW_SETS,

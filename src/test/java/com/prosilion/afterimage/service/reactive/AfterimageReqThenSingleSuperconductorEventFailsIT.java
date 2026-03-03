@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
 import com.prosilion.afterimage.util.Factory;
-import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -29,6 +28,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
+import com.prosilion.superconductor.base.util.RequestSubscriber;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +105,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 
 //    // # --------------------- Aimg REQ -------------------
 //    //   results should process at end of test once SC vote events have completed
-    TestSubscriber<BaseMessage> reputationRequestSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
     afterimageReactiveRelayClient.send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
@@ -126,7 +126,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 //            .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
-    TestSubscriber<OkMessage> scEventSubmitter_1 = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> scEventSubmitter_1 = new RequestSubscriber<>();
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), scEventSubmitter_1);
     assertEquals(true, scEventSubmitter_1
         .getItems()
@@ -137,7 +137,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
     // # --------------------- SC REQ -------------------
     //    submit matching author & vote tag Req to superconductor
 
-    TestSubscriber<BaseMessage> superConductorEventsSubscriber = new TestSubscriber<>();
+    RequestSubscriber<BaseMessage> superConductorEventsSubscriber = new RequestSubscriber<>();
     superconductorRelayReactiveClient.send(
         createSuperconductorReqMessage(Factory.generateRandomHex64String()), superConductorEventsSubscriber);
 

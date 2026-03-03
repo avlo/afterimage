@@ -1,88 +1,56 @@
 package com.prosilion.afterimage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
-import com.prosilion.superconductor.base.service.event.plugin.EventPluginIF;
-import com.prosilion.superconductor.base.service.event.plugin.kind.EventMaterializer;
-import java.util.Map;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import com.prosilion.superconductor.base.util.RequestSubscriber;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Subscription;
 import org.springframework.lang.NonNull;
-import reactor.core.publisher.BaseSubscriber;
 
 @Slf4j
-public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
+public class RelayMeshProxy extends RequestSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator relayRequestConsolidator;
-  private final EventPluginIF eventPlugin;
-  private final EventMaterializer eventMaterializer;
+  private final EventKindPluginIF eventKindPluginIF;
 
-  private Subscription subscription;
-  private final String subscriptionId = generateRandomHex64String();
-
-  public RelayMeshProxy(
-      @NonNull Map<String, String> relaysNameUrlMap,
-      @NonNull EventPluginIF eventPlugin,
-      @NonNull EventMaterializer eventMaterializer) {
+  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF) {
     this.relayRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventPlugin = eventPlugin;
-    this.eventMaterializer = eventMaterializer;
-    addRelay(relaysNameUrlMap);
-    log.debug("RelayMeshProxy ctor() connecting to relays: [{}]", relaysNameUrlMap);
+    this.eventKindPluginIF = eventKindPluginIF;
   }
 
-  public RelayMeshProxy(
-      @NonNull String relayName,
-      @NonNull String relayUrl,
-      @NonNull EventPluginIF eventPlugin,
-      @NonNull EventMaterializer eventMaterializer) {
-    this.relayRequestConsolidator = new ReactiveRequestConsolidator();
-    this.eventPlugin = eventPlugin;
-    this.eventMaterializer = eventMaterializer;
-    addRelay(relayName, relayUrl);
+  public void setUpRequestFlux(@NonNull Filters filters, @NonNull List<String> relayUrl) throws JsonProcessingException {
+    for (String relay : relayUrl) {
+      setUpRequestFlux(filters, relay);
+    }
   }
 
-  public void addRelay(@NonNull Map<String, String> relays) {
-    BiConsumer<String, String> addRelay = relayRequestConsolidator::addRelay;
-    relays.forEach(addRelay);
-  }
+  public void setUpRequestFlux(@NonNull Filters filters, @NonNull String relayUrl) throws JsonProcessingException {
+    log.debug("setUpRequestFlux called with filters:\n[{}]",
+        filters.toString(2));
 
-  public void setUpRequestFlux(Filters filters) throws JsonProcessingException, NostrException {
-    log.debug("setUpRequestFlux called with filters:\n{}", filters.toString());
     relayRequestConsolidator.send(
-        new ReqMessage(subscriptionId, filters),
-        this);
-  }
+        new ReqMessage(generateRandomHex64String(), filters),
+        this,
+        relayUrl);
 
-  @Override
-  public void hookOnNext(@NonNull BaseMessage value) {
-//    log.debug("in TestSubscriber.hookOnNext()");
-    subscription.request(Long.MAX_VALUE);
-//    log.debug("\n\n000000000000000000000000000000");
-//    log.debug("000000000000000000000000000000");
-//    log.debug(value.getClass().getSimpleName() + "\n\n");
-    filterEventMessageEvent(value).ifPresent(this::processIncoming);
+    this.getItems().forEach(item ->
+        filterEventMessageEvent(item).ifPresent(this::processIncoming));
   }
 
   private void processIncoming(EventIF eventIF) {
-    log.debug("**** RelayMeshProxy **** sending incoming Kind[{}]:{}\ncontent:\n{}",
+    log.debug("**** RelayMeshProxy **** callback retrieved incoming...:\n  Kind[{}]: {}\ncontent:\n{}",
         eventIF.getKind().getValue(),
         eventIF.getKind().getName().toUpperCase(),
         eventIF.createPrettyPrintJson());
-    
-    BaseEvent materialized = eventMaterializer.materialize(eventIF);
-    relayRequestConsolidator.getRelayNames()
-        .forEach(s ->
-            eventPlugin.processIncomingEvent(materialized));
+
+    eventKindPluginIF.processIncomingEvent(eventIF);
   }
 
   private Optional<EventIF> filterEventMessageEvent(BaseMessage returnedBaseMessage) {
@@ -90,21 +58,6 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
         .filter(EventMessage.class::isInstance)
         .map(EventMessage.class::cast)
         .map(EventMessage::getEvent);
-  }
-
-  @Override
-  public void hookOnSubscribe(@NonNull Subscription subscription) {
-//    log.debug("in TestSubscriber.hookOnSubscribe()");
-    subscription.request(Long.MAX_VALUE);
-    this.subscription = subscription;
-  }
-
-  public void addRelay(@NonNull String name, @NonNull String uri) {
-    relayRequestConsolidator.addRelay(name, uri);
-  }
-
-  public void removeRelay(@NonNull String name) {
-    relayRequestConsolidator.removeRelay(name);
   }
 
   public static String generateRandomHex64String() {

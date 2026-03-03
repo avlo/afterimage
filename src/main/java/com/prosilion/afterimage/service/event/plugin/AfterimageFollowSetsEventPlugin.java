@@ -10,7 +10,6 @@ import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filterable;
-import com.prosilion.nostr.tag.BaseTag;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
@@ -57,7 +56,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
+  public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         incomingFollowSetsEvent.getKind().getValue(),
         incomingFollowSetsEvent.getKind().getName().toUpperCase(),
@@ -99,7 +98,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         .stream()
         .map(PubKeyTag::getPublicKey)
         .findFirst().orElseThrow();
-//
+
     IdentifierTag identifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, materializediIcomingFollowSetsEvent)
         .stream()
         .findFirst().orElseThrow();
@@ -110,13 +109,14 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         Stream.concat(
             existingBadgeAwardGenericVoteEvents.stream(),
             nonMatchingBadgeAwardGenericVoteEvents.stream()).toList());
-    super.processIncomingEvent(notifierFollowSetsEvent);
+    GenericEventRecord genericEventRecord = super.processIncomingEvent(notifierFollowSetsEvent);
 
     FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
         voteReceiverPubkey,
         identifierTag,
         nonMatchingBadgeAwardGenericVoteEvents);
     reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
+    return genericEventRecord;
   }
 
   private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, FollowSetsEvent materializediIcomingFollowSetsEvent) {
@@ -130,24 +130,13 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull IdentifierTag identifierTag,
       @NonNull List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericVoteEvents) {
-    FollowSetsEvent followSetsEvent = new FollowSetsEvent(
+    return new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
         identifierTag,
         relay,
         badgeAwardGenericVoteEvents,
         DynamicReputationCalculator.class.getSimpleName());
-
-    return followSetsEvent;
-  }
-
-  public List<EventTag> getEventTags(List<BaseTag> followSetsEvent) {
-    List<EventTag> eventTags = followSetsEvent
-        .stream()
-        .filter(EventTag.class::isInstance)
-        .map(EventTag.class::cast)
-        .toList();
-    return eventTags;
   }
 
   private void deletePreviousFollowSetsEvent(FollowSetsEvent previousFollowSetsEvent) {
@@ -159,9 +148,9 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   @Override
   public Kind getKind() {
-    log.debug("getKind Kind[{}]: {}}",
+    log.debug("getKind Kind[{}]: {}",
         Kind.FOLLOW_SETS.getValue(),
-        Kind.FOLLOW_SETS.getName());
-    return Kind.FOLLOW_SETS; // 30_000
+        Kind.FOLLOW_SETS.getName().toUpperCase());
+    return Kind.FOLLOW_SETS;
   }
 }

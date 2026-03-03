@@ -31,6 +31,10 @@ services:
       - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
+      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5555"
+#      SUPERCONDUCTOR_RELAY_URL: "ws://docker-network:5555"
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: superconductor-db
 #  SC Redis 6378
   superconductor-db-two:
@@ -65,6 +69,11 @@ services:
       - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
+      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5554"
+#        - WEB_URL=http://web:3000
+#      SUPERCONDUCTOR_RELAY_URL: "ws://docker-network:5555"
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: superconductor-db-two
 #
 #   aImg App2's Redis 6381 (docker container)
@@ -102,6 +111,10 @@ services:
 #      - superconductor-afterimage-two
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
+      AFTERIMAGE_RELAY_URL: "ws://0.0.0.0:5557"
+#      AFTERIMAGE_RELAY_URL: "ws://docker-network:5556"
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: afterimage-db-two
 #
 volumes:
@@ -112,5 +125,7 @@ volumes:
   afterimage-db-two:
     driver: local
 networks:
+#  default:
+#    name: afterimage-docker-network
   docker-network:
     driver: bridge

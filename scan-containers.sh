@@ -15,13 +15,6 @@ horizontal_terminal_count=4
 vertical_terminal_count=2
 zoom_factor=.6
 
-get_screen_x_resolution() {
-  screen_x_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
-}
-get_screen_y_resolution() {
-  screen_y_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
-}
-
 display_resolution_operands() {
   words=("$@")
   for element in $words;do
@@ -37,27 +30,28 @@ display_resolution_operands() {
 
 
 get_screen_resolution() {
-  get_screen_x_resolution;
-  get_screen_y_resolution;
+  screen_x_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
+  screen_y_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f2)
+  
   x_position_increment=$((screen_x_resolution / horizontal_terminal_count))
   y_position_increment=$((screen_y_resolution / vertical_terminal_count))
   
-#  terminal_width=$((x_position_increment / horizontal_terminal_count))
-#  echo "terminal_width: $terminal_width"
+  terminal_width=$((x_position_increment / horizontal_terminal_count))
+  echo "terminal_width: $terminal_width"
   
-#  delta=$(echo "scale=2; 1 - $zoom_factor" | bc)
-#  echo "delta: $delta"
-#  
-#  deltatwo=$(echo "scale=2; $delta * .1" | bc)
-#  echo "delta2: $deltatwo"
-#  
-#  zoom_factor_decimal=$(echo "scale=2; $x_position_increment * $deltatwo" | bc)
-#  scaling_zoom_factor=${zoom_factor_decimal/\.*/}
-#  echo "zoom_factor_decimal: $zoom_factor_decimal"
-#  echo "scaling_zoom_factor: $scaling_zoom_factor"
-#  x_geometry=$((terminal_width + scaling_zoom_factor))
+  delta=$(echo "scale=2; 1 - $zoom_factor" | bc)
+  echo "delta: $delta"
 
-  x_geometry=154
+  deltatwo=$(echo "scale=2; $delta * .1" | bc)
+  echo "delta2: $deltatwo"
+
+  zoom_factor_decimal=$(echo "scale=2; $x_position_increment * $deltatwo" | bc)
+  scaling_zoom_factor=${zoom_factor_decimal/\.*/}
+  echo "zoom_factor_decimal: $zoom_factor_decimal"
+  echo "scaling_zoom_factor: $scaling_zoom_factor"
+  x_geometry=$((terminal_width + scaling_zoom_factor))
+
+#  x_geometry=154
   y_geometry=50
   
   display_resolution_operands "x-resolution: $screen_x_resolution, x-increment: $x_position_increment,  x-geometry: $x_geometry"
@@ -80,7 +74,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 
-  gnome-terminal --geometry="$x_geometry"x"$y_geometry"+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry=154x50+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
   (docker logs -f "$1" > "$2_$suffix") &
 }
 

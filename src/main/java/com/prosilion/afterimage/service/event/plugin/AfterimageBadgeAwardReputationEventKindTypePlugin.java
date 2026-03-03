@@ -40,7 +40,9 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.core.DurationFactory;
 import org.springframework.lang.NonNull;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
@@ -83,7 +85,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   }
 
   @Override
-  public void processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
+  public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
         incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
@@ -108,13 +110,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
 
     BadgeDefinitionGenericEvent existingBadgeDefinitionGenericEvent =
         cacheBadgeDefinitionGenericEventServiceIF
-            .getAddressTagEvent(reconstructedVote.getAddressTag()).orElseThrow();
-
-    // kind 8
-    // i tag contains "aimg:badge..."
-    // awardrep p_tag matches vote recipient pubkey 
-    // awardrep a_tag pubkey matches badgedefn creator pubkey
-    // awardrep a_tag UUID matches badgedefn d_tag
+            .getAddressTagEvent(reconstructedVote.getAddressTag(), DurationFactory.of(10L, TimeUnit.SECONDS)).orElseThrow();
 
     Optional<GenericEventRecord> existingBadgeAwardReputationEventGer =
         cacheServiceIF.getEventsByKindAndPubKeyTagAndAddressTag(
@@ -154,8 +150,6 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                     .map(FormulaEvent::asAddressTag)
                     .anyMatch(
                         formulaEvents.stream()
-//                            .map(BaseEvent::getGenericEventRecord)
-//                            .map(cacheFormulaEventServiceIF::materialize)
                             .map(FormulaEvent::asAddressTag).toList()::contains)).toList();
 
     List<BadgeAwardReputationEvent> updatedBadgeAwardReputationEvents = existingReputationDefinitionEvents.stream()
@@ -175,23 +169,20 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                     existingReputationDefinitionEvent.getFormulaEvents(),
                     (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent)).toList()).flatMap(Collection::stream).toList();
 
-    newReputationEvents.forEach(newReputationEvent ->
-        super.processIncomingEvent(newReputationEvent));
+    return newReputationEvents.stream().map(super::processIncomingEvent).toList().getFirst();
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(
       PublicKey badgeReceiverPubkey,
       BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
       BigDecimal score) {
-    BadgeAwardReputationEvent badgeAwardReputationEvent = new BadgeAwardReputationEvent(
+    return new BadgeAwardReputationEvent(
         aImgIdentity,
         badgeReceiverPubkey,
         new Relay(afterimageRelayUrl),
         BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
         badgeDefinitionReputationEvent,
         score);
-
-    return badgeAwardReputationEvent;
   }
 
   private void deletePreviousBadgeAwardReputationEvent(EventIF previousReputationEvent) {

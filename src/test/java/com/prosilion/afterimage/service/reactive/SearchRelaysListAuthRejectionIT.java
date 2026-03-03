@@ -2,7 +2,6 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
-import com.prosilion.afterimage.util.TestSubscriber;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
@@ -11,6 +10,7 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.util.RequestSubscriber;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class SearchRelaysListAuthRejectionIT {
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
-    TestSubscriber<OkMessage> rejectionClient = new TestSubscriber<>();
+    RequestSubscriber<OkMessage> rejectionClient = new RequestSubscriber<>();
     final AfterimageReactiveRelayClient aImgSearchRelaysListRejectionSubscriber = new AfterimageReactiveRelayClient(afterimageRelayUri);
 
     aImgSearchRelaysListRejectionSubscriber.send(
