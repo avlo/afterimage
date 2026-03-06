@@ -12,6 +12,7 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
@@ -22,7 +23,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -36,14 +36,16 @@ public abstract class AbstractRelayAnnouncementEventPlugin<T extends BaseEvent> 
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF) {
+      @NonNull EventKindPluginIF eventKindPluginIF,
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-    this.relayMeshProxy = new RelayMeshProxy(eventKindPluginIF);
+    this.relayMeshProxy = new RelayMeshProxy(
+        eventKindPluginIF,
+        reactiveRequestConsolidator);
   }
 
-  @SneakyThrows
   public GenericEventRecord processIncomingEvent(EventIF event) {
     if (cacheServiceIF.getEventByEventId(event.getId()).isPresent())
       return event.asGenericEventRecord();

@@ -2,9 +2,7 @@ package com.prosilion.afterimage.config;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFormulaEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
@@ -13,6 +11,7 @@ import com.prosilion.superconductor.autoconfigure.base.service.event.definition.
 import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceAddressTagService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceEventTagService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,16 +24,26 @@ public class AfterimageEventKindPluginConfig {
   @Bean
   CacheDereferenceAddressTagService cacheDereferenceAddressTagService(
       @NonNull RedisCacheService redisCacheService,
-      @NonNull String afterimageRelayUrl) {
-    CacheDereferenceAddressTagService cacheDereferenceAddressTagService = new CacheDereferenceAddressTagService(redisCacheService, afterimageRelayUrl);
+      @NonNull String afterimageRelayUrl,
+      @NonNull Duration requestTimeoutDuration) {
+    CacheDereferenceAddressTagService cacheDereferenceAddressTagService =
+        new CacheDereferenceAddressTagService(
+            redisCacheService,
+            afterimageRelayUrl,
+            requestTimeoutDuration);
     return cacheDereferenceAddressTagService;
   }
 
   @Bean
   CacheDereferenceEventTagService cacheDereferenceEventTagService(
       @NonNull RedisCacheService redisCacheService,
-      @NonNull String afterimageRelayUrl) {
-    CacheDereferenceEventTagService cacheDereferenceEventTagService = new CacheDereferenceEventTagService(redisCacheService, afterimageRelayUrl);
+      @NonNull String afterimageRelayUrl,
+      @NonNull Duration requestTimeoutDuration) {
+    CacheDereferenceEventTagService cacheDereferenceEventTagService =
+        new CacheDereferenceEventTagService(
+            redisCacheService,
+            afterimageRelayUrl,
+            requestTimeoutDuration);
     return cacheDereferenceEventTagService;
   }
 
@@ -42,8 +51,7 @@ public class AfterimageEventKindPluginConfig {
   Map<Kind, Function<EventIF, BaseEvent>> eventKindMaterializers(
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
       @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
-      @NonNull CacheBadgeAwardReputationEventService cacheBadgeDefinitionReputationEventService,
-      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+      @NonNull CacheBadgeAwardReputationEventService cacheBadgeAwardReputationEventService,
       @NonNull CacheFormulaEventService cacheFormulaEventService) {
     Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
 
@@ -56,21 +64,12 @@ public class AfterimageEventKindPluginConfig {
         cacheBadgeDefinitionGenericEventService::materialize);
 
     kindFxnMap.put(
-        Kind.RELAY_SETS,
-        cacheBadgeDefinitionReputationEventService::materialize);
-
-    kindFxnMap.put(
         Kind.FOLLOW_SETS,
-        cacheFollowSetsEventService::materialize);
+        cacheBadgeAwardReputationEventService::materialize);
 
     kindFxnMap.put(
         Kind.ARBITRARY_CUSTOM_APP_DATA,
         cacheFormulaEventService::materialize);
-
-    kindFxnMap.put(
-        Kind.DELETION,
-        eventIF -> new DeletionEvent(
-            eventIF.asGenericEventRecord()));
 
     return kindFxnMap;
   }

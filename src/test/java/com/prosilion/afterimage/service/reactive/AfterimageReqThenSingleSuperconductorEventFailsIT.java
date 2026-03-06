@@ -30,6 +30,7 @@ import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import com.prosilion.superconductor.base.util.RequestSubscriber;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
@@ -69,14 +70,17 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 
   private final Relay afterimageRelay;
   private final Relay superconductorRelay;
+  Duration requestTimeoutDuration;
 
   @Autowired
   public AfterimageReqThenSingleSuperconductorEventFailsIT(
       @NonNull EventServiceIF eventService,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUri,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri) throws ParseException {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
+      Duration requestTimeoutDuration) throws ParseException {
     this.superconductorRelayReactiveClient = new AfterimageReactiveRelayClient(superconductorRelayUri);
     this.afterimageReactiveRelayClient = new AfterimageReactiveRelayClient(afterimageRelayUri);
+    this.requestTimeoutDuration = requestTimeoutDuration;
 
     this.afterimageRelay = new Relay(afterimageRelayUri);
     this.superconductorRelay = new Relay(superconductorRelayUri);
@@ -105,7 +109,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 
 //    // # --------------------- Aimg REQ -------------------
 //    //   results should process at end of test once SC vote events have completed
-    RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>(requestTimeoutDuration);
     afterimageReactiveRelayClient.send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
@@ -126,7 +130,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
 //            .convertBaseEventToGenericEventKindTypeIF();
 
     //    submit subscriber's first Event to superconductor
-    RequestSubscriber<OkMessage> scEventSubmitter_1 = new RequestSubscriber<>();
+    RequestSubscriber<OkMessage> scEventSubmitter_1 = new RequestSubscriber<>(requestTimeoutDuration);
     superconductorRelayReactiveClient.send(new EventMessage(badgeAwardUpvoteEvent_1), scEventSubmitter_1);
     assertEquals(true, scEventSubmitter_1
         .getItems()
@@ -137,7 +141,7 @@ public class AfterimageReqThenSingleSuperconductorEventFailsIT {
     // # --------------------- SC REQ -------------------
     //    submit matching author & vote tag Req to superconductor
 
-    RequestSubscriber<BaseMessage> superConductorEventsSubscriber = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> superConductorEventsSubscriber = new RequestSubscriber<>(requestTimeoutDuration);
     superconductorRelayReactiveClient.send(
         createSuperconductorReqMessage(Factory.generateRandomHex64String()), superConductorEventsSubscriber);
 

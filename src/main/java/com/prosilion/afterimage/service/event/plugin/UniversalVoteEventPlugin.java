@@ -17,7 +17,7 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
       @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
       @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
       @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
-      @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
+      @NonNull AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin,
       @NonNull EventPlugin eventPlugin,
       @NonNull Identity aImgIdentity) {
     super(
@@ -26,7 +26,7 @@ public class UniversalVoteEventPlugin extends AbstractVoteEventPlugin {
         cacheBadgeDefinitionGenericEventService,
         cacheBadgeDefinitionReputationEventService,
         cacheFollowSetsEventService,
-        afterimageFollowSetsEventPlugin,
+        afterimageFollowSetsEventKindPlugin,
         eventPlugin,
         aImgIdentity);
   }

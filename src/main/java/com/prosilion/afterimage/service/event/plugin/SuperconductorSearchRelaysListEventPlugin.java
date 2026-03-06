@@ -6,6 +6,7 @@ import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
@@ -18,12 +19,14 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF) {
+      @NonNull EventKindPluginIF eventKindPluginIF,
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     super(
         aImgIdentity,
         cacheServiceIF,
         eventPlugin,
-        eventKindPluginIF);
+        eventKindPluginIF,
+        reactiveRequestConsolidator);
   }
 
   @Override

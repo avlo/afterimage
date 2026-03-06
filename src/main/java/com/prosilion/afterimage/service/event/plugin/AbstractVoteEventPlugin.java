@@ -23,11 +23,8 @@ import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.core.DurationFactory;
 import org.springframework.lang.NonNull;
 
 @Slf4j
@@ -37,7 +34,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   private final CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService;
   private final CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService;
   private final CacheFollowSetsEventService cacheFollowSetsEventService;
-  private final AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin;
+  private final AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin;
   private final Identity aImgIdentity;
   private final Relay relay;
 
@@ -47,7 +44,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
       @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
       @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
       @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
-      @NonNull AfterimageFollowSetsEventPlugin afterimageFollowSetsEventPlugin,
+      @NonNull AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin,
       @NonNull EventPlugin eventPlugin,
       @NonNull Identity aImgIdentity) {
     super(eventPlugin);
@@ -56,12 +53,11 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     this.cacheBadgeDefinitionGenericEventService = cacheBadgeDefinitionGenericEventService;
     this.cacheBadgeDefinitionReputationEventService = cacheBadgeDefinitionReputationEventService;
     this.cacheFollowSetsEventService = cacheFollowSetsEventService;
-    this.afterimageFollowSetsEventPlugin = afterimageFollowSetsEventPlugin;
+    this.afterimageFollowSetsEventKindPlugin = afterimageFollowSetsEventKindPlugin;
     this.relay = new Relay(afterimageRelayUrl);
   }
 
   @Override
-  @SneakyThrows
   public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
         voteEvent.getKind().getValue(),
@@ -75,7 +71,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
 
     AddressTag addressTag = Filterable.getTypeSpecificTagsStream(AddressTag.class, voteEvent).findFirst().orElseThrow();
 
-    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventService.getAddressTagEvent(addressTag, DurationFactory.of(10L, TimeUnit.SECONDS)).orElseThrow();
+    BadgeDefinitionGenericEvent badgeDefinitionAwardEvent = cacheBadgeDefinitionGenericEventService.getAddressTagEvent(addressTag).orElseThrow();
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> reconstructedVoteEvent =
         new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionAwardEvent);
@@ -123,11 +119,12 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
                     List.of(reconstructedVoteEvent)))
             .toList();
 
-    listToSend.stream().map(afterimageFollowSetsEventPlugin::processIncomingEvent).toList();
+    cacheServiceIF.save(reconstructedVoteEvent);
+    
+    List<GenericEventRecord> unused = listToSend.stream().map(afterimageFollowSetsEventKindPlugin::processIncomingEvent).toList();
     return reconstructedVoteEvent.asGenericEventRecord();
   }
 
-  @SneakyThrows
   private FollowSetsEvent createFollowSetsEvent(
       @NonNull PublicKey reputationRecipientPublicKey,
       @NonNull IdentifierTag identifierTag,

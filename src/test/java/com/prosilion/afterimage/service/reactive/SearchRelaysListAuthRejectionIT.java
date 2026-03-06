@@ -12,6 +12,7 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.util.RequestSubscriber;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -40,18 +41,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SearchRelaysListAuthRejectionIT {
   private final Identity afterimageInstanceIdentity;
   private final String afterimageRelayUri;
+  Duration requestTimeoutDuration;
 
   @Autowired
   public SearchRelaysListAuthRejectionIT(
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUri,
-      @NonNull Identity afterimageInstanceIdentity) {
+      @NonNull Identity afterimageInstanceIdentity,
+      Duration requestTimeoutDuration) {
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.afterimageRelayUri = afterimageRelayUri;
+    this.requestTimeoutDuration = requestTimeoutDuration;
   }
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
-    RequestSubscriber<OkMessage> rejectionClient = new RequestSubscriber<>();
+    RequestSubscriber<OkMessage> rejectionClient = new RequestSubscriber<>(requestTimeoutDuration);
     final AfterimageReactiveRelayClient aImgSearchRelaysListRejectionSubscriber = new AfterimageReactiveRelayClient(afterimageRelayUri);
 
     aImgSearchRelaysListRejectionSubscriber.send(

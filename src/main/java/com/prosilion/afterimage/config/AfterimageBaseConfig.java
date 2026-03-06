@@ -6,7 +6,7 @@ import com.prosilion.afterimage.config.web.ReqApiAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageBadgeAwardReputationEventKindTypePlugin;
-import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventPlugin;
+import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventKindPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventPlugin;
 import com.prosilion.afterimage.service.event.plugin.UniversalVoteEventPlugin;
@@ -16,6 +16,7 @@ import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsNoAuthCondition;
@@ -31,7 +32,6 @@ import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.auth.ReqAuthCondition;
 import com.prosilion.superconductor.base.service.event.auth.ReqNoAuthCondition;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
-import com.prosilion.superconductor.base.service.event.plugin.kind.type.BadgeAwardReputationEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.BadgeDefinitionReputationEventKindTypePlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
@@ -57,6 +57,11 @@ public abstract class AfterimageBaseConfig {
   @Bean
   Identity afterimageInstanceIdentity(@Value("${afterimage.key.private}") String privateKey) {
     return Identity.create(privateKey);
+  }
+
+  @Bean
+  ReactiveRequestConsolidator reactiveRequestConsolidator() {
+    return new ReactiveRequestConsolidator();
   }
 
   @Bean
@@ -107,7 +112,7 @@ public abstract class AfterimageBaseConfig {
       @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
       @NonNull CacheFormulaEventService cacheFormulaEventService,
       @NonNull CacheFollowSetsEventService cacheFollowSetsEventService) {
-    return new AfterimageBadgeAwardReputationEventKindTypePlugin(
+    AfterimageBadgeAwardReputationEventKindTypePlugin afterimageBadgeAwardReputationEventKindTypePlugin = new AfterimageBadgeAwardReputationEventKindTypePlugin(
         afterimageRelayUrl,
         aImgIdentity,
         notifierService,
@@ -121,19 +126,20 @@ public abstract class AfterimageBaseConfig {
         cacheBadgeDefinitionReputationEventService,
         cacheFormulaEventService,
         cacheFollowSetsEventService);
+    return afterimageBadgeAwardReputationEventKindTypePlugin;
   }
 
   @Bean("followSetsEventKindPlugin")
-  AfterimageFollowSetsEventPlugin followSetsEventKindPlugin(
+  AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin(
+      @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl,
       @NonNull EventPlugin eventPlugin,
-      @NonNull BadgeAwardReputationEventKindTypePlugin badgeAwardReputationEventKindTypePlugin,
       @NonNull NotifierService notifierService,
       @NonNull RedisCacheService redisCacheService,
       @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
       @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
-      Identity afterimageInstanceIdentity) {
-    return new AfterimageFollowSetsEventPlugin(
+      @NonNull AfterimageBadgeAwardReputationEventKindTypePlugin badgeAwardReputationEventKindTypePlugin) {
+    return new AfterimageFollowSetsEventKindPlugin(
         afterimageRelayUrl,
         notifierService,
         eventPlugin,
@@ -149,18 +155,20 @@ public abstract class AfterimageBaseConfig {
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull RedisCacheService redisCacheService,
       @NonNull EventPlugin eventPlugin,
-      @NonNull AfterimageFollowSetsEventPlugin followSetsEventKindPlugin) {
+      @NonNull AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin,
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     return new AfterimageRelaySetsEventPlugin(
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        followSetsEventKindPlugin);
+        followSetsEventKindPlugin,
+        reactiveRequestConsolidator);
   }
 
   @Bean("badgeAwardGenericEventKindPlugin")
   UniversalVoteEventPlugin badgeAwardGenericEventKindPlugin(
       @NonNull EventPlugin eventPlugin,
-      @NonNull AfterimageFollowSetsEventPlugin followSetsEventKindPlugin,
+      @NonNull AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin,
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl,
       @NonNull RedisCacheService redisCacheService,
@@ -183,12 +191,14 @@ public abstract class AfterimageBaseConfig {
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull RedisCacheService redisCacheService,
       @NonNull EventPlugin eventPlugin,
-      @NonNull UniversalVoteEventPlugin badgeAwardGenericEventKindPlugin) {
+      @NonNull UniversalVoteEventPlugin badgeAwardGenericEventKindPlugin,
+      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
     return new SuperconductorSearchRelaysListEventPlugin(
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        badgeAwardGenericEventKindPlugin);
+        badgeAwardGenericEventKindPlugin,
+        reactiveRequestConsolidator);
   }
 
   @Bean

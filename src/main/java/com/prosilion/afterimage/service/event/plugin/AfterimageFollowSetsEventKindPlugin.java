@@ -25,12 +25,11 @@ import com.prosilion.superconductor.base.service.request.subscriber.NotifierServ
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin { // kind 30_000
+public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlugin { // kind 30_000
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
   private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
@@ -38,7 +37,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
   private final EventKindTypePluginIF reputationEventPlugin;
   private final Relay relay;
 
-  public AfterimageFollowSetsEventPlugin(
+  public AfterimageFollowSetsEventKindPlugin(
       @NonNull String afterimageRelayUrl,
       @NonNull NotifierService notifierService,
       @NonNull EventPlugin eventPlugin,
@@ -58,12 +57,14 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
 
   @Override
   public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
-    log.debug("processing incoming Kind[{}]:{}\n{}",
+    log.debug("AfterimageFollowSetsEventPlugin processing incoming Kind[{}]:{}\n{}",
         incomingFollowSetsEvent.getKind().getValue(),
         incomingFollowSetsEvent.getKind().getName().toUpperCase(),
         incomingFollowSetsEvent.createPrettyPrintJson());
 
-    FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent.asGenericEventRecord());
+    FollowSetsEvent materializediIcomingFollowSetsEvent = (FollowSetsEvent) incomingFollowSetsEvent;
+
+//    FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent.asGenericEventRecord());
 
     PublicKey publicKey = materializediIcomingFollowSetsEvent.getBadgeAwardGenericEvents().stream().map(b -> b.getTypeSpecificTags(PubKeyTag.class).getFirst()).map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
 
@@ -86,7 +87,7 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
                 FollowSetsEvent::getContainedAddressableEvents)
             .orElse(List.of())
             .stream()
-            .map(this::apply)
+            .map(eventTag -> cacheBadgeAwardGenericEventServiceIF.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl()))
             .flatMap(Optional::stream).toList();
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
@@ -109,17 +110,19 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         Stream.concat(
             existingBadgeAwardGenericVoteEvents.stream(),
             nonMatchingBadgeAwardGenericVoteEvents.stream()).toList());
-    GenericEventRecord genericEventRecord = super.processIncomingEvent(notifierFollowSetsEvent);
+    
+//    TODO: below explicit save circumvents current issue w/ eventPlugin failing (due to Event remote fetch issue),  needs revisit
+    cacheServiceIF.save(notifierFollowSetsEvent);
+//    TODO: since above is saved, below should now find event locally- then publish it
+    super.processIncomingEvent(notifierFollowSetsEvent);
 
     FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
         voteReceiverPubkey,
         identifierTag,
         nonMatchingBadgeAwardGenericVoteEvents);
-    reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
-    return genericEventRecord;
+    return reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
   }
 
-  @SneakyThrows
   private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, FollowSetsEvent materializediIcomingFollowSetsEvent) {
     Optional<FollowSetsEvent> event = cacheFollowSetsEventServiceIF.getEvent(
         genericEventRecord.getId(),
@@ -144,7 +147,9 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
     cacheServiceIF.deleteEvent(
         new DeletionEvent(
             aImgIdentity,
-            List.of(new EventTag(previousFollowSetsEvent.getId())), "aImg delete previous FOLLOW_SETS event"));
+            List.of(new EventTag(
+                previousFollowSetsEvent.getId(),
+                previousFollowSetsEvent.getRelayTagRelay().getUrl())), "aImg delete previous FOLLOW_SETS event"));
   }
 
   @Override
@@ -153,10 +158,5 @@ public class AfterimageFollowSetsEventPlugin extends PublishingEventKindPlugin {
         Kind.FOLLOW_SETS.getValue(),
         Kind.FOLLOW_SETS.getName().toUpperCase());
     return Kind.FOLLOW_SETS;
-  }
-
-  @SneakyThrows
-  private Optional<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> apply(EventTag eventTag) {
-    return cacheBadgeAwardGenericEventServiceIF.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl());
   }
 }

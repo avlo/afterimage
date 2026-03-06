@@ -35,6 +35,7 @@ import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
 import com.prosilion.superconductor.base.util.RequestSubscriber;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -84,17 +85,20 @@ public class FollowSetsIT {
 
   private final String superconductorRelayUrl;
   private final Relay superconductorRelayUrlTag;
+  Duration requestTimeoutDuration;
 
   @Autowired
   public FollowSetsIT(
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrl2) throws ParseException, IOException, InterruptedException {
+      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrl2,
+      Duration requestTimeoutDuration) throws ParseException, IOException, InterruptedException {
     this.afterimageRelayUrl2 = afterimageRelayUrl2;
     this.afterimageIdentity = afterimageInstanceIdentity;
     this.afterimageRelay = new Relay(afterimageRelayUrl);
     this.superconductorRelayUrl = superconductorRelayUrl;
+    this.requestTimeoutDuration = requestTimeoutDuration;
 //    this.superconductorRelayUrlTag = new Relay(superconductorRelayUrl);
 //    this.superconductorRelayUrlTag = new Relay("ws://superconductor-afterimage:5555");
     this.superconductorRelayUrlTag = new Relay(superconductorRelayUrl.replace("localhost", "0.0.0.0"));
@@ -170,7 +174,7 @@ public class FollowSetsIT {
         .send(
             new EventMessage(
                 searchRelaysListEvent),
-            new RequestSubscriber<>());
+            new RequestSubscriber<>(requestTimeoutDuration));
     TimeUnit.MILLISECONDS.sleep(2000);
     log.debug("...done.\n\n\ncalling  getAimgRepReqResult(afterimageRelayUrl2).getFirst().getContent()...");
 
@@ -196,7 +200,7 @@ public class FollowSetsIT {
   }
 
   private List<EventIF> getAimgRepReqResult(final String afterimageRelayUrl) throws JsonProcessingException, InterruptedException {
-    RequestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new RequestSubscriber<>(requestTimeoutDuration);
     fail();
     ReactiveNostrRelayClient superconductorRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
     final AfterimageReactiveRelayClient afterimageRepRequestClient = new AfterimageReactiveRelayClient(afterimageRelayUrl);
@@ -269,7 +273,7 @@ public class FollowSetsIT {
     String greenFont = GREEN_BOLD + "%s" + RESET;
     String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>();
+    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
     new AfterimageReactiveRelayClient(afterimageRelayUrl2).send(
         new EventMessage(baseEvent),
         subscriber);
@@ -290,7 +294,7 @@ public class FollowSetsIT {
     String greenFont = GREEN_BOLD + "%s" + RESET;
     String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>();
+    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
     new AfterimageReactiveRelayClient(superconductorRelayUrl).send(
         new EventMessage(baseEvent),
         subscriber);
