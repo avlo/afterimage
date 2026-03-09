@@ -25,11 +25,9 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
   private final ReactiveRequestConsolidator reactiveRequestConsolidator;
   private Subscription subscription;
 
-  public RelayMeshProxy(
-      @NonNull EventKindPluginIF eventKindPluginIF,
-      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF) {
     this.eventKindPluginIF = eventKindPluginIF;
-    this.reactiveRequestConsolidator = reactiveRequestConsolidator;
+    this.reactiveRequestConsolidator = new ReactiveRequestConsolidator();
   }
 
   public void setUpRequestFlux(@NonNull Filters filters, @NonNull List<String> relayUrl) {
@@ -124,13 +122,13 @@ public class RelayMeshProxy extends BaseSubscriber<BaseMessage> {
     log.debug("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     log.debug("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     Context context = super.currentContext();
-    log.debug("currentContext() context:{}", context.stream().map(objectObjectEntry -> 
+    log.debug("currentContext() context:{}", context.stream().map(objectObjectEntry ->
         String.format("  objectObjectEntry.getKey(): [%s]\n  objectObjectEntry.getVal(): [%s]\n", objectObjectEntry.getKey(), objectObjectEntry.getValue())));
     log.debug("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     log.debug("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     return context;
   }
-  
+
   private void processIncoming(EventIF eventIF) {
     log.debug("**** RelayMeshProxy **** callback retrieved incoming...:\n  Kind[{}]: {}\ncontent:\n{}",
         eventIF.getKind().getValue(),

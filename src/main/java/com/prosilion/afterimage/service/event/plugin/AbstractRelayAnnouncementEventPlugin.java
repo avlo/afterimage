@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
 import com.prosilion.afterimage.service.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
@@ -12,10 +11,8 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
-import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.Collection;
 import java.util.List;
@@ -27,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
 @Slf4j
-public abstract class AbstractRelayAnnouncementEventPlugin<T extends BaseEvent> extends NonPublishingEventKindPlugin {
+public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
   private final RelayMeshProxy relayMeshProxy;
@@ -36,14 +33,11 @@ public abstract class AbstractRelayAnnouncementEventPlugin<T extends BaseEvent> 
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF,
-      @NonNull ReactiveRequestConsolidator reactiveRequestConsolidator) {
+      @NonNull RelayMeshProxy relayMeshProxy) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-    this.relayMeshProxy = new RelayMeshProxy(
-        eventKindPluginIF,
-        reactiveRequestConsolidator);
+    this.relayMeshProxy = relayMeshProxy;
   }
 
   public GenericEventRecord processIncomingEvent(EventIF event) {
@@ -77,7 +71,11 @@ public abstract class AbstractRelayAnnouncementEventPlugin<T extends BaseEvent> 
 
     GenericEventRecord genericEventRecord = super.processIncomingEvent(event);
 
-    log.debug("sending request to new relay(s):\n".concat(uniqueNewRelays.stream().map(s -> String.format("  %s", s)).collect(Collectors.joining(",\n"))));
+    log.debug("sending request to new relay(s):\n".concat(uniqueNewRelays.stream()
+        .map(s ->
+            String.format("  %s", s))
+        .collect(Collectors.joining(",\n"))));
+
     relayMeshProxy.setUpRequestFlux(getFilters(), uniqueNewRelays.stream().toList());
 
     return genericEventRecord;

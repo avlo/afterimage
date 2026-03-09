@@ -11,7 +11,7 @@ CONTAINER_NAMES=$SCAN_TEMP_DIR/container_names
 
 suffix=scan-suffix-for-sublime.java
 
-horizontal_terminal_count=4
+horizontal_terminal_count=2
 vertical_terminal_count=2
 zoom_factor=.6
 
@@ -51,16 +51,18 @@ get_screen_resolution() {
   echo "scaling_zoom_factor: $scaling_zoom_factor"
   x_geometry=$((terminal_width + scaling_zoom_factor))
 
-#  x_geometry=154
-  y_geometry=50
+  echo "x_geometry: $x_geometry"
+  echo "y_geometry: $y_geometry"
+#  x_geometry=308
+#  y_geometry=50
   
-  display_resolution_operands "x-resolution: $screen_x_resolution, x-increment: $x_position_increment,  x-geometry: $x_geometry"
+  display_resolution_operands "x-resolution: $screen_x_resolution, x-increment: $x_position_increment, x-geometry: $x_geometry"
   display_resolution_operands "y-resolution: $screen_y_resolution, y-increment: $y_position_increment, y-geometry: $y_geometry"
   echo ""
 }
 
 ls_docker_containers() {
-	docker container ls --format "{{.ID}} {{.Names}}"|grep -e super -e after
+	docker container ls --format "{{.ID}} {{.Names}}"|grep -e afterimage-app -e superconductor-afterimage
 }
 
 display_pid_term() {
@@ -74,7 +76,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 
-  gnome-terminal --geometry=154x50+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry=308x100+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
   (docker logs -f "$1" > "$2_$suffix") &
 }
 
@@ -109,11 +111,11 @@ create_terminals() {
       pid=$(sed "${line_number}b;d" $CONTAINER_IDS)
       name=$(sed "${line_number}b;d" $CONTAINER_NAMES)
       display_pid_term "$pid" "$name" "$x_position" "$y_position"
-      x_position=$((x_position + "$x_position_increment")) # increment x position by 480
+      x_position=$((x_position + x_position_increment)) # increment x position by 480
     done
     j_counter=$((j_counter + horizontal_terminal_count))
     x_position=1
-    y_position=$((y_position + "$y_position_increment")) # increment y position by 500
+    y_position=$((y_position + y_position_increment)) # increment y position by 500
   done
 }
 

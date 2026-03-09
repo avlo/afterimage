@@ -15,7 +15,7 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.superconductor.base.cache.CacheBadgeAwardGenericEventServiceIF;
+import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
@@ -33,7 +33,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
   private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
-  private final CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF;
+  private final CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService;
   private final EventKindTypePluginIF reputationEventPlugin;
   private final Relay relay;
 
@@ -43,15 +43,15 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
       @NonNull EventPlugin eventPlugin,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF,
-      @NonNull CacheBadgeAwardGenericEventServiceIF<BadgeDefinitionGenericEvent, BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> cacheBadgeAwardGenericEventServiceIF,
+      @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
       @NonNull Identity aImgIdentity,
-      @NonNull EventKindTypePluginIF reputationEventPlugin) {
+      @NonNull EventKindTypePluginIF badgeAwardReputationEventKindTypePlugin) {
     super(notifierService, eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-    this.reputationEventPlugin = reputationEventPlugin;
     this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventServiceIF;
-    this.cacheBadgeAwardGenericEventServiceIF = cacheBadgeAwardGenericEventServiceIF;
+    this.cacheBadgeAwardGenericEventService = cacheBadgeAwardGenericEventService;
+    this.reputationEventPlugin = badgeAwardReputationEventKindTypePlugin;
     this.relay = new Relay(afterimageRelayUrl);
   }
 
@@ -87,7 +87,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
                 FollowSetsEvent::getContainedAddressableEvents)
             .orElse(List.of())
             .stream()
-            .map(eventTag -> cacheBadgeAwardGenericEventServiceIF.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl()))
+            .map(eventTag -> cacheBadgeAwardGenericEventService.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl()))
             .flatMap(Optional::stream).toList();
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
@@ -110,7 +110,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
         Stream.concat(
             existingBadgeAwardGenericVoteEvents.stream(),
             nonMatchingBadgeAwardGenericVoteEvents.stream()).toList());
-    
+
 //    TODO: below explicit save circumvents current issue w/ eventPlugin failing (due to Event remote fetch issue),  needs revisit
     cacheServiceIF.save(notifierFollowSetsEvent);
 //    TODO: since above is saved, below should now find event locally- then publish it

@@ -5,8 +5,6 @@ services:
     hostname: afterimage-db
     ports:
       - "6380:6379"
-    environment:
-      - "REDIS_ARGS=--appendonly yes"
     networks:
       - docker-network
   afterimage-app:
@@ -19,6 +17,7 @@ services:
     networks:
       - docker-network
     environment:
+      AFTERIMAGE_RELAY_URL: "ws://localhost:5556"
       SPRING_PROFILES_ACTIVE: dev_ws
       SPRING_DATA_REDIS_HOST: afterimage-db
 volumes:

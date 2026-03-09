@@ -17,13 +17,6 @@ services:
     image: avlo/superconductor-app-redis:1.17.3
     ports:
       - "5555:5555"
-# below commented due to wget unavailable in container, instead use SingleContainerTestConfig Wait.defaultWaitStrategy()
-#    healthcheck:
-#      test: [ "CMD", "wget", "--no-verbose", "--spider", "http://0.0.0.0:5555/api-tests.html" ]
-#      retries: 5
-#      interval: 2s
-#      timeout: 10s
-#      start_period: 5s
     depends_on:
       superconductor-db:
         condition: service_healthy
