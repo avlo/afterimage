@@ -5,6 +5,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,12 @@ public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // k
     log.debug("suspectOverridenFilters Filters:\n{}",
         suspectOverridenFilters.toString());
 
-    filtersList.add(suspectOverridenFilters);
+    List<Filters> concattedFilters = Stream.concat(
+        filtersList.stream(),
+        Stream.of(suspectOverridenFilters)).distinct().toList();
+
     log.debug("concatted filtersList.add(suspectOverridenFilters) List<Filters>:\n{}",
-        filtersList.stream()
+        concattedFilters.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining("\n")));
 
