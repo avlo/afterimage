@@ -17,6 +17,8 @@ import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.subdivisions.client.reactive.NostrMeshRequestService;
+import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsNoAuthCondition;
@@ -47,6 +49,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 
 import static com.prosilion.superconductor.base.service.event.plugin.kind.type.SuperconductorKindType.BADGE_AWARD_REPUTATION_KIND_TYPE;
@@ -167,16 +170,23 @@ public abstract class AfterimageBaseConfig {
   }
 
   @Bean
+  @Scope("prototype")
+  NostrMeshRequestService nostrMeshRequestService() {
+    return new NostrMeshRequestService(new ReactiveRequestConsolidator());
+  }
+
+  @Bean
   SuperconductorSearchRelaysListEventPlugin superconductorSearchRelaysListEventPlugin(
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull RedisCacheService redisCacheService,
       @NonNull EventPlugin eventPlugin,
-      @NonNull UniversalVoteEventPlugin badgeAwardGenericEventKindPlugin) {
+      @NonNull UniversalVoteEventPlugin badgeAwardGenericEventKindPlugin,
+      @NonNull NostrMeshRequestService nostrMeshRequestService) {
     return new SuperconductorSearchRelaysListEventPlugin(
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        new RelayMeshProxy(badgeAwardGenericEventKindPlugin));
+        new RelayMeshProxy(badgeAwardGenericEventKindPlugin, nostrMeshRequestService));
   }
 
   @Bean
@@ -184,12 +194,13 @@ public abstract class AfterimageBaseConfig {
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull RedisCacheService redisCacheService,
       @NonNull EventPlugin eventPlugin,
-      @NonNull AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin) {
+      @NonNull AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin,
+      @NonNull NostrMeshRequestService nostrMeshRequestService) {
     return new AfterimageRelaySetsEventPlugin(
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        new RelayMeshProxy(followSetsEventKindPlugin));
+        new RelayMeshProxy(followSetsEventKindPlugin, nostrMeshRequestService));
   }
 
   @Bean

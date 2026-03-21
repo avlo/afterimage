@@ -1,5 +1,7 @@
 services:
+# ***********************
 #  SC Redis 6379
+# ***********************  
   superconductor-db:
     image: "redis:8.0.0"
     hostname: superconductor-db
@@ -10,27 +12,26 @@ services:
       retries: 3
       interval: 1s
       timeout: 2s
-# networks:
-#      - docker-network
 #  SC App 5555
   superconductor-afterimage:
     image: avlo/superconductor-app-redis:1.17.3
-#    hostname: superconductor-afterimage
     ports:
       - "5555:5555"
     depends_on:
       superconductor-db:
         condition: service_healthy
-# networks:
-#      - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
-#      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5555"
       SUPERCONDUCTOR_RELAY_URL: "ws://superconductor-afterimage:5555"
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: superconductor-db
-#   aImg App2's Redis 6381 (docker container)
+      SUPERCONDUCTOR_TIMEOUT_DURATION: 5
+      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS
+      SPRING_THREADS_VIRTUAL_ENABLED: true
+# ***********************
+#   aImg App-2 Redis 6381 (docker container)
+# ***********************  
   afterimage-db-two:
     image: "redis:8.0.0"
     hostname: afterimage-db-two
@@ -41,38 +42,67 @@ services:
       retries: 3
       interval: 1s
       timeout: 2s
-# networks:
-#      - docker-network
-#  
 # aImg App2 5557 (docker container)
-  afterimage-app:
+  afterimage-app-two:
     image: afterimage-nostr-reputation-relay:1.2.0
-#    hostname: afterimage-app
     ports:
       - "5557:5556"
     depends_on:
       afterimage-db-two:
         condition: service_healthy
-# networks:
-#      - docker-network
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
-#      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5555"
-#      SUPERCONDUCTOR_RELAY_URL: "ws://superconductor-afterimage:5555"
-#      AFTERIMAGE_RELAY_URL: "ws://0.0.0.0:5557"
-      AFTERIMAGE_RELAY_URL: "ws://afterimage-app:5557"
+      SUPERCONDUCTOR_RELAY_URL: "ws://afterimage-app-two:5556"
+      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-two:5556"
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: afterimage-db-two
+      SUPERCONDUCTOR_TIMEOUT_DURATION: 5
+      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS
+      SPRING_THREADS_VIRTUAL_ENABLED: true
+# ***********************
+#   aImg App-3 Redis 6382 (docker container)
+# ***********************  
+  afterimage-db-three:
+    image: "redis:8.0.0"
+    hostname: afterimage-db-three
+    ports:
+      - "6382:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "afterimage-db-three" ]
+      retries: 3
+      interval: 1s
+      timeout: 2s
+# aImg App2 5558 (docker container)
+  afterimage-app-three:
+    image: afterimage-nostr-reputation-relay:1.2.0
+    ports:
+      - "5558:5556"
+    depends_on:
+      afterimage-db-three:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev_ws
+      SUPERCONDUCTOR_RELAY_URL: "ws://afterimage-app-three:5556"
+      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-three:5556"
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
+      SPRING_DATA_REDIS_HOST: afterimage-db-three
+      SUPERCONDUCTOR_TIMEOUT_DURATION: 5
+      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS
+      SPRING_THREADS_VIRTUAL_ENABLED: true
 #
 volumes:
   superconductor-db:
     driver: local
   afterimage-db-two:
     driver: local
+  afterimage-db-three:
+    driver: local    
 networks:
-  localhost:
+  default:
+    name: afterimage-webapp
+    driver: bridge
     driver_opts:
-      com.docker.network.bridge.host_binding_ipv4: "localhost"
-#  docker-network:
-#    driver: bridge
+      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"
+#      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"

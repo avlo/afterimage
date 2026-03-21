@@ -31,11 +31,11 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
-    log.debug("processIncoming(reqMessage, sessionId) [{}] with List<Filters>:\n{}",
+    log.debug("processIncoming(reqMessage, sessionId) [{}] with List<Filters>:\n  [{}]",
         sessionId,
         reqMessage.getFiltersList().stream()
             .map(filters -> filters.toString(2))
-            .collect(Collectors.joining(",\n")));
+            .collect(Collectors.joining("],\n  [")));
 
     ReqMessage reqMessageAdaptedFilters = new ReqMessage(
         reqMessage.getSubscriptionId(),
@@ -67,10 +67,10 @@ public class AfterimageReqService implements ReqServiceIF {
   }
 
   private List<Filters> validateFiltersExist(List<Filters> filtersList) {
-    log.debug("validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n{}",
+    log.debug("validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n  [{}]",
         filtersList.stream()
             .map(filters -> filters.toString(2))
-            .collect(Collectors.joining("\n")));
+            .collect(Collectors.joining("],\n  [")));
     filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));
     return filtersList;
   }

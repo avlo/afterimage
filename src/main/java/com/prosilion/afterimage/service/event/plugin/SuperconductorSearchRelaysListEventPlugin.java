@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.service.RelayMeshProxy;
+import com.prosilion.afterimage.service.RelayMeshProxyIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -16,7 +16,7 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxy relayMeshProxy) {
+      @NonNull RelayMeshProxyIF relayMeshProxy) {
     super(aImgIdentity, cacheServiceIF, eventPlugin, relayMeshProxy);
   }
 

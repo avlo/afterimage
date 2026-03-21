@@ -11,9 +11,9 @@ CONTAINER_NAMES=$SCAN_TEMP_DIR/container_names
 
 suffix=scan-suffix-for-sublime.java
 
-horizontal_terminal_count=2
+horizontal_terminal_count=3
 vertical_terminal_count=2
-zoom_factor=.6
+zoom_factor=1
 
 display_resolution_operands() {
   words=("$@")
@@ -27,7 +27,6 @@ display_resolution_operands() {
   done
   echo
 }
-
 
 get_screen_resolution() {
   screen_x_resolution=$(xrandr --current | grep '*' | uniq | awk '{print $1}' | cut -d 'x' -f1)
@@ -62,7 +61,12 @@ get_screen_resolution() {
 }
 
 ls_docker_containers() {
-	docker container ls --format "{{.ID}} {{.Names}}"|grep -e afterimage-app -e superconductor-afterimage
+# docker container ls --format "{{.ID}} {{.Names}}"|grep -e super -e after
+ docker container ls --format "{{.ID}} {{.Names}}"|grep -e afterimage-app -e superconductor-afterimage
+# docker container ls --format "{{.ID}} {{.Names}}"|grep -e superconductor-db -e afterimage-db -e superconductor-afterimage 
+#	docker container ls --format "{{.ID}} {{.Names}}"|grep -e afterimage-app
+#	docker container ls --format "{{.ID}} {{.Names}}"|grep -e superconductor-app
+#	docker container ls --format "{{.ID}} {{.Names}}"|grep -e superconductor-subdivisions
 }
 
 display_pid_term() {
@@ -76,7 +80,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 
-  gnome-terminal --geometry=308x100+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry=105x75+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
   (docker logs -f "$1" > "$2_$suffix") &
 }
 

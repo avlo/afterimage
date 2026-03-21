@@ -1,0 +1,41 @@
+services:
+#   aImg App-2 Redis 6381 (docker container)
+  afterimage-db-two:
+    image: "redis:8.0.0"
+    hostname: afterimage-db-two
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli" ,"ping", "afterimage-db-two" ]
+      retries: 3
+      interval: 1s
+      timeout: 2s
+# aImg App2 5557 (docker container)
+  afterimage-app-two:
+    image: afterimage-nostr-reputation-relay:1.2.0
+    ports:
+      - "5557:5556"
+    depends_on:
+      afterimage-db-two:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev_ws
+#      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5555"
+#      AFTERIMAGE_RELAY_URL: "ws://127.0.0.1:5557"
+#
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
+      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
+      SPRING_DATA_REDIS_HOST: afterimage-db-two
+      SUPERCONDUCTOR_TIMEOUT-DURATION: 5
+      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS
+#
+#
+#
+volumes:
+  afterimage-db-two:
+    driver: local
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"

@@ -5,39 +5,40 @@ services:
     hostname: superconductor-db
     ports:
       - "6379:6379"
+#    networks:
+#      - mynetwork2
     healthcheck:
       test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
       retries: 3
       interval: 1s
       timeout: 2s
-#    networks:
-#      - docker-network
 #  SC App 5555
   superconductor-afterimage:
     image: avlo/superconductor-app-redis:1.17.3
     ports:
       - "5555:5555"
 #    networks:
-#      - docker-network
+#      - mynetwork2
+#      - dockernetwork2
     depends_on:
       superconductor-db:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
-#
-#
+#      SUPERCONDUCTOR_RELAY_URL: "ws://superconductor-afterimage:5555"
+#      SUPERCONDUCTOR_RELAY_URL: "ws://0.0.0.0:5555"
 #      SUPERCONDUCTOR_RELAY_URL: "ws://localhost:5555"
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: superconductor-db
       SUPERCONDUCTOR_TIMEOUT-DURATION: 5
-      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS      
-#
-#
+      SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS
 #
 volumes:
   superconductor-db:
     driver: local
-#networks:
-#  docker-network:
-#    driver: bridge
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"

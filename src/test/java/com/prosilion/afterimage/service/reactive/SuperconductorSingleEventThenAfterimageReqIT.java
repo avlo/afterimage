@@ -29,9 +29,9 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
-import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
+import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
+import com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import com.prosilion.superconductor.base.util.RequestSubscriber;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheServiceIF;
 import java.io.IOException;
 import java.time.Duration;
@@ -91,6 +91,8 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
   private final Relay superconductorRelay;
   Duration requestTimeoutDuration;
 
+  @NonNull NostrSingleRelayRequestService nostrRequestService;
+
   @Autowired
   public SuperconductorSingleEventThenAfterimageReqIT(
       @NonNull Identity afterimageInstanceIdentity,
@@ -103,6 +105,7 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.eventServiceIF = eventServiceIF;
     this.requestTimeoutDuration = requestTimeoutDuration;
+    this.nostrRequestService = nostrRequestService;
 
     Relay afterimageRelay = new Relay(afterimageRelayUrl);
     this.superconductorRelay = new Relay(superconductorRelayUrl);
@@ -114,23 +117,17 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 //    create then submit SC awardUpvoteDefinitionEvent
     awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(definitionsCreatorIdentity, upvoteIdentifierTag, superconductorRelay); // 4444
     log.debug("sending awardUpvoteDefinitionEvent {} to superconductorRelayUrl", awardUpvoteDefinitionEvent);
-    RequestSubscriber<OkMessage> scAwardDefinitionOkMessageSubscriber = new RequestSubscriber<>(requestTimeoutDuration);
-    ReactiveNostrRelayClient superconductorRelayClient = new ReactiveNostrRelayClient(superconductorRelayUrl);
-    superconductorRelayClient.send(
-        new EventMessage(awardUpvoteDefinitionEvent),
-        scAwardDefinitionOkMessageSubscriber);
-    List<OkMessage> upvoteDefinitionOkMessageItems = scAwardDefinitionOkMessageSubscriber.getItems();
-    assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
+    NostrEventPublisher superconductorRelayClient = new NostrEventPublisher(superconductorRelayUrl);
+    OkMessage upvoteDefinitionOkMessageItems = superconductorRelayClient.send(
+        new EventMessage(awardUpvoteDefinitionEvent));
+    assertEquals(true, upvoteDefinitionOkMessageItems.getFlag());
 
 //    validate SC awardUpvoteDefinitionEvent item
-    RequestSubscriber<BaseMessage> scAwardUpvoteDefinitionReqBaseMessageSubscriber = new RequestSubscriber<>(requestTimeoutDuration);
-    superconductorRelayClient.send(
+    List<BaseMessage> scUpvoteDefinitionEventMessageItems = new NostrSingleRelayRequestService(superconductorRelayUrl).send(
         createSuperconductorReqMessageBadgeDefinitionEvent(
             Factory.generateRandomHex64String(),
-            definitionsCreatorIdentity.getPublicKey()),
-        scAwardUpvoteDefinitionReqBaseMessageSubscriber);
+            definitionsCreatorIdentity.getPublicKey()));
 
-    List<BaseMessage> scUpvoteDefinitionEventMessageItems = scAwardUpvoteDefinitionReqBaseMessageSubscriber.getItems();
     List<EventIF> returnedSuperconductorAwardUpvoteDefinitionEvents = getGenericEvents(scUpvoteDefinitionEventMessageItems);
 
     assertEquals(returnedSuperconductorAwardUpvoteDefinitionEvents.getFirst().getId(), awardUpvoteDefinitionEvent.getId());
@@ -193,29 +190,22 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> scBadgeAwardUpvoteEvent_1 = createScUpvoteEvent(voteSubmitterIdentity, voteReceierIdentity);
 
 //  submit first Event to superconductor
-    ReactiveNostrRelayClient superconductorEventMessageRelayReactiveClient_1 = new ReactiveNostrRelayClient(superconductorRelayUrl);
-    RequestSubscriber<OkMessage> scOkMessageSubscriber_1 = new RequestSubscriber<>(requestTimeoutDuration);
-    superconductorEventMessageRelayReactiveClient_1.send(
-        new EventMessage(scBadgeAwardUpvoteEvent_1), scOkMessageSubscriber_1);
+    OkMessage items_1 = new NostrEventPublisher(superconductorRelayUrl).send(
+        new EventMessage(scBadgeAwardUpvoteEvent_1));
 
     // TimeUnit.MILLISECONDS.sleep(2500);
 
-    List<OkMessage> items_1 = scOkMessageSubscriber_1.getItems();
-    superconductorEventMessageRelayReactiveClient_1.closeSocket();
-    assertEquals(true, items_1.getFirst().getFlag());
+    assertEquals(true, items_1.getFlag());
 
 //    validate by submit Req for above badgeAwardUpvoteEvent to superconductor
-    ReactiveNostrRelayClient superconductorRelayReactiveClient_1a = new ReactiveNostrRelayClient(superconductorRelayUrl); // TODO: should be replaceable with afterimageRelayClient, try later
-    RequestSubscriber<BaseMessage> superconductorReqMessageEventsSubscriber_1a = new RequestSubscriber<>(requestTimeoutDuration);
-    superconductorRelayReactiveClient_1a.send(
-        createSuperconductorReqMessageBadgeAwardEvent(Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()),
-        superconductorReqMessageEventsSubscriber_1a);
+    List<BaseMessage> superconductorEventsSubscriber_1a_Items =
+        new NostrSingleRelayRequestService(superconductorRelayUrl).send(
+            createSuperconductorReqMessageBadgeAwardEvent(
+                Factory.generateRandomHex64String(), voteReceierIdentity.getPublicKey()));
 
     // TimeUnit.MILLISECONDS.sleep(2500);
     log.debug("retrieved afterimage events:");
-    List<BaseMessage> superconductorEventsSubscriber_1a_Items = superconductorReqMessageEventsSubscriber_1a.getItems();
     EventIF returnedScBadgeAwardUpvoteEvent_1a = getGenericEvents(superconductorEventsSubscriber_1a_Items).getFirst();
-    superconductorRelayReactiveClient_1a.closeSocket();
 
     assertEquals(returnedScBadgeAwardUpvoteEvent_1a.getId(), scBadgeAwardUpvoteEvent_1.getId());
     assertEquals(returnedScBadgeAwardUpvoteEvent_1a.getContent(), scBadgeAwardUpvoteEvent_1.getContent());
@@ -231,18 +221,13 @@ public class SuperconductorSingleEventThenAfterimageReqIT {
 
 //    query Aimg for above badgeAwardUpvoteEvent
     log.debug("query Aimg for above badgeAwardUpvoteEvent:");
-    RequestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new RequestSubscriber<>(requestTimeoutDuration);
-    ReactiveNostrRelayClient afterimageRepRequestClient_A = new ReactiveNostrRelayClient(afterimageRelayUrl);
-    afterimageRepRequestClient_A.send(
+    List<BaseMessage> aimgSubscriberItems_A = new NostrSingleRelayRequestService(afterimageRelayUrl).send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteReceierIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()),
-        afterImageEventsSubscriber_A);
+            definitionsCreatorIdentity.getPublicKey()));
 
     log.debug("afterimage returned events:");
-    List<BaseMessage> aimgSubscriberItems_A = afterImageEventsSubscriber_A.getItems();
-    afterimageRepRequestClient_A.closeSocket();
     List<EventIF> returnedAimgReqGenericEvents_A = getGenericEvents(aimgSubscriberItems_A);
 
     assertEquals("1", returnedAimgReqGenericEvents_A.getFirst().getContent());

@@ -15,23 +15,22 @@ import org.springframework.stereotype.Component;
 public class AfterimageFollowSetsRequestPlugin implements ReqKindPluginIF { // kind 30_000
   @Override
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) {
-    log.debug("processIncomingRequest with List<Filters>:\n{}",
+    log.debug("processIncomingRequest with List<Filters>:\n  [{}]",
         filtersList.stream()
             .map(filters -> filters.toString(2))
-            .collect(Collectors.joining(",\n")));
+            .collect(Collectors.joining("],\n [")));
 
     Filters suspectOverridenFilters = new Filters(new KindFilter(getKind()));
-    log.debug("suspectOverridenFilters Filters:\n{}",
-        suspectOverridenFilters.toString());
+    log.debug("suspectOverridenFilters Filters:\n  [{}]", suspectOverridenFilters);
 
     List<Filters> concattedFilters = Stream.concat(
         filtersList.stream(),
         Stream.of(suspectOverridenFilters)).distinct().toList();
 
-    log.debug("concatted filtersList.add(suspectOverridenFilters) List<Filters>:\n{}",
+    log.debug("concatted filtersList.add(suspectOverridenFilters) List<Filters>:\n  [{}]",
         concattedFilters.stream()
             .map(filters -> filters.toString(2))
-            .collect(Collectors.joining("\n")));
+            .collect(Collectors.joining("],\n [")));
 
     return suspectOverridenFilters;
   }

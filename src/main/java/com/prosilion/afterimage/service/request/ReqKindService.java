@@ -42,7 +42,7 @@ public class ReqKindService implements ReqKindServiceIF {
 
   @Override
   public Filters processIncoming(@NonNull List<Filters> filtersList) throws NostrException {
-    log.debug("ReqKindService processIncoming(List<Filters>) with List<Filters>:\n{}",
+    log.debug("ReqKindService processIncoming(List<Filters>) with List<Filters>:\n  {}",
         filtersList.stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining(",\n")));

@@ -172,7 +172,7 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
-      <version>3.8.3</version>
+      <version>3.8.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -225,9 +225,9 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <image>
-            <env>
-              <BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>
-            </env>
+<!--            <env>-->
+<!--              <BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>-->
+<!--            </env>-->
             <builder>bellsoft/buildpacks.builder:musl</builder>
             <!--            <builder>paketobuildpacks/builder-jammy-base:latest</builder>-->
           </image>

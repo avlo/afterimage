@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.config;
 
 import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
+import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ssl.SslBundles;
@@ -19,7 +20,7 @@ public class TestWssConfig {
   @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   public AfterimageReactiveRelayClient afterimageReactiveRelayClient(
       @NonNull String afterimageRelayUrl,
-      @NonNull SslBundles sslBundles) {
+      @NonNull SslBundles sslBundles) throws ExecutionException, InterruptedException {
     return new AfterimageReactiveRelayClient(afterimageRelayUrl, sslBundles);
   }
 }

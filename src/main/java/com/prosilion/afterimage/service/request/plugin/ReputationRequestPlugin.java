@@ -44,14 +44,15 @@ public class ReputationRequestPlugin extends ReqKindTypePlugin {
             filters1.getFilterByType(REF_PUBKEY_FILTER_KEY))
         .flatMap(Collection::stream).toList();
 
-    final String RED_BOLD_BRIGHT = "\033[1;91m";
-    final String GREEN_BOLD = "\033[1;32m";
-    final String RESET = "\033[0m";
-    String greenFont = GREEN_BOLD + "%s" + RESET;
-    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
+//    final String RED_BOLD_BRIGHT = "\033[1;91m";
+//    final String GREEN_BOLD = "\033[1;32m";
+//    final String RESET = "\033[0m";
+//    String greenFont = GREEN_BOLD + "%s" + RESET;
+//    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    log.debug("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [{}] \n", !filterableStream.isEmpty() ?
-        String.format(greenFont, "TRUE(ReptationRequestPlugin)") : String.format(redFont, "FALSE(ReptationRequestPlugin)"));
+    log.debug("contains req'd ReferencedPublicKeyFilter.FILTER_KEY? [ {} ]", !filterableStream.isEmpty() ?
+//        String.format(greenFont, "TRUE(ReptationRequestPlugin)") : String.format(redFont, "FALSE(ReptationRequestPlugin)"));
+        "TRUE(ReputationRequestPlugin)" : "FALSE(ReputationRequestPlugin)");
 
     ReferencedPublicKeyFilter referencedPublicKeyFilter = filterableStream.stream()
         .map(ReferencedPublicKeyFilter.class::cast)

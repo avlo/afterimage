@@ -12,9 +12,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EmbeddedRedisStandalone
 public class SingleContainerTestConfig {
   @Bean
-//  @RestartScope
   @ServiceConnection
-  public ComposeContainer composeContainerLocalDev() {
+  public ComposeContainer composeSingleContainerLocalDev() {
     return new ComposeContainer(
         new File("src/test/resources/docker-compose-local_ws.yml"))
         .waitingFor("afterimage-db", Wait.forHealthcheck())
@@ -22,12 +21,10 @@ public class SingleContainerTestConfig {
   }
 
   @Bean
-//  @RestartScope
   @ServiceConnection
-  public ComposeContainer composeContainerDocker() {
+  public ComposeContainer composeSingleContainerSuperconductorDocker() {
     return new ComposeContainer(
         new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-//      .waitingFor("superconductor-afterimage", Wait.forHealthcheck())  // does not work due to wget unavailable in container
         .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
         .withRemoveVolumes(true);
   }

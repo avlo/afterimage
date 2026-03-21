@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
-import com.prosilion.afterimage.service.RelayMeshProxy;
+import com.prosilion.afterimage.service.RelayMeshProxyIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
@@ -27,13 +27,13 @@ import org.springframework.lang.NonNull;
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
-  private final RelayMeshProxy relayMeshProxy;
+  private final RelayMeshProxyIF relayMeshProxy;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxy relayMeshProxy) {
+      @NonNull RelayMeshProxyIF relayMeshProxy) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
@@ -71,12 +71,14 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
     GenericEventRecord genericEventRecord = super.processIncomingEvent(event);
 
-    log.debug("sending request to new relay(s):\n".concat(uniqueNewRelays.stream()
-        .map(s ->
-            String.format("  %s", s))
-        .collect(Collectors.joining(",\n"))));
+    log.debug("sending request filters:\n  [{}]\nto new relay(s):\n{}",
+        getFilters().toString(2),
+        uniqueNewRelays.stream()
+            .map(s ->
+                String.format("  [%s]", s))
+            .collect(Collectors.joining(",\n")));
 
-    relayMeshProxy.setUpRequestFlux(getFilters(), uniqueNewRelays.stream().toList());
+    relayMeshProxy.activateRequestFlux(getFilters(), uniqueNewRelays.stream().toList());
 
     return genericEventRecord;
   }
