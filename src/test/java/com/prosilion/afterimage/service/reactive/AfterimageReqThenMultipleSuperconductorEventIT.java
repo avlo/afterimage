@@ -65,7 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
-public class AfterimageReqThenSingleSuperconductorEventIT {
+public class AfterimageReqThenMultipleSuperconductorEventIT {
 
   /**
    * definitionsCreatorIdentity:   02d49b23e02985a760e8bc2f5ee86a3089569806f5f6a670fba3317568d14262
@@ -97,7 +97,7 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
   Duration requestTimeoutDuration;
 
   @Autowired
-  public AfterimageReqThenSingleSuperconductorEventIT(
+  public AfterimageReqThenMultipleSuperconductorEventIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull RedisCacheServiceIF cacheServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
@@ -207,8 +207,8 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     assertEquals(true, scEventSubmitter_1.getFlag());
     log.debug("received 1of2 OkMessage...");
 
-    // # --------------------- SC REQ -------------------
-    //    submit matching author & vote tag Req to superconductor
+// # --------------------- SC REQ -------------------
+//    submit matching author & vote tag Req to superconductor
 
     List<BaseMessage> returnedScMessages = new NostrSingleRelayRequestService(superconductorRelay.getUrl()).send(
         createSuperconductorReqMessageBadgeAwardEvent(
@@ -231,7 +231,48 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
     //    should trigger Aimg afterImageEventsSubscriber
 
     eventServiceIF.processIncomingEvent(
-        new EventMessage(returnedScEventIF.asGenericEventRecord()));
+        new EventMessage(returnedScEventIF.asGenericEventRecord()));    
+    
+// # --------------------- SC EVENT 2 of 2-------------------
+//    begin event creation for submission to SC
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 = createScUpvoteEvent(voteSubmitterIdentity, voteReceierIdentity, superconductorRelay);
+
+//    GenericEventKindTypeIF badgeAwardUpvoteEvent_1 =
+//        new GenericDocumentKindTypeDto(
+//            badgeAwardUpvoteEvent_1,
+//            SuperconductorKindType.UNIT_UPVOTE)
+//            .convertBaseEventToGenericEventKindTypeIF();
+
+    //    submit subscriber's first Event to superconductor
+    OkMessage scEventSubmitter_2 = new NostrEventPublisher(superconductorRelay.getUrl()).send(new EventMessage(badgeAwardUpvoteEvent_2));
+    assertEquals(true, scEventSubmitter_2.getFlag());
+    log.debug("received 2of2 OkMessage...");
+    
+    // # --------------------- SC REQ -------------------
+    //    submit matching author & vote tag Req to superconductor
+
+    List<BaseMessage> returnedScMessages2 = new NostrSingleRelayRequestService(superconductorRelay.getUrl()).send(
+        createSuperconductorReqMessageBadgeAwardEvent(
+            Factory.generateRandomHex64String(),
+            voteReceierIdentity.getPublicKey()));
+
+    EventIF returnedScEventIF2 = getGenericEvents(returnedScMessages2).getFirst();
+
+//    assertTrue(returnedScEventIF2.stream().anyMatch(genericEvent -> genericEvent.getContent().equals(badgeAwardUpvoteEvent_1.getContent())));
+//    assertTrue(returnedScEventIF2.stream().anyMatch(genericEvent -> genericEvent.getPublicKey().toHexString().equals(badgeAwardUpvoteEvent_1.getPublicKey().toHexString())));
+//    assertEquals(returnedScEventIF2.getFirst().getKind(), badgeAwardUpvoteEvent_1.getKind());
+//    assertTrue(returnedScEventIF2.stream().anyMatch(genericEvent -> genericEvent.getKind().equals(badgeAwardUpvoteEvent_1.getKind())));
+
+    assertEquals(returnedScEventIF2.getId(), badgeAwardUpvoteEvent_2.getId());
+    assertEquals(returnedScEventIF2.getContent(), badgeAwardUpvoteEvent_2.getContent());
+    assertEquals(returnedScEventIF2.getPublicKey().toHexString(), badgeAwardUpvoteEvent_2.getPublicKey().toHexString());
+    assertEquals(returnedScEventIF2.getKind(), badgeAwardUpvoteEvent_2.getKind());
+
+    //    save SC result to Aimg
+    //    should trigger Aimg afterImageEventsSubscriber
+
+    eventServiceIF.processIncomingEvent(
+        new EventMessage(returnedScEventIF2.asGenericEventRecord()));
 
 //    assertTrue(eventMessages.stream().allMatch(eventMessage -> {
 //      try {
@@ -287,8 +328,10 @@ public class AfterimageReqThenSingleSuperconductorEventIT {
 
     log.debug("------");
     log.debug("------");
-    assertEquals(1, returnedReputationEventIFs.size());
-    assertEquals("1", returnedReputationEventIFs.getFirst().getContent());
+    assertEquals(2, returnedReputationEventIFs.size());
+//    assertEquals("1", returnedReputationEventIFs.getFirst().getContent());
+    assertTrue(returnedReputationEventIFs.stream().map(EventIF::getContent).toList().contains("1"));
+    assertTrue(returnedReputationEventIFs.stream().map(EventIF::getContent).toList().contains("2"));
   }
 
   private List<EventIF> getGenericEvents(List<BaseMessage> returnedBaseMessages) {
