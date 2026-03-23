@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
-import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
@@ -10,7 +9,7 @@ import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.superconductor.base.util.RequestSubscriber;
+import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -55,18 +54,15 @@ public class SearchRelaysListAuthRejectionIT {
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
-    RequestSubscriber<OkMessage> rejectionClient = new RequestSubscriber<>(requestTimeoutDuration);
-    final AfterimageReactiveRelayClient aImgSearchRelaysListRejectionSubscriber = new AfterimageReactiveRelayClient(afterimageRelayUri);
+    final NostrEventPublisher aImgSearchRelaysListRejectionSubscriber = new NostrEventPublisher(afterimageRelayUri);
 
-    aImgSearchRelaysListRejectionSubscriber.send(
+    OkMessage okRejectionMessage = aImgSearchRelaysListRejectionSubscriber.send(
         new EventMessage(
-            createSearchRelaysListEventMessage("ws://localhost:1234")),
-        rejectionClient);
+            createSearchRelaysListEventMessage("ws://localhost:1234")));
 
     TimeUnit.MILLISECONDS.sleep(1000);
 
     log.debug("afterimage returned superconductor events:");
-    OkMessage okRejectionMessage = rejectionClient.getItems().getFirst();
     log.debug("  {}", okRejectionMessage);
 
     assertFalse(okRejectionMessage.getFlag());

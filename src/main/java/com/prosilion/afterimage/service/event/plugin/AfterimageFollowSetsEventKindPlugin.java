@@ -13,6 +13,7 @@ import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
@@ -22,6 +23,7 @@ import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.PublishingEventKindPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -57,27 +59,40 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
 
   @Override
   public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
-    log.debug("AfterimageFollowSetsEventPlugin processing incoming Kind[{}]:{}\n{}",
+    log.debug("processing incoming Kind[{}]: {}\nincomingFollowSetsEvent:\n  {}",
         incomingFollowSetsEvent.getKind().getValue(),
         incomingFollowSetsEvent.getKind().getName().toUpperCase(),
         incomingFollowSetsEvent.createPrettyPrintJson());
 
-    FollowSetsEvent materializediIcomingFollowSetsEvent = (FollowSetsEvent) incomingFollowSetsEvent;
+    Relay relay = Filterable.getTypeSpecificTagsStream(RelayTag.class, incomingFollowSetsEvent).findFirst().orElseThrow().getRelay();
 
-//    FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent.asGenericEventRecord());
+    log.debug("... cacheFollowSetsEventServiceIF.getEvent();\n  {}\nfrom relay...:\n [{}]",
+        incomingFollowSetsEvent.createPrettyPrintJson(), relay.getUrl());
 
-    PublicKey publicKey = materializediIcomingFollowSetsEvent.getBadgeAwardGenericEvents().stream().map(b -> b.getTypeSpecificTags(PubKeyTag.class).getFirst()).map(PubKeyTag::getPublicKey).findFirst().orElseThrow();
+    PublicKey voteReceiverPublicKey = Filterable.getTypeSpecificTags(PubKeyTag.class, incomingFollowSetsEvent)
+        .stream()
+        .map(PubKeyTag::getPublicKey)
+        .findFirst().orElseThrow();
+
+    IdentifierTag identifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, incomingFollowSetsEvent)
+        .stream()
+        .findFirst().orElseThrow();
+
+    log.debug("... using vote recipient public key...:\n  {}", voteReceiverPublicKey.toHexString());
 
     Optional<GenericEventRecord> eventsByKindAndPubKeyTagAndIdentifierTag = cacheServiceIF.getEventsByKindAndPubKeyTagAndIdentifierTag(
         Kind.FOLLOW_SETS,
-        publicKey,
-        materializediIcomingFollowSetsEvent.getIdentifierTag()).stream().findFirst();
+        voteReceiverPublicKey,
+        identifierTag).stream().findFirst();
 
-    Optional<FollowSetsEvent> existingFollowSetsEvent = eventsByKindAndPubKeyTagAndIdentifierTag.stream()
-        .map(genericEventRecord ->
-            getEvent(genericEventRecord, materializediIcomingFollowSetsEvent))
-        .flatMap(Optional::stream)
-        .findFirst();
+    Optional<FollowSetsEvent> existingFollowSetsEvent =
+        eventsByKindAndPubKeyTagAndIdentifierTag.stream()
+            .map(genericEventRecord ->
+                cacheFollowSetsEventServiceIF.getEvent(
+                    genericEventRecord.getId(),
+                    relay.getUrl()))
+            .flatMap(Optional::stream)
+            .findFirst();
 
 //    TODO: ifPresent likely superfluous if delete mechanism already handles optional
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
@@ -87,25 +102,22 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
                 FollowSetsEvent::getContainedAddressableEvents)
             .orElse(List.of())
             .stream()
-            .map(eventTag -> cacheBadgeAwardGenericEventService.getEvent(eventTag.idEvent(), eventTag.getRecommendedRelayUrl()))
+            .map(eventTag -> cacheBadgeAwardGenericEventService.getEvent(eventTag.idEvent(), relay.getUrl()))
             .flatMap(Optional::stream).toList();
 
+    List<EventTag> incomingFollowSetsEventEventTags = Filterable.getTypeSpecificTags(EventTag.class, incomingFollowSetsEvent);
+
+    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> incomingFollowSetsEventMaterializedEventTags = incomingFollowSetsEventEventTags.stream()
+        .map(eventTag -> cacheFollowSetsEventServiceIF.getEventTagEvent(eventTag.getIdEvent(), eventTag.getRecommendedRelayUrl())
+            .stream().toList()).flatMap(Collection::stream).toList();
+
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
-        materializediIcomingFollowSetsEvent.getBadgeAwardGenericEvents().stream()
+        incomingFollowSetsEventMaterializedEventTags.stream()
             .filter(incomingBadgeAwardVoteEvent ->
                 !existingBadgeAwardGenericVoteEvents.contains(incomingBadgeAwardVoteEvent)).toList();
 
-    PublicKey voteReceiverPubkey = Filterable.getTypeSpecificTags(PubKeyTag.class, materializediIcomingFollowSetsEvent)
-        .stream()
-        .map(PubKeyTag::getPublicKey)
-        .findFirst().orElseThrow();
-
-    IdentifierTag identifierTag = Filterable.getTypeSpecificTags(IdentifierTag.class, materializediIcomingFollowSetsEvent)
-        .stream()
-        .findFirst().orElseThrow();
-
     FollowSetsEvent notifierFollowSetsEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
+        voteReceiverPublicKey,
         identifierTag,
         Stream.concat(
             existingBadgeAwardGenericVoteEvents.stream(),
@@ -117,16 +129,16 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
     super.processIncomingEvent(notifierFollowSetsEvent);
 
     FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
-        voteReceiverPubkey,
+        voteReceiverPublicKey,
         identifierTag,
         nonMatchingBadgeAwardGenericVoteEvents);
     return reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
   }
 
-  private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, FollowSetsEvent materializediIcomingFollowSetsEvent) {
+  private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, String url) {
     Optional<FollowSetsEvent> event = cacheFollowSetsEventServiceIF.getEvent(
         genericEventRecord.getId(),
-        materializediIcomingFollowSetsEvent.getRelayTagRelay().getUrl());
+        url);
     return event;
   }
 

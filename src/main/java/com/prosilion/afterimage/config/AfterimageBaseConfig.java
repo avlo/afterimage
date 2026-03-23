@@ -6,6 +6,7 @@ import com.prosilion.afterimage.config.web.ReqApiAuthUi;
 import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.RelayMeshProxy;
+import com.prosilion.afterimage.service.RelayMeshReactiveRequestConsolidatorProxy;
 import com.prosilion.afterimage.service.event.plugin.AfterimageBadgeAwardReputationEventKindTypePlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageFollowSetsEventKindPlugin;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventPlugin;
@@ -186,7 +187,8 @@ public abstract class AfterimageBaseConfig {
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        new RelayMeshProxy(badgeAwardGenericEventKindPlugin, nostrMeshRequestService));
+        new RelayMeshProxy(badgeAwardGenericEventKindPlugin, nostrMeshRequestService),
+        new RelayMeshReactiveRequestConsolidatorProxy(badgeAwardGenericEventKindPlugin));
   }
 
   @Bean
@@ -200,7 +202,8 @@ public abstract class AfterimageBaseConfig {
         afterimageInstanceIdentity,
         redisCacheService,
         eventPlugin,
-        new RelayMeshProxy(followSetsEventKindPlugin, nostrMeshRequestService));
+        new RelayMeshProxy(followSetsEventKindPlugin, nostrMeshRequestService),
+        new RelayMeshReactiveRequestConsolidatorProxy(followSetsEventKindPlugin));
   }
 
   @Bean

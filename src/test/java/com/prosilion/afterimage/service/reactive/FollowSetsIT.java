@@ -4,7 +4,6 @@ import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.util.AfterimageReactiveRelayClient;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -32,8 +31,8 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
-import com.prosilion.subdivisions.client.reactive.ReactiveNostrRelayClient;
-import com.prosilion.superconductor.base.util.RequestSubscriber;
+import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
+import com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -170,11 +169,10 @@ public class FollowSetsIT {
         "Search Relays List sent from aImg IT 5556");
 
 //  send awareness to aImg5557 of SC 5555    
-    new AfterimageReactiveRelayClient(afterimageRelayUrl2)
+    new NostrEventPublisher(afterimageRelayUrl2)
         .send(
             new EventMessage(
-                searchRelaysListEvent),
-            new RequestSubscriber<>(requestTimeoutDuration));
+                searchRelaysListEvent));
     TimeUnit.MILLISECONDS.sleep(2000);
     log.debug("...done.\n\n\ncalling  getAimgRepReqResult(afterimageRelayUrl2).getFirst().getContent()...");
 
@@ -200,21 +198,17 @@ public class FollowSetsIT {
   }
 
   private List<EventIF> getAimgRepReqResult(final String afterimageRelayUrl) throws JsonProcessingException, InterruptedException {
-    RequestSubscriber<BaseMessage> afterImageEventsSubscriber_A = new RequestSubscriber<>(requestTimeoutDuration);
     fail();
-    ReactiveNostrRelayClient superconductorRelayClient = new ReactiveNostrRelayClient(afterimageRelayUrl);
-    final AfterimageReactiveRelayClient afterimageRepRequestClient = new AfterimageReactiveRelayClient(afterimageRelayUrl);
-    afterimageRepRequestClient.send(
+    final NostrSingleRelayRequestService afterimageRepRequestClient = new NostrSingleRelayRequestService(afterimageRelayUrl);
+    List<BaseMessage> items_3 = afterimageRepRequestClient.send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteRecipientIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()),
-        afterImageEventsSubscriber_A);
+            definitionsCreatorIdentity.getPublicKey()));
 
     TimeUnit.MILLISECONDS.sleep(100);
 
     log.debug("afterimage returned superconductor events:");
-    List<BaseMessage> items_3 = afterImageEventsSubscriber_A.getItems();
     log.debug("  {}", items_3);
 
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(items_3);
@@ -273,16 +267,12 @@ public class FollowSetsIT {
     String greenFont = GREEN_BOLD + "%s" + RESET;
     String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
-    new AfterimageReactiveRelayClient(afterimageRelayUrl2).send(
-        new EventMessage(baseEvent),
-        subscriber);
-    List<OkMessage> upvoteDefinitionOkMessageItems = subscriber.getItems();
-    Boolean flag = upvoteDefinitionOkMessageItems.getFirst().getFlag();
+    OkMessage upvoteDefinitionOkMessageItems = new NostrEventPublisher(afterimageRelayUrl2).send(
+        new EventMessage(baseEvent));
+    Boolean flag = upvoteDefinitionOkMessageItems.getFlag();
     log.debug("\n\n  ***********  OKMessage received from sendEventToAimgRelay2? [{}] ************\n",
         String.format(flag ? greenFont : redFont, flag.toString().toUpperCase()));
 //    assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
-    subscriber.dispose();
 //    new AfterimageMeshRelayService(afterimageRelayUrl2).closeSocket();
     TimeUnit.MILLISECONDS.sleep(250);
   }
@@ -294,16 +284,12 @@ public class FollowSetsIT {
     String greenFont = GREEN_BOLD + "%s" + RESET;
     String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
 
-    final RequestSubscriber<OkMessage> subscriber = new RequestSubscriber<>(requestTimeoutDuration);
-    new AfterimageReactiveRelayClient(superconductorRelayUrl).send(
-        new EventMessage(baseEvent),
-        subscriber);
-    List<OkMessage> scReturnedOkMessage = subscriber.getItems();
-    Boolean flag = scReturnedOkMessage.getFirst().getFlag();
+    OkMessage scReturnedOkMessage = new NostrEventPublisher(superconductorRelayUrl).send(
+        new EventMessage(baseEvent));
+    Boolean flag = scReturnedOkMessage.getFlag();
     log.debug("\n\n  ***********  OKMessage received from sendEventToAimgRelay2? [{}] ************\n",
         String.format(flag ? greenFont : redFont, flag.toString().toUpperCase()));
 //    assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
-    subscriber.dispose();
 //    new AfterimageMeshRelayService(afterimageRelayUrl2).closeSocket();
     TimeUnit.MILLISECONDS.sleep(250);
   }
