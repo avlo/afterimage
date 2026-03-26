@@ -5,7 +5,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
-import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
+import com.prosilion.subdivisions.client.reactive.NostrMeshRequestService;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +21,11 @@ public class RelayMeshReactiveRequestConsolidatorProxy extends BaseSubscriber<Ba
   private Subscription subscription;
 
   private final EventKindPluginIF eventKindPluginIF;
-  private final ReactiveRequestConsolidator reactiveRequestConsolidator;
+  private final NostrMeshRequestService nostrMeshRequestService;
 
   public RelayMeshReactiveRequestConsolidatorProxy(@NonNull EventKindPluginIF eventKindPluginIF) {
     this.eventKindPluginIF = eventKindPluginIF;
-    this.reactiveRequestConsolidator = new ReactiveRequestConsolidator();
+    this.nostrMeshRequestService = new NostrMeshRequestService();
   }
 
   @Override
@@ -53,10 +53,10 @@ public class RelayMeshReactiveRequestConsolidatorProxy extends BaseSubscriber<Ba
     log.debug("setUpRequestFlux called with filters:\n  [{}]",
         filters.toString(2));
 
-    reactiveRequestConsolidator.send(
+    nostrMeshRequestService.send(
         new ReqMessage(generateRandomHex64String(), filters),
-        this,
-        relayUrl);
+        relayUrl,
+        this);
   }
 
   private void processIncoming(EventIF eventIF) {

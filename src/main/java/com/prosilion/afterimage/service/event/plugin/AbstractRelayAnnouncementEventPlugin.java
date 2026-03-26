@@ -27,19 +27,16 @@ import org.springframework.lang.NonNull;
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
-  //  private final RelayMeshProxyIF relayMeshProxy;
   private final RelayMeshProxyIF relayMeshReactiveRequestConsolidatorProxy;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxyIF relayMeshProxy,
       @NonNull RelayMeshProxyIF relayMeshReactiveRequestConsolidatorProxy) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-//    this.relayMeshProxy = relayMeshProxy;
     this.relayMeshReactiveRequestConsolidatorProxy = relayMeshReactiveRequestConsolidatorProxy;
   }
 

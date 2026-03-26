@@ -31,7 +31,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
-import com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService;
+import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -162,11 +162,12 @@ public class SearchRelaysListIT {
 //
 
 //    query Aimg for above REPUTATION event
-    List<BaseMessage> afterImageEventsSubscriber_A = new NostrSingleRelayRequestService(afterimageRelayUrl).send(
+    List<BaseMessage> afterImageEventsSubscriber_A = new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteRecipientIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()));
+            definitionsCreatorIdentity.getPublicKey()),
+        afterimageRelayUrl);
 
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(afterImageEventsSubscriber_A);
@@ -188,11 +189,12 @@ public class SearchRelaysListIT {
     sendEventToSuperconductorRelay(badgeAwardUpvoteEvent_2);
     TimeUnit.MILLISECONDS.sleep(1000);
 
-    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRelayRequestService(afterimageRelayUrl).send(
+    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteRecipientIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()));
+            definitionsCreatorIdentity.getPublicKey()),
+        afterimageRelayUrl);
 
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_3 = getGenericEvents(afterImageEventsSubscriber_B);

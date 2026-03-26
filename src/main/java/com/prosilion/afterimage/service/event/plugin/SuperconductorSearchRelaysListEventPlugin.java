@@ -1,12 +1,10 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.service.RelayMeshProxyIF;
-import com.prosilion.afterimage.service.RelayMeshReactiveRequestConsolidatorProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.subdivisions.client.reactive.ReactiveRequestConsolidator;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +16,8 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxyIF relayMeshProxy,
       @NonNull RelayMeshProxyIF relayMeshProxyReactiveRequestConsolidator) {
-    super(aImgIdentity, cacheServiceIF, eventPlugin, relayMeshProxy, relayMeshProxyReactiveRequestConsolidator);
+    super(aImgIdentity, cacheServiceIF, eventPlugin, relayMeshProxyReactiveRequestConsolidator);
   }
 
   @Override

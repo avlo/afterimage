@@ -32,7 +32,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
-import com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService;
+import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -199,12 +199,12 @@ public class FollowSetsIT {
 
   private List<EventIF> getAimgRepReqResult(final String afterimageRelayUrl) throws JsonProcessingException, InterruptedException {
     fail();
-    final NostrSingleRelayRequestService afterimageRepRequestClient = new NostrSingleRelayRequestService(afterimageRelayUrl);
-    List<BaseMessage> items_3 = afterimageRepRequestClient.send(
+    List<BaseMessage> items_3 = new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteRecipientIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()));
+            definitionsCreatorIdentity.getPublicKey()),
+        afterimageRelayUrl);
 
     TimeUnit.MILLISECONDS.sleep(100);
 

@@ -13,7 +13,7 @@ suffix=scan-suffix-for-sublime.java
 
 horizontal_terminal_count=3
 vertical_terminal_count=2
-zoom_factor=1
+zoom_factor=.6
 
 display_resolution_operands() {
   words=("$@")
@@ -80,7 +80,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 
-  gnome-terminal --geometry=105x75+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry=156x75+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
   (docker logs -f "$1" > "$2_$suffix") &
 }
 

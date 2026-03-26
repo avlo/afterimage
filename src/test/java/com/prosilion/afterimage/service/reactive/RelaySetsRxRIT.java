@@ -31,7 +31,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
-import com.prosilion.subdivisions.client.reactive.NostrSingleRelayRequestService;
+import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -162,12 +162,13 @@ public class RelaySetsRxRIT {
     TimeUnit.MILLISECONDS.sleep(500);
 
 //    query Aimg for above REPUTATION event
-    List<BaseMessage> afterImageEventsSubscriber_A = new NostrSingleRelayRequestService(afterimageRelayUrlThree)
+    List<BaseMessage> afterImageEventsSubscriber_A = new NostrSingleRequestService()
         .send(
             createAfterImageReqMessage(
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
-                definitionsCreatorIdentity.getPublicKey()));
+                definitionsCreatorIdentity.getPublicKey()),
+            afterimageRelayUrlThree);
 
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(afterImageEventsSubscriber_A);
@@ -189,12 +190,13 @@ public class RelaySetsRxRIT {
     sendEventToRelay(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
     TimeUnit.MILLISECONDS.sleep(250);
 
-    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRelayRequestService(afterimageRelayUrlThree)
+    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRequestService()
         .send(
             createAfterImageReqMessage(
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
-                definitionsCreatorIdentity.getPublicKey()));
+                definitionsCreatorIdentity.getPublicKey()),
+            afterimageRelayUrlThree);
 
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_3 = getGenericEvents(afterImageEventsSubscriber_B);
