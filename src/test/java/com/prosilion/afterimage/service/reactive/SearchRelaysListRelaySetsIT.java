@@ -34,7 +34,6 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public class SearchRelaysListRelaySetsIT {
   private final Identity definitionsCreatorIdentity = // Identity.generateRandomIdentity();
       Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
   private final Identity voteRecipientIdentity;
-  
+
   private final Relay superconductorRelayTagUrl;
   private final Relay afterimageRelayTagUrlTwo;
   private final String superconductorRelayUrl;

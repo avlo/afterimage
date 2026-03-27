@@ -30,11 +30,11 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
+import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.shaded.org.awaitility.core.DurationFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -117,7 +116,6 @@ public class RelaySetsRxRIT {
 
     log.debug("1of6 - sendEventToSuperconductor(awardUpvoteDefinitionEvent)");
     sendEventToRelay(awardUpvoteDefinitionEvent, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(250);
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
         new BadgeAwardGenericEvent<>(
@@ -129,7 +127,6 @@ public class RelaySetsRxRIT {
 
     log.debug("2of6 - sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayUrl)");
     sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(250);
 
     FormulaEvent plusOneFormulaEvent = new FormulaEvent(
         definitionsCreatorIdentity,
@@ -140,7 +137,6 @@ public class RelaySetsRxRIT {
 
     log.debug("3of6 - sendEventToRelay(plusOneFormulaEvent, afterimageRelayUrlTwo)");
     sendEventToRelay(plusOneFormulaEvent, afterimageRelayUrlTwo);
-    TimeUnit.MILLISECONDS.sleep(500);
 
     badgeDefinitionReputationEventPlusOneFormula = new BadgeDefinitionReputationEvent(
         definitionsCreatorIdentity,
@@ -151,25 +147,25 @@ public class RelaySetsRxRIT {
 
     log.debug("4of6 - sendEventToRelay(badgeDefinitionReputationEventPlusOneFormula, afterimageRelayUrlTwo)");
     sendEventToRelay(badgeDefinitionReputationEventPlusOneFormula, afterimageRelayUrlTwo);
-    TimeUnit.MILLISECONDS.sleep(500);
 
     log.debug("5of6 - sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayUrlTwo)");
-    sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayUrlTwo, DurationFactory.of(3, TimeUnit.SECONDS));
-    TimeUnit.MILLISECONDS.sleep(500);
+    sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayUrlTwo);
 
     log.debug("6of6 - sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayUrlThree)");
     sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayUrlThree);
-    TimeUnit.MILLISECONDS.sleep(500);
 
 //    query Aimg for above REPUTATION event
-    List<BaseMessage> afterImageEventsSubscriber_A = new NostrSingleRequestService()
+    RequestSubscriber<BaseMessage> reputationEventSubscriber = new RequestSubscriber<>();
+    new NostrSingleRequestService()
         .send(
             createAfterImageReqMessage(
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
                 definitionsCreatorIdentity.getPublicKey()),
-            afterimageRelayUrlThree);
+            afterimageRelayUrlThree,
+            reputationEventSubscriber);
 
+    List<BaseMessage> afterImageEventsSubscriber_A = reputationEventSubscriber.getItems();
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_2 = getGenericEvents(afterImageEventsSubscriber_A);
 
@@ -188,16 +184,18 @@ public class RelaySetsRxRIT {
 //
 ////  submit upvote event to SC
     sendEventToRelay(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(250);
 
-    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRequestService()
+    RequestSubscriber<BaseMessage> reputationEventSubscriber_B = new RequestSubscriber<>();
+    new NostrSingleRequestService()
         .send(
             createAfterImageReqMessage(
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
                 definitionsCreatorIdentity.getPublicKey()),
-            afterimageRelayUrlThree);
+            afterimageRelayUrlThree,
+            reputationEventSubscriber_B);
 
+    List<BaseMessage> afterImageEventsSubscriber_B = reputationEventSubscriber_B.getItems();
     log.debug("afterimage returned superconductor events:");
     List<EventIF> returnedReqGenericEvents_3 = getGenericEvents(afterImageEventsSubscriber_B);
 
@@ -208,7 +206,7 @@ public class RelaySetsRxRIT {
 
   @Test
   void doSomeTesting() {
-    log.debug("done");
+    log.debug("all test/results are in constructor.");
   }
 
   private BaseEvent createSearchRelaysListEventMessage() {
@@ -257,22 +255,13 @@ public class RelaySetsRxRIT {
     return reqMessage;
   }
 
-  private void sendEventToRelay(BaseEvent baseEvent, String relayUrl, Duration requestTimeoutDuration) {
-    final String RED_BOLD_BRIGHT = "\033[1;91m";
-    final String GREEN_BOLD = "\033[1;32m";
-    final String RESET = "\033[0m";
-    String greenFont = GREEN_BOLD + "%s" + RESET;
-    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
-
-    OkMessage scReturnedOkMessage = new NostrEventPublisher(relayUrl).send(
-        new EventMessage(baseEvent));
+  private void sendEventToRelay(BaseEvent baseEvent, String relayUrl) {
+    RequestSubscriber<OkMessage> eventSubscriber = new RequestSubscriber<>();
+    new NostrEventPublisher(relayUrl).send(
+        new EventMessage(baseEvent), eventSubscriber);
+    OkMessage scReturnedOkMessage = eventSubscriber.getItems().getFirst();
     Boolean flag = scReturnedOkMessage.getFlag();
     log.debug("***********  OKMessage received from [{}] relay? [{}] ************",
-        relayUrl,
-        String.format(flag ? greenFont : redFont, flag.toString().toUpperCase()));
-  }
-
-  private void sendEventToRelay(BaseEvent baseEvent, String relayUrl) {
-    sendEventToRelay(baseEvent, relayUrl, requestTimeoutDuration);
+        relayUrl, flag.toString().toUpperCase());
   }
 }
