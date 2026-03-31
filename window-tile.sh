@@ -65,10 +65,8 @@ bash_single_quote() {
 create_docker_terminal_env() {
   file_name="$TERMINAL_ENV-$1"
   dock_up_alias="$2"
-  dock_down_alias="$3"
   echo "#!/bin/bash --init-file" > "$file_name"
   echo "$dock_up_alias" >> "$file_name"
-#  echo "$dock_down_alias" >> "$file_name"
   chmod 755 "$file_name"
 }
 
@@ -95,7 +93,7 @@ display_cd_term() {
   devenv="$TERMINAL_ENV-$5"
   echo "devenv file: [$devenv]"
   echo
-  gnome-terminal --geometry=156x50+"$3"+"$4" --title="$2" --zoom="$zoom_factor" --working-directory="$1" -- bash -c "source $devenv;bash -i"
+  gnome-terminal --geometry=156x54+"$3"+"$4" --title="$2" --zoom="$zoom_factor" --working-directory="$1" -- bash -c "source $devenv;bash -i"
 }
 
 create_temp_dir() {
@@ -195,6 +193,10 @@ cleanup() {
 #	rm $TERMINAL_TITLE
 #	rm $EXISTING_TERMINAL_PIDS_FILE
 #	rm $NEW_TERMINAL_PIDS_FILE
+  docker stop $(docker ps -a -q)
+  docker rm $(docker ps -a -q)
+  docker volume prune -a -f
+  docker network prune -f
 	rm -rf $WINDOW_TILE_TEMP_DIR;
 #	echo "placeholder"
 }
