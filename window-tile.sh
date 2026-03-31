@@ -57,11 +57,6 @@ get_screen_resolution() {
   echo ""
 }
 
-bash_single_quote() {
-  local s=$1
-  printf "'%s'" "${s//\'/\'\"\'\"\'/}"
-}
-
 create_docker_terminal_env() {
   file_name="$TERMINAL_ENV-$1"
   dock_up_alias="$2"
@@ -172,7 +167,7 @@ create_terminal_names() {
 #  sc_redis_6379
   aimg_redis_6381
   aimg_redis_6382
-  
+
 #  sc_app_5555
   aimg_app_5557
   aimg_app_5558
@@ -204,20 +199,17 @@ kill_terminals() {
 }
   
 cleanup() {
-#	rm $CONTAINER_IDS_AND_NAMES 
-#	rm $CONTAINER_IDS
-#	rm $TERMINAL_TITLE
-#	rm $EXISTING_TERMINAL_PIDS_FILE
-#	rm $NEW_TERMINAL_PIDS_FILE
   docker stop $(docker ps -a -q)
   docker rm $(docker ps -a -q)
   docker volume prune -a -f
   docker network prune -f
 	rm -rf $WINDOW_TILE_TEMP_DIR;
-#	echo "placeholder"
 }
 
-usage() { echo "Usage:  once shells have properly started, press any key close terminals" 1>&2; exit 1; }
+usage() {
+  echo "Usage:  Press enter to start services"
+  echo "  then press enter to close terminals, stop all apps & clean up all docker containers" 1>&2; exit 1; 
+}
 
 user_prompt_start_terminals() {
   get_screen_resolution
