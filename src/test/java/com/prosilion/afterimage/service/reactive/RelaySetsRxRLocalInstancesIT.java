@@ -2,7 +2,6 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
@@ -37,11 +36,7 @@ import com.prosilion.subdivisions.client.reactive.SingleRelaySubscriptionsManage
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,8 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(MultiContainerTestConfig.class)
-public class RelaySetsRxRIT {
+public class RelaySetsRxRLocalInstancesIT {
   /**
    * definitionsCreatorIdentity:   02d49b23e02985a760e8bc2f5ee86a3089569806f5f6a670fba3317568d14262
    * <p>
@@ -83,20 +77,15 @@ public class RelaySetsRxRIT {
 
   BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
 
-  @Autowired
-  public RelaySetsRxRIT(
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayLocalUrl,
-      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayLocalUrlTwo,
-      @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayLocalUrlThree) throws ParseException,
-      JsonProcessingException, InterruptedException {
+  public RelaySetsRxRLocalInstancesIT() throws ParseException, JsonProcessingException {
 
-    this.superconductorRelayUrl = superconductorRelayLocalUrl;
-    this.afterimageRelayUrlTwo = afterimageRelayLocalUrlTwo;
-    this.afterimageRelayUrlThree = afterimageRelayLocalUrlThree;
+    this.superconductorRelayUrl = "ws://localhost:5555";
+    this.afterimageRelayUrlTwo = "ws://localhost:5557";
+    this.afterimageRelayUrlThree = "ws://localhost:5558";
 
-    this.superconductorDockerRelay = new Relay("ws://superconductor-afterimage:5555");
-    this.afterimageDockerRelayUrlTwo = new Relay("ws://afterimage-app-two:5556");
-    this.afterimageDockerRelayUrlThree = new Relay("ws://afterimage-app-three:5556");
+    this.superconductorDockerRelay = new Relay(superconductorRelayUrl);
+    this.afterimageDockerRelayUrlTwo = new Relay(afterimageRelayUrlTwo);
+    this.afterimageDockerRelayUrlThree = new Relay(afterimageRelayUrlThree);
 
     Identity voteSubmitterIdentity = Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
     voteRecipientIdentity = // Identity.generateRandomIdentity();
@@ -109,7 +98,7 @@ public class RelaySetsRxRIT {
         String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", definitionsCreatorIdentity.getPublicKey()));
 
     log.debug("1of6 - sendEventToSuperconductor(awardUpvoteDefinitionEvent)");
-    sendEventToRelay(awardUpvoteDefinitionEvent, superconductorRelayLocalUrl);
+    sendEventToRelay(awardUpvoteDefinitionEvent, superconductorRelayUrl);
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
         new BadgeAwardGenericEvent<>(
@@ -119,8 +108,8 @@ public class RelaySetsRxRIT {
             awardUpvoteDefinitionEvent,
             String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", voteRecipientIdentity.getPublicKey()));
 
-    log.debug("2of6 - sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayLocalUrl)");
-    sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayLocalUrl);
+    log.debug("2of6 - sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayUrl)");
+    sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayUrl);
 
     FormulaEvent plusOneFormulaEvent = new FormulaEvent(
         definitionsCreatorIdentity,
@@ -129,22 +118,22 @@ public class RelaySetsRxRIT {
         awardUpvoteDefinitionEvent,
         PLUS_ONE_FORMULA);
 
-    log.debug("3of6 - sendEventToRelay(plusOneFormulaEvent, afterimageRelayLocalUrlTwo)");
-    sendEventToRelay(plusOneFormulaEvent, afterimageRelayLocalUrlTwo);
+    log.debug("3of6 - sendEventToRelay(plusOneFormulaEvent, afterimageRelayUrlTwo)");
+    sendEventToRelay(plusOneFormulaEvent, afterimageRelayUrlTwo);
 
-    log.debug("4of6 - sendEventToRelay(badgeDefinitionReputationEventPlusOneFormula, afterimageRelayLocalUrlTwo)");
+    log.debug("4of6 - sendEventToRelay(badgeDefinitionReputationEventPlusOneFormula, afterimageRelayUrlTwo)");
     sendEventToRelay(new BadgeDefinitionReputationEvent(
         definitionsCreatorIdentity,
         reputationIdentifierTag,
         afterimageDockerRelayUrlTwo,
         AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        plusOneFormulaEvent), afterimageRelayLocalUrlTwo);
+        plusOneFormulaEvent), afterimageRelayUrlTwo);
 
-    log.debug("5of6 - sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayLocalUrlTwo)");
-    sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayLocalUrlTwo);
+    log.debug("5of6 - sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayUrlTwo)");
+    sendEventToRelay(createSearchRelaysListEventMessage(), afterimageRelayUrlTwo);
 
-    log.debug("6of6 - sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayLocalUrlThree)");
-    sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayLocalUrlThree);
+    log.debug("6of6 - sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayUrlThree)");
+    sendEventToRelay(createRelaysSetsEventMessage(), afterimageRelayUrlThree);
 
 //    query Aimg for above REPUTATION event
     RequestSubscriber<BaseMessage> reputationEventSubscriber = new RequestSubscriber<>();
@@ -154,7 +143,7 @@ public class RelaySetsRxRIT {
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
                 definitionsCreatorIdentity.getPublicKey()),
-            afterimageRelayLocalUrlThree,
+            afterimageRelayUrlThree,
             reputationEventSubscriber);
     List<BaseMessage> afterImageEventsSubscriber_A = reputationEventSubscriber.getItems();
     log.debug("afterimage returned superconductor events:");
@@ -176,7 +165,7 @@ public class RelaySetsRxRIT {
 //    assertEquals(event_2.getPublicKey().toHexString(), authorIdentity.getPublicKey().toHexString());
 //
 ////  submit upvote event to SC
-    sendEventToRelay(badgeAwardUpvoteEvent_2, superconductorRelayLocalUrl);
+    sendEventToRelay(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
 
     RequestSubscriber<BaseMessage> reputationEventSubscriber_B = new RequestSubscriber<>();
     SingleRelaySubscriptionsManager manager1 = new NostrSingleRequestService()
@@ -185,7 +174,7 @@ public class RelaySetsRxRIT {
                 Factory.generateRandomHex64String(),
                 voteRecipientIdentity.getPublicKey(),
                 definitionsCreatorIdentity.getPublicKey()),
-            afterimageRelayLocalUrlThree,
+            afterimageRelayUrlThree,
             reputationEventSubscriber_B);
     reputationEventSubscriber_B.dispose();
     manager1.closeAllSessions();

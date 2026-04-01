@@ -8,7 +8,7 @@ TERMINAL_CD=$WINDOW_TILE_TEMP_DIR/terminal_cd
 TERMINAL_TITLE=$WINDOW_TILE_TEMP_DIR/terminal_title
 TERMINAL_ENV=$WINDOW_TILE_TEMP_DIR/terminal_env
 
-horizontal_terminal_count=2
+horizontal_terminal_count=3
 vertical_terminal_count=2
 zoom_factor=.7
 
@@ -88,7 +88,8 @@ display_cd_term() {
   devenv="$TERMINAL_ENV-$5"
   echo "devenv file: [$devenv]"
   echo
-  gnome-terminal --geometry=156x54+"$3"+"$4" --title="$2" --zoom="$zoom_factor" --working-directory="$1" -- bash -c "source $devenv;bash -i"
+  gnome-terminal --geometry=156x54+"$3"+"$4" --title="$2" --zoom="$zoom_factor" --working-directory="$1" -- bash -c "source $devenv;bash -i" # 6 terminals
+#  gnome-terminal --geometry=236x54+"$3"+"$4" --title="$2" --zoom="$zoom_factor" --working-directory="$1" -- bash -c "source $devenv;bash -i" # 4 terminals
 }
 
 create_temp_dir() {
@@ -125,7 +126,7 @@ aimg_redis_6381() {
   append_terminal_files "aImg redis 6381" $TERMINAL_TITLE
   append_terminal_files "/home/nick/git/afterimage" $TERMINAL_CD
   append_terminal_files "aimg_redis_6381" $TERMINAL_ENV
-  dock_up_alias="docker compose -f docker-compose-local_ws_6381.yml up -d && docker container ls -a | grep afterimage-db-redis-local_ws_6381 | cut -c 1-12 | xargs docker logs -f"
+  dock_up_alias="docker compose -f docker-compose-local_ws_6381.yml up -d && docker container ls -a | grep afterimage-db-redis-local-ws-6381 | cut -c 1-12 | xargs docker logs -f"
   dock_down_alias="docker compose -f docker-compose-local_ws_6381.yml down --remove-orphans"
   create_docker_terminal_env "aimg_redis_6381" "$dock_up_alias" "$dock_down_alias"
 }
@@ -134,7 +135,7 @@ aimg_redis_6382() {
   append_terminal_files "aImg redis 6382" $TERMINAL_TITLE
   append_terminal_files "/home/nick/git/afterimage" $TERMINAL_CD
   append_terminal_files "aimg_redis_6382" $TERMINAL_ENV
-  dock_up_alias="docker compose -f docker-compose-local_ws_6382.yml up -d && docker container ls -a | grep afterimage-db-redis-local_ws_6382 | cut -c 1-12 | xargs docker logs -f"
+  dock_up_alias="docker compose -f docker-compose-local_ws_6382.yml up -d && docker container ls -a | grep afterimage-db-redis-local-ws-6382 | cut -c 1-12 | xargs docker logs -f"
   dock_down_alias="docker compose -f docker-compose-local_ws_6382.yml down --remove-orphans"
   create_docker_terminal_env "aimg_redis_6382" "$dock_up_alias" "$dock_down_alias"
 }
@@ -164,11 +165,11 @@ aimg_app_5558() {
 }
 
 create_terminal_names() {
-#  sc_redis_6379
+  sc_redis_6379
   aimg_redis_6381
   aimg_redis_6382
 
-#  sc_app_5555
+  sc_app_5555
   aimg_app_5557
   aimg_app_5558
 }

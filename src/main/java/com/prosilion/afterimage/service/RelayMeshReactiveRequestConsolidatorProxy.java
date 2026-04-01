@@ -31,13 +31,13 @@ public class RelayMeshReactiveRequestConsolidatorProxy extends BaseSubscriber<Ba
   @Override
   public void hookOnSubscribe(@NonNull Subscription subscription) {
     this.subscription = subscription;
-    subscription.request(1);
+    subscription.request(Long.MAX_VALUE);
   }
 
   @Override
   public void hookOnNext(@NonNull BaseMessage value) {
     filterEventMessageEvent(value).ifPresent(this::processIncoming);
-    subscription.request(1);
+    subscription.request(Long.MAX_VALUE);
   }
 
   @Override

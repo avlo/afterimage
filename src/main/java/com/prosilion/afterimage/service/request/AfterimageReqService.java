@@ -31,8 +31,9 @@ public class AfterimageReqService implements ReqServiceIF {
 
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
-    log.debug("processIncoming(reqMessage, sessionId) [{}] with List<Filters>:\n  [{}]",
+    log.debug("processIncoming(reqMessage, sessionId):\n  sessionId:  [{}]\n  reqMesage.subscriptionId:  [{}]\n  with List<Filters>:\n  {}",
         sessionId,
+        reqMessage.getSubscriptionId(),
         reqMessage.getFiltersList().stream()
             .map(filters -> filters.toString(2))
             .collect(Collectors.joining("],\n  [")));

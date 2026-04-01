@@ -13,7 +13,7 @@ suffix=scan-suffix-for-sublime.java
 
 horizontal_terminal_count=3
 vertical_terminal_count=2
-zoom_factor=.6
+zoom_factor=.7
 
 display_resolution_operands() {
   words=("$@")
@@ -80,7 +80,7 @@ display_pid_term() {
   echo "   id: [$1]"
   echo "title: [$2]"
 
-  gnome-terminal --geometry=156x75+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
+  gnome-terminal --geometry=180x75+"$3"+"$4" --title="$2" --zoom="$zoom_factor" -- bash -c "docker logs -f '$1' && read"
   (docker logs -f "$1" > "$2_$suffix") &
 }
 
@@ -98,7 +98,9 @@ get_new_terminal_pids() {
 
 get_container_pids() {
 #  awk '{ print $1, $13 }' simulated-docker-run.java > container_ids_and_names
-  ls_docker_containers | awk '{ print $1, $2 }' | sed 's/ [^-]*-/ /' > $CONTAINER_IDS_AND_NAMES
+  ls_docker_containers | awk '{ print $1, $2 }' | sed 's/ [^-]*-/ /' | sort -k2 -r > $CONTAINER_IDS_AND_NAMES
+  echo "sorted container order by name:"
+  cat $CONTAINER_IDS_AND_NAMES
   awk '{ print $1 }' $CONTAINER_IDS_AND_NAMES > $CONTAINER_IDS
   awk '{ print $2 }' $CONTAINER_IDS_AND_NAMES > $CONTAINER_NAMES 
 }

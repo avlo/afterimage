@@ -95,12 +95,12 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
         .findFirst().orElseThrow();
 
 //    FollowSetsEvent materializediIcomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEventAsReputationEvent);
-    FollowSetsEvent materializediIcomingFollowSetsEvent = (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent;
+//    FollowSetsEvent materializediIcomingFollowSetsEvent = (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent;
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericEvents =
-        materializediIcomingFollowSetsEvent.getContainedAddressableEvents().stream().map(eventTag ->
-                cacheFollowSetsEventServiceIF.getEventTagEvent(eventTag.getIdEvent(), eventTag.getRecommendedRelayUrl()))
-            .flatMap(Optional::stream).toList();
+//    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericEvents =
+//        materializediIcomingFollowSetsEvent.getContainedAddressableEvents().stream().map(eventTag ->
+//                cacheFollowSetsEventServiceIF.getEventTagEvent(eventTag.getIdEvent(), eventTag.getRecommendedRelayUrl()))
+//            .flatMap(Optional::stream).toList();
 
 //    EventTag followSetsFirstEventTagToVotePointer =
 //        materializediIcomingFollowSetsEvent
@@ -112,6 +112,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
 //    BadgeDefinitionGenericEvent existingBadgeDefinitionGenericEvent =
 //        getExistingBadgeDefinitionGenericEvent(reconstructedVote);
 
+    log.debug("(1ofY) ... preparing to call existingBadgeAwardReputationEventGER...");
     Optional<GenericEventRecord> existingBadgeAwardReputationEventGER =
         cacheServiceIF.getEventsByKindAndPubKeyTagAndAddressTag(
                 Kind.BADGE_AWARD_EVENT,
@@ -125,13 +126,21 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                 genericEventRecord.getTags().stream().anyMatch(baseTag ->
                     baseTag.getClass().equals(ExternalIdentityTag.class)))
             .findFirst();
-
+    log.debug("(2ofY) ... existingBadgeAwardReputationEventGER:\n  {}",
+        existingBadgeAwardReputationEventGER
+            .map(GenericEventRecord::createPrettyPrintJson)
+            .orElse("EMPTY existingBadgeAwardReputationEventGER OPTIONAL"));
+    
     Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = existingBadgeAwardReputationEventGER.stream()
         .map(genericEventRecord -> cacheBadgeAwardReputationEventService.getEvent(
             genericEventRecord.getId(),
             Filterable.getTypeSpecificTagsStream(RelayTag.class, genericEventRecord).findFirst().map(RelayTag::getRelay).map(Relay::getUrl).orElseThrow()))
         .flatMap(Optional::stream).findFirst();
-
+    log.debug("(3ofY) ... existingBadgeAwardReputationEvent:\n  {}",
+        existingBadgeAwardReputationEvent
+            .map(EventIF::createPrettyPrintJson)
+            .orElse("EMPTY existingBadgeAwardReputationEvent OPTIONAL"));
+    
     existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent);
 
     List<GenericEventRecord> formulaEventsAsGenericEventRecords = cacheServiceIF.getByKind(
@@ -151,14 +160,20 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                     .anyMatch(
                         formulaEvents.stream()
                             .map(FormulaEvent::asAddressTag).toList()::contains)).toList();
-
+    log.debug("(4ofY) ... existingReputationDefinitionEvents:\n  {}",
+        existingReputationDefinitionEvents.stream()
+            .map(EventIF::createPrettyPrintJson));
+    
     List<BadgeAwardReputationEvent> updatedBadgeAwardReputationEvents = existingReputationDefinitionEvents.stream()
         .map(existingReputationDefinitionEvent ->
             createBadgeAwardReputationEvent(
                 awardRecipientPublicKey,
                 existingReputationDefinitionEvent,
                 existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO))).toList();
-
+    log.debug("(5ofY) ... updatedBadgeAwardReputationEvents:\n  {}",
+        updatedBadgeAwardReputationEvents.stream()
+            .map(EventIF::createPrettyPrintJson));
+    
     List<BadgeAwardReputationEvent> newReputationEvents
         = existingReputationDefinitionEvents.stream()
         .map(existingReputationDefinitionEvent ->
@@ -168,7 +183,10 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
                     updatedBadgeAwardReputationEvent,
                     existingReputationDefinitionEvent.getFormulaEvents(),
                     (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent)).toList()).flatMap(Collection::stream).toList();
-
+    log.debug("(6ofY) ... newReputationEvents:\n  {}",
+        newReputationEvents.stream()
+            .map(EventIF::createPrettyPrintJson));
+    
     return newReputationEvents.stream().map(super::processIncomingEvent).toList().getFirst();
   }
 

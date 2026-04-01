@@ -78,12 +78,17 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
         .stream()
         .findFirst().orElseThrow();
 
-    log.debug("... using vote recipient public key...:\n  {}", voteReceiverPublicKey.toHexString());
+    log.debug("(1ofx) ... using vote recipient public key...:\n  {}", voteReceiverPublicKey.toHexString());
 
     Optional<GenericEventRecord> eventsByKindAndPubKeyTagAndIdentifierTag = cacheServiceIF.getEventsByKindAndPubKeyTagAndIdentifierTag(
         Kind.FOLLOW_SETS,
         voteReceiverPublicKey,
         identifierTag).stream().findFirst();
+
+    log.debug("(2ofX) ... eventsByKindAndPubKeyTagAndIdentifierTag:\n  {}",
+        eventsByKindAndPubKeyTagAndIdentifierTag
+            .map(GenericEventRecord::createPrettyPrintJson)
+            .orElse("EMPTY eventsByKindAndPubKeyTagAndIdentifierTag OPTIONAL"));
 
     Optional<FollowSetsEvent> existingFollowSetsEvent =
         eventsByKindAndPubKeyTagAndIdentifierTag.stream()
@@ -93,28 +98,41 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
                     relay.getUrl()))
             .flatMap(Optional::stream)
             .findFirst();
+    log.debug("(3ofX) ... existingFollowSetsEvent:\n  {}",
+        existingFollowSetsEvent
+            .map(EventIF::createPrettyPrintJson)
+            .orElse("EMPTY existingFollowSetsEvent OPTIONAL"));
 
 //    TODO: ifPresent likely superfluous if delete mechanism already handles optional
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> existingBadgeAwardGenericVoteEvents =
+//        existingFollowSetsEvent.map(FollowSetsEvent::getBadgeAwardGenericEvents).orElseGet(List::of);
         existingFollowSetsEvent.map(
                 FollowSetsEvent::getContainedAddressableEvents)
             .orElse(List.of())
             .stream()
             .map(eventTag -> cacheBadgeAwardGenericEventService.getEvent(eventTag.idEvent(), relay.getUrl()))
             .flatMap(Optional::stream).toList();
-
+    log.debug("(4ofX) ... existingBadgeAwardGenericVoteEvents:\n  {}",
+        existingBadgeAwardGenericVoteEvents.stream()
+            .map(EventIF::createPrettyPrintJson));
+    
     List<EventTag> incomingFollowSetsEventEventTags = Filterable.getTypeSpecificTags(EventTag.class, incomingFollowSetsEvent);
+    log.debug("(5ofX) ... incomingFollowSetsEventEventTags:\n  {}", incomingFollowSetsEventEventTags);
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> incomingFollowSetsEventMaterializedEventTags = incomingFollowSetsEventEventTags.stream()
         .map(eventTag -> cacheFollowSetsEventServiceIF.getEventTagEvent(eventTag.getIdEvent(), eventTag.getRecommendedRelayUrl())
             .stream().toList()).flatMap(Collection::stream).toList();
+    log.debug("(6ofX)... using vote recipient public key...:\n  {}", voteReceiverPublicKey.toHexString());
 
     List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
         incomingFollowSetsEventMaterializedEventTags.stream()
             .filter(incomingBadgeAwardVoteEvent ->
                 !existingBadgeAwardGenericVoteEvents.contains(incomingBadgeAwardVoteEvent)).toList();
+    log.debug("(7ofX) ... nonMatchingBadgeAwardGenericVoteEvents:");
+    nonMatchingBadgeAwardGenericVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
+    log.debug("end (7ofX) debug stmts");
 
     FollowSetsEvent notifierFollowSetsEvent = createFollowSetsEvent(
         voteReceiverPublicKey,
@@ -122,6 +140,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
         Stream.concat(
             existingBadgeAwardGenericVoteEvents.stream(),
             nonMatchingBadgeAwardGenericVoteEvents.stream()).toList());
+    log.debug("(8ofX) ... notifierFollowSetsEvent:\n  {}", notifierFollowSetsEvent.createPrettyPrintJson());
 
 //    TODO: below explicit save circumvents current issue w/ eventPlugin failing (due to Event remote fetch issue),  needs revisit
     cacheServiceIF.save(notifierFollowSetsEvent);
@@ -132,6 +151,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
         voteReceiverPublicKey,
         identifierTag,
         nonMatchingBadgeAwardGenericVoteEvents);
+    log.debug("(9ofX) ... followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
     return reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
   }
 
@@ -146,13 +166,15 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
       @NonNull PublicKey voteReceiverPubkey,
       @NonNull IdentifierTag identifierTag,
       @NonNull List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericVoteEvents) {
-    return new FollowSetsEvent(
+    FollowSetsEvent followSetsEvent = new FollowSetsEvent(
         aImgIdentity,
         voteReceiverPubkey,
         identifierTag,
         relay,
         badgeAwardGenericVoteEvents,
         DynamicReputationCalculator.class.getSimpleName());
+    log.debug("createFollowSetsEvent() created FollowSetsEvent: {}", followSetsEvent.createPrettyPrintJson());
+    return followSetsEvent;
   }
 
   private void deletePreviousFollowSetsEvent(FollowSetsEvent previousFollowSetsEvent) {

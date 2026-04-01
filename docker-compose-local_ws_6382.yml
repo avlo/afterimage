@@ -1,0 +1,15 @@
+services:
+  afterimage-db-6382:
+    container_name: afterimage-db-redis-local-ws-6382
+    image: "redis:8.0.0"
+    hostname: localhost
+    ports:
+      - "6382:6379"
+#    networks:
+#      - docker-network
+volumes:
+  afterimage-db-6382:
+    driver: local
+#networks:
+#  docker-network:
+#    driver: bridge

@@ -14,11 +14,8 @@ plugins {
 group = 'com.prosilion.afterimage'
 version = '1.2.0'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
 
 configurations {
     compileOnly {
@@ -59,7 +56,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter:' + springBootVersion
 //    implementation 'org.springframework.boot:spring-boot-devtools'
 //    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
+//    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -159,7 +156,7 @@ tasks.named("jar") {
 
 tasks.register("bootRunLocalWs") {
     group = "application"
-    description = "afterimage STANDARD MODE: local_ws"
+    description = "AfterImage STANDARD MODE: local_ws"
     doFirst {
         tasks.bootRun.configure {
             systemProperty("spring.profiles.active", "local_ws")
@@ -170,11 +167,14 @@ tasks.register("bootRunLocalWs") {
 }
 
 void getServerPort() {
-    if (!project.hasProperty("server.port"))
-        throw new GradleException('missing server.port')
+    if (project.hasProperty("server.port")) {
+        println("using server.port [" + project.findProperty("server.port") + "]")
+        return
+    }
 
-    if (!project.hasProperty("afterimage.relay.url"))
-        throw new GradleException('missing afterimage.relay.url')
+    println("project default server.port not defined")
+    project.ext.setProperty("server.port", 5556)
+    println("server.port set to 5556")
 }
 
 bootRun {
@@ -191,4 +191,18 @@ tasks.register("bootRunLocalWss") {
         }
     }
     finalizedBy("bootRun")
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
 }

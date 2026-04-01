@@ -31,10 +31,10 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
+import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -80,27 +79,19 @@ public class FollowSetsIT {
   private final Identity afterimageIdentity;
   private final Identity voteRecipientIdentity;
 
-  private final String afterimageRelayUrl2;
-
-  private final String superconductorRelayUrl;
+  private final String afterimageRelayLocalUrlTwo;
   private final Relay superconductorRelayUrlTag;
-  Duration requestTimeoutDuration;
 
   @Autowired
   public FollowSetsIT(
       @NonNull Identity afterimageInstanceIdentity,
       @NonNull String afterimageRelayUrl,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrl2,
-      Duration requestTimeoutDuration) throws ParseException, IOException, InterruptedException {
-    this.afterimageRelayUrl2 = afterimageRelayUrl2;
+      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayLocalUrlTwo) throws ParseException, InterruptedException {
+    this.afterimageRelayLocalUrlTwo = afterimageRelayLocalUrlTwo;
     this.afterimageIdentity = afterimageInstanceIdentity;
-    this.afterimageRelay = new Relay(afterimageRelayUrl);
-    this.superconductorRelayUrl = superconductorRelayUrl;
-    this.requestTimeoutDuration = requestTimeoutDuration;
-//    this.superconductorRelayUrlTag = new Relay(superconductorRelayUrl);
-//    this.superconductorRelayUrlTag = new Relay("ws://superconductor-afterimage:5555");
-    this.superconductorRelayUrlTag = new Relay(superconductorRelayUrl.replace("localhost", "0.0.0.0"));
+    this.afterimageRelay = new Relay("ws://afterimage-app-two:5556");
+    this.superconductorRelayUrlTag = new Relay("ws://superconductor-afterimage:5555");
 
     Identity voteSubmitterIdentity = Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
     voteRecipientIdentity = // Identity.generateRandomIdentity();
@@ -136,19 +127,19 @@ public class FollowSetsIT {
 
 ////    reminder : do lsports for relay2's docker internal url ...
     log.debug("1of4 - sendEventToSuperconductor(awardUpvoteDefinitionEvent)");
-    sendEventToSuperconductor(awardUpvoteDefinitionEvent);
+    sendEventToRelay(awardUpvoteDefinitionEvent, superconductorRelayUrl);
 //    cacheService.save(awardUpvoteDefinitionEvent);
     TimeUnit.MILLISECONDS.sleep(100);
 
     log.debug("2of4 - sendEventToSuperconductor(plusOneFormulaEvent)");
 ////    ... req'd by events' validation / relay  processing calls    
-    sendEventToSuperconductor(plusOneFormulaEvent);
+    sendEventToRelay(plusOneFormulaEvent, superconductorRelayUrl);
 //    cacheService.save(plusOneFormulaEvent);
     TimeUnit.MILLISECONDS.sleep(100);
 
     log.debug("3of4 - sendEventToSuperconductor(badgeDefinitionReputationEventPlusOneFormula)");
 ////    ... req'd by events' validation / relay  processing calls    
-    sendEventToSuperconductor(badgeDefinitionReputationEventPlusOneFormula);
+    sendEventToRelay(badgeDefinitionReputationEventPlusOneFormula, superconductorRelayUrl);
 //    cacheService.save(badgeDefinitionReputationEventPlusOneFormula);
     TimeUnit.MILLISECONDS.sleep(100);
 
@@ -156,7 +147,7 @@ public class FollowSetsIT {
 ////    ... req'd by events' validation / relay  processing calls    
 //    cacheService.save(badgeAwardUpvoteEvent);
 //    sendEventToAimg2(badgeAwardUpvoteEvent);
-    sendEventToSuperconductor(badgeAwardUpvoteEvent);
+    sendEventToRelay(badgeAwardUpvoteEvent, superconductorRelayUrl);
   }
 
   @Test
@@ -169,44 +160,36 @@ public class FollowSetsIT {
         "Search Relays List sent from aImg IT 5556");
 
 //  send awareness to aImg5557 of SC 5555    
-    new NostrEventPublisher(afterimageRelayUrl2)
-        .send(
-            new EventMessage(
-                searchRelaysListEvent));
-    TimeUnit.MILLISECONDS.sleep(2000);
+    sendEventToRelay(searchRelaysListEvent, afterimageRelayLocalUrlTwo);
     log.debug("...done.\n\n\ncalling  getAimgRepReqResult(afterimageRelayUrl2).getFirst().getContent()...");
 
 // ******* bonus/aside: validate afterimageRelayUrl2 reputation created for voteRecipientIdentity 
-    List<EventIF> aimgRepReqResult = getAimgRepReqResult(afterimageRelayUrl2);
+    List<EventIF> aimgRepReqResult = getAimgRepReqResult(afterimageRelayLocalUrlTwo);
     assertEquals("1", aimgRepReqResult.getFirst().getContent());
     log.debug("...done\n\n\n");
 // ******* end bonus
 
-////  then send awareness to 5556 of RELAY SETS 5557
-//    new AfterimageMeshRelayService(afterimageRelay.getUrl())
-//        .send(
-//            new EventMessage(
-////  ...announcing 5557               
-//                createRelaysSetsEventMessage(afterimageRelayUrl2)),
-//            new TestSubscriber<>());
-//
+//  then send awareness to 5556 of RELAY SETS 5557
+    sendEventToRelay(createRelaysSetsEventMessage(afterimageRelayLocalUrlTwo), afterimageRelay.getUrl());
 //    TimeUnit.MILLISECONDS.sleep(2000);
 //
 ////      sent REP request to 5556
-//    List<EventIF> returnedReqGenericEvents_2 = getAimgRepReqResult(afterimageRelay.getUrl());
-//    assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
+    List<EventIF> returnedReqGenericEvents_2 = getAimgRepReqResult(afterimageRelay.getUrl());
+    assertEquals("1", returnedReqGenericEvents_2.getFirst().getContent());
   }
 
   private List<EventIF> getAimgRepReqResult(final String afterimageRelayUrl) throws JsonProcessingException, InterruptedException {
-    fail();
-    List<BaseMessage> items_3 = new NostrSingleRequestService().send(
+    RequestSubscriber<BaseMessage> reputationEventSubscriber = new RequestSubscriber<>();
+    new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
             voteRecipientIdentity.getPublicKey(),
             definitionsCreatorIdentity.getPublicKey()),
-        afterimageRelayUrl);
+        afterimageRelayUrl,
+        reputationEventSubscriber);
 
-    TimeUnit.MILLISECONDS.sleep(100);
+    TimeUnit.MILLISECONDS.sleep(1000);
+    List<BaseMessage> items_3 = reputationEventSubscriber.getItems();
 
     log.debug("afterimage returned superconductor events:");
     log.debug("  {}", items_3);
@@ -260,37 +243,13 @@ public class FollowSetsIT {
         .toList();
   }
 
-  private void sendEventToAimg2(BaseEvent baseEvent) throws IOException, InterruptedException {
-    final String RED_BOLD_BRIGHT = "\033[1;91m";
-    final String GREEN_BOLD = "\033[1;32m";
-    final String RESET = "\033[0m";
-    String greenFont = GREEN_BOLD + "%s" + RESET;
-    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
-
-    OkMessage upvoteDefinitionOkMessageItems = new NostrEventPublisher(afterimageRelayUrl2).send(
-        new EventMessage(baseEvent));
-    Boolean flag = upvoteDefinitionOkMessageItems.getFlag();
-    log.debug("\n\n  ***********  OKMessage received from sendEventToAimgRelay2? [{}] ************\n",
-        String.format(flag ? greenFont : redFont, flag.toString().toUpperCase()));
-//    assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
-//    new AfterimageMeshRelayService(afterimageRelayUrl2).closeSocket();
-    TimeUnit.MILLISECONDS.sleep(250);
-  }
-
-  private void sendEventToSuperconductor(BaseEvent baseEvent) throws IOException, InterruptedException {
-    final String RED_BOLD_BRIGHT = "\033[1;91m";
-    final String GREEN_BOLD = "\033[1;32m";
-    final String RESET = "\033[0m";
-    String greenFont = GREEN_BOLD + "%s" + RESET;
-    String redFont = RED_BOLD_BRIGHT + "%s" + RESET;
-
-    OkMessage scReturnedOkMessage = new NostrEventPublisher(superconductorRelayUrl).send(
-        new EventMessage(baseEvent));
+  private void sendEventToRelay(BaseEvent baseEvent, String relayUrl) {
+    RequestSubscriber<OkMessage> eventSubscriber = new RequestSubscriber<>();
+    new NostrEventPublisher(relayUrl).send(
+        new EventMessage(baseEvent), eventSubscriber);
+    OkMessage scReturnedOkMessage = eventSubscriber.getItems().getFirst();
     Boolean flag = scReturnedOkMessage.getFlag();
-    log.debug("\n\n  ***********  OKMessage received from sendEventToAimgRelay2? [{}] ************\n",
-        String.format(flag ? greenFont : redFont, flag.toString().toUpperCase()));
-//    assertEquals(true, upvoteDefinitionOkMessageItems.getFirst().getFlag());
-//    new AfterimageMeshRelayService(afterimageRelayUrl2).closeSocket();
-    TimeUnit.MILLISECONDS.sleep(250);
+    log.debug("***********  OKMessage received from [{}] relay? [{}] ************",
+        relayUrl, flag.toString().toUpperCase());
   }
 }
