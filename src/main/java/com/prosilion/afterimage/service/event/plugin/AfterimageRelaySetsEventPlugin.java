@@ -1,12 +1,17 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.service.RelayMeshProxyIF;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.RelaySetsEvent;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -16,8 +21,8 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxyIF reactiveRequestConsolidator) {
-    super(aImgIdentity, cacheServiceIF, eventPlugin, reactiveRequestConsolidator);
+      @NonNull EventKindPluginIF eventKindPluginIF) {
+    super(aImgIdentity, cacheServiceIF, eventPlugin, eventKindPluginIF);
   }
 
   @Override
@@ -34,5 +39,13 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
         Kind.RELAY_SETS.getValue(),
         Kind.RELAY_SETS.getName().toUpperCase());
     return Kind.RELAY_SETS;
+  }
+
+  @Override
+  protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays) {
+    return new RelaySetsEvent(
+        identity,
+        new RelaysTag(uniqueNewRelays.stream().map(Relay::new).toList()),
+        "AfterimageRelaySetsEventPlugin created RelaySetsEvent");
   }
 }

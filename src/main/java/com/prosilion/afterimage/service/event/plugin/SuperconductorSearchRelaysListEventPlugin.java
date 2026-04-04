@@ -1,12 +1,17 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.service.RelayMeshProxyIF;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.SearchRelaysListEvent;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -16,8 +21,8 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxyIF relayMeshProxyReactiveRequestConsolidator) {
-    super(aImgIdentity, cacheServiceIF, eventPlugin, relayMeshProxyReactiveRequestConsolidator);
+      @NonNull EventKindPluginIF eventKindPluginIF) {
+    super(aImgIdentity, cacheServiceIF, eventPlugin, eventKindPluginIF);
   }
 
   @Override
@@ -34,5 +39,13 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
         Kind.SEARCH_RELAYS_LIST.getValue(),
         Kind.SEARCH_RELAYS_LIST.getName().toUpperCase());
     return Kind.SEARCH_RELAYS_LIST;
+  }
+
+  @Override
+  protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays) {
+    return new SearchRelaysListEvent(
+        identity,
+        new RelaysTag(uniqueNewRelays.stream().map(Relay::new).toList()),
+        "SuperconductorSearchRelaysListEventPlugin created SearchRelaysListEvent");
   }
 }

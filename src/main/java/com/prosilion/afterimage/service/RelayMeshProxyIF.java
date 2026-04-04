@@ -1,10 +1,12 @@
 package com.prosilion.afterimage.service;
 
 import com.prosilion.nostr.filter.Filters;
-import java.util.List;
+import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.subdivisions.client.RequestSubscriberDelegateIF;
+import java.util.Set;
 import org.springframework.lang.NonNull;
 
-public interface RelayMeshProxyIF {
-  void activateRequestFlux(@NonNull Filters filters, @NonNull List<String> relayUrl);
+public interface RelayMeshProxyIF extends RequestSubscriberDelegateIF<BaseMessage> {
+  void activateRequestFlux(@NonNull Filters filters, @NonNull Set<String> relayUrl);
   void activateRequestFlux(@NonNull Filters filters, @NonNull String relayUrl);
 }

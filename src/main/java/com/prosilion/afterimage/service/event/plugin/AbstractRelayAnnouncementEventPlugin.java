@@ -2,8 +2,9 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
-import com.prosilion.afterimage.service.RelayMeshProxyIF;
+import com.prosilion.afterimage.service.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
@@ -13,11 +14,11 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -27,17 +28,17 @@ import org.springframework.lang.NonNull;
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
-  private final RelayMeshProxyIF relayMeshReactiveRequestConsolidatorProxy;
+  private final EventKindPluginIF eventKindPluginIF;
 
   public AbstractRelayAnnouncementEventPlugin(
       @NonNull Identity aImgIdentity,
       @NonNull CacheServiceIF cacheServiceIF,
       @NonNull EventPlugin eventPlugin,
-      @NonNull RelayMeshProxyIF relayMeshReactiveRequestConsolidatorProxy) {
+      @NonNull EventKindPluginIF eventKindPluginIF) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
-    this.relayMeshReactiveRequestConsolidatorProxy = relayMeshReactiveRequestConsolidatorProxy;
+    this.eventKindPluginIF = eventKindPluginIF;
   }
 
   public GenericEventRecord processIncomingEvent(EventIF event) {
@@ -56,8 +57,8 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     Set<String> eventRelays = getRelayTag(event)
         .collect(Collectors.toSet());
 
-    Set<Stream<String>> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
-        .map(AbstractRelayAnnouncementEventPlugin::getRelayTag)
+    Set<String> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
+        .flatMap(AbstractRelayAnnouncementEventPlugin::getRelayTag)
         .collect(Collectors.toSet());
 
     Set<String> uniqueNewRelays = Sets.difference(
@@ -69,7 +70,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
       return event.asGenericEventRecord();
     }
 
-    GenericEventRecord genericEventRecord = super.processIncomingEvent(event);
+    GenericEventRecord genericEventRecord = super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays));
 
     log.debug("sending request filters:\n  [{}]\nto new relay(s):\n{}",
         getFilters().toString(2),
@@ -78,23 +79,22 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
                 String.format("  [%s]", s))
             .collect(Collectors.joining(",\n")));
 
-    relayMeshReactiveRequestConsolidatorProxy.activateRequestFlux(getFilters(), uniqueNewRelays.stream().toList());
+    log.debug("calling new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays)..."); 
+    new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays);
 
     return genericEventRecord;
   }
 
   abstract protected Filters getFilters();
 
-  public abstract Kind getKind();
+  abstract public Kind getKind();
+
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays);
 
   private static Stream<String> getRelayTag(EventIF eventIF) {
     return Filterable.getTypeSpecificTagsStream(RelaysTag.class, eventIF)
         .map(RelaysTag::getRelays)
         .flatMap(Collection::stream)
         .map(Relay::getUrl);
-  }
-
-  protected static String generateRandomHex64String() {
-    return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
   }
 }

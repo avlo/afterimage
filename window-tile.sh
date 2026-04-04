@@ -171,7 +171,7 @@ create_terminal_names() {
 
   sc_app_5555
   aimg_app_5557
-  aimg_app_5558
+#  aimg_app_5558
 }
 
 create_terminals() {
