@@ -65,7 +65,11 @@ public class RelaySetsRxRLocalInstancesIT {
   private final Identity definitionsCreatorIdentity = // Identity.generateRandomIdentity();
       Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
-  private final Identity voteRecipientIdentity;
+  private final Identity voteRecipientIdentity = // Identity.generateRandomIdentity();
+      Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+
+  private final Identity voteSubmitterIdentity = // Identity.generateRandomIdentity();
+      Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
 
   private final String superconductorRelayUrl;
   private final String afterimageRelayUrlTwo;
@@ -86,10 +90,6 @@ public class RelaySetsRxRLocalInstancesIT {
     this.superconductorDockerRelay = new Relay(superconductorRelayUrl);
     this.afterimageDockerRelayUrlTwo = new Relay(afterimageRelayUrlTwo);
     this.afterimageDockerRelayUrlThree = new Relay(afterimageRelayUrlThree);
-
-    Identity voteSubmitterIdentity = Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
-    voteRecipientIdentity = // Identity.generateRandomIdentity();
-        Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
 
     awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
         definitionsCreatorIdentity,
@@ -194,18 +194,16 @@ public class RelaySetsRxRLocalInstancesIT {
   }
 
   private BaseEvent createSearchRelaysListEventMessage() {
-    Identity searchRelaysListEventSubmitterIdentity = Identity.generateRandomIdentity();
     log.debug("Search Relays List sent from aImg IT 5556...");
     return new SearchRelaysListEvent(
-        searchRelaysListEventSubmitterIdentity,
+        definitionsCreatorIdentity,
         new RelaysTag(superconductorDockerRelay),
         "Search Relays List sent from aImg IT 5556");
   }
 
   private RelaySetsEvent createRelaysSetsEventMessage() {
-    Identity searchRelaysListEventSubmitterIdentity = Identity.generateRandomIdentity();
     return new RelaySetsEvent(
-        searchRelaysListEventSubmitterIdentity,
+        definitionsCreatorIdentity,
         new RelaysTag(afterimageDockerRelayUrlTwo),
         "Kind.RELAY_SETS");
   }

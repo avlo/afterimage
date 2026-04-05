@@ -30,7 +30,7 @@ public class AfterimageEventKindPluginConfig {
         new CacheDereferenceAddressTagService(
             redisCacheService,
             afterimageRelayUrl,
-            Duration.ofMinutes(10));
+            Duration.ofMinutes(30));
     return cacheDereferenceAddressTagService;
   }
 
@@ -43,7 +43,7 @@ public class AfterimageEventKindPluginConfig {
         new CacheDereferenceEventTagService(
             redisCacheService,
             afterimageRelayUrl,
-            Duration.ofMinutes(10));
+            Duration.ofMinutes(30));
     return cacheDereferenceEventTagService;
   }
 
