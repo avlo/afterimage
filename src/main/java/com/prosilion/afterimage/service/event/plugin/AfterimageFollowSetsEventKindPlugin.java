@@ -106,53 +106,51 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
 //    TODO: ifPresent likely superfluous if delete mechanism already handles optional
     existingFollowSetsEvent.ifPresent(this::deletePreviousFollowSetsEvent);
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> existingBadgeAwardGenericVoteEvents =
-//        existingFollowSetsEvent.map(FollowSetsEvent::getBadgeAwardGenericEvents).orElseGet(List::of);
-        existingFollowSetsEvent.map(
-                FollowSetsEvent::getContainedAddressableEvents)
-            .orElse(List.of())
-            .stream()
-            .map(eventTag -> cacheBadgeAwardGenericEventService.getEvent(eventTag.idEvent(), relay.getUrl()))
-            .flatMap(Optional::stream).toList();
-    log.debug("(4ofX) ... existingBadgeAwardGenericVoteEvents:\n  {}",
-        existingBadgeAwardGenericVoteEvents.stream()
-            .map(EventIF::createPrettyPrintJson));
-    
-    List<EventTag> incomingFollowSetsEventEventTags = Filterable.getTypeSpecificTags(EventTag.class, incomingFollowSetsEvent);
-    log.debug("(5ofX) ... incomingFollowSetsEventEventTags:\n  {}", incomingFollowSetsEventEventTags);
+    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> existingVoteEvents =
+        existingFollowSetsEvent.map(FollowSetsEvent::getBadgeAwardGenericEvents).orElseGet(List::of);
+    log.debug("(4ofX) ... existingVoteEvents:");
+    existingVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> incomingFollowSetsEventMaterializedEventTags = incomingFollowSetsEventEventTags.stream()
+    List<EventTag> incomingFollowSetsEventEventTagsAreVoteEvents = Filterable.getTypeSpecificTags(EventTag.class, incomingFollowSetsEvent);
+    log.debug("(5ofX) ... incomingFollowSetsEventEventTagsAreVoteEvents:\n  {}", incomingFollowSetsEventEventTagsAreVoteEvents);
+
+    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> incomingFollowSetsEventMaterializedEventTagsAreVoteEvents = incomingFollowSetsEventEventTagsAreVoteEvents.stream()
         .map(eventTag -> cacheFollowSetsEventServiceIF.getEventTagEvent(eventTag.getIdEvent(), eventTag.getRecommendedRelayUrl())
             .stream().toList()).flatMap(Collection::stream).toList();
-    log.debug("(6ofX)... using vote recipient public key...:\n  {}", voteReceiverPublicKey.toHexString());
+    log.debug("(6ofX) ... incomingFollowSetsEventMaterializedEventTagsAreVoteEvents:");
+    incomingFollowSetsEventMaterializedEventTagsAreVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingBadgeAwardGenericVoteEvents =
-        incomingFollowSetsEventMaterializedEventTags.stream()
+    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingVoteEvents =
+        incomingFollowSetsEventMaterializedEventTagsAreVoteEvents.stream()
             .filter(incomingBadgeAwardVoteEvent ->
-                !existingBadgeAwardGenericVoteEvents.contains(incomingBadgeAwardVoteEvent)).toList();
-    log.debug("(7ofX) ... nonMatchingBadgeAwardGenericVoteEvents:");
-    nonMatchingBadgeAwardGenericVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
+                !existingVoteEvents.contains(incomingBadgeAwardVoteEvent)).toList();
+    log.debug("(7ofX) ... nonMatchingVoteEvents:");
+    nonMatchingVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
     log.debug("end (7ofX) debug stmts");
 
     FollowSetsEvent notifierFollowSetsEvent = createFollowSetsEvent(
         voteReceiverPublicKey,
         identifierTag,
         Stream.concat(
-            existingBadgeAwardGenericVoteEvents.stream(),
-            nonMatchingBadgeAwardGenericVoteEvents.stream()).toList());
+            existingVoteEvents.stream(),
+            nonMatchingVoteEvents.stream()).toList());
     log.debug("(8ofX) ... notifierFollowSetsEvent:\n  {}", notifierFollowSetsEvent.createPrettyPrintJson());
 
 //    TODO: below explicit save circumvents current issue w/ eventPlugin failing (due to Event remote fetch issue),  needs revisit
-    cacheServiceIF.save(notifierFollowSetsEvent);
+//    cacheServiceIF.save(notifierFollowSetsEvent);
 //    TODO: since above is saved, below should now find event locally- then publish it
     super.processIncomingEvent(notifierFollowSetsEvent);
-
+    log.debug("(9ofX) super.processIncomingEvent(notifierFollowSetsEvent) called...");
+    
     FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
         voteReceiverPublicKey,
         identifierTag,
-        nonMatchingBadgeAwardGenericVoteEvents);
-    log.debug("(9ofX) ... followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
-    return reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
+        nonMatchingVoteEvents);
+    log.debug("(10ofX) ... createFollowSetsEvent(...) method successfully created followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
+    GenericEventRecord genericEventRecord = reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
+    
+    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}", genericEventRecord.createPrettyPrintJson());
+    return genericEventRecord;
   }
 
   private Optional<FollowSetsEvent> getEvent(GenericEventRecord genericEventRecord, String url) {

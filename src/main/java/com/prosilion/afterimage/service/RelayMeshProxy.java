@@ -7,6 +7,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
+import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.RequestSubscriberDelegate;
 import com.prosilion.subdivisions.client.reactive.MultiRelaySubscriptionsManager;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
@@ -38,12 +39,13 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
         filters.toString(2),
         relayUrl);
 
-    log.debug("calling new MultiRelaySubscriptionsManager().send(...)");
+    String subscriptionId = Util.generateRandomHex64String();
+    log.debug("calling new MultiRelaySubscriptionsManager().send(...) with subscriptionId: [{}]", subscriptionId);
     try {
       new MultiRelaySubscriptionsManager()
           .send(
               new ReqMessage(
-                  generateRandomHex64String(),
+                  subscriptionId,
                   filters),
               relayUrl,
               new RequestSubscriberDelegate<>(this));
@@ -55,7 +57,7 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
   @SneakyThrows
   @Override
   public void doDelegate(@NonNull BaseMessage baseMessage) {
-    log.debug("doDelegate(BaseMessage) returned baseMessage:\n  {}", baseMessage.encode());
+    log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(baseMessage.encode()));
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
         eventIF.map(EventIF::createPrettyPrintJson).orElse("EMPTY Optional<EventIF>.  will not call processIncoming()"));
@@ -77,9 +79,5 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
         .map(EventMessage.class::cast)
         .map(EventMessage::getEvent);
     return eventIF;
-  }
-
-  private static String generateRandomHex64String() {
-    return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
   }
 }
