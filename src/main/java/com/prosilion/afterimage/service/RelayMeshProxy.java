@@ -13,8 +13,6 @@ import com.prosilion.subdivisions.client.reactive.MultiRelaySubscriptionsManager
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 
@@ -54,10 +52,15 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
     }
   }
 
-  @SneakyThrows
   @Override
   public void doDelegate(@NonNull BaseMessage baseMessage) {
-    log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(baseMessage.encode()));
+    String encode;
+    try {
+      encode = baseMessage.encode();
+    } catch (JsonProcessingException e) {
+      throw new NostrException("doDelegate(...) baseMessage.encode() shit the bed", e);
+    }
+    log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(encode));
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
         eventIF.map(EventIF::createPrettyPrintJson).orElse("EMPTY Optional<EventIF>.  will not call processIncoming()"));

@@ -136,9 +136,6 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
             nonMatchingVoteEvents.stream()).toList());
     log.debug("(8ofX) ... notifierFollowSetsEvent:\n  {}", notifierFollowSetsEvent.createPrettyPrintJson());
 
-//    TODO: below explicit save circumvents current issue w/ eventPlugin failing (due to Event remote fetch issue),  needs revisit
-//    cacheServiceIF.save(notifierFollowSetsEvent);
-//    TODO: since above is saved, below should now find event locally- then publish it
     super.processIncomingEvent(notifierFollowSetsEvent);
     log.debug("(9ofX) super.processIncomingEvent(notifierFollowSetsEvent) called...");
     
@@ -149,7 +146,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
     log.debug("(10ofX) ... createFollowSetsEvent(...) method successfully created followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
     GenericEventRecord genericEventRecord = reputationEventPlugin.processIncomingEvent(followsSetAsReputationEvent);
     
-    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}", genericEventRecord.createPrettyPrintJson());
+    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}", genericEventRecord);
     return genericEventRecord;
   }
 
