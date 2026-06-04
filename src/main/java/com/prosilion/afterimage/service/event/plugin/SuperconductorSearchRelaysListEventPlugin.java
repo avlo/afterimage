@@ -43,9 +43,11 @@ public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnno
 
   @Override
   protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays) {
-    return new SearchRelaysListEvent(
+    SearchRelaysListEvent event = new SearchRelaysListEvent(
         identity,
         new RelaysTag(uniqueNewRelays.stream().map(Relay::new).toList()),
         "SuperconductorSearchRelaysListEventPlugin created SearchRelaysListEvent");
+    log.debug("createEvent(..., @NonNull Set<String> uniqueNewRelays):\n {}", event.createPrettyPrintJson());
+    return event;
   }
 }

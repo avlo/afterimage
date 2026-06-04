@@ -3,9 +3,8 @@ package com.prosilion.afterimage.calculator;
 import com.ezylang.evalex.Expression;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -17,7 +16,6 @@ import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.springframework.lang.NonNull;
@@ -39,45 +37,44 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
       @NonNull List<FormulaEvent> formulaEvents,
       @NonNull FollowSetsEvent incomingFollowSetsEvent) throws NostrException {
 
-    List<IdentifierTag> eventVoteTags = incomingFollowSetsEvent.getBadgeAwardGenericEvents()
-        .stream().map(BadgeAwardGenericEvent::getBadgeDefinitionGenericEvent)
-        .map(BadgeDefinitionGenericEvent::asAddressTag)
-        .map(AddressTag::getIdentifierTag)
-        .filter(Objects::nonNull)
+    List<IdentifierTag> formulaUuids = incomingFollowSetsEvent
+        .getBadgeDefinitionReputationEvent()
+        .getFormulaEvents().stream().map(AddressableEvent::asAddressableEventAddressTag)
         .filter(
             formulaEvents.stream()
-                .map(FormulaEvent::getBadgeDefinitionGenericEvent)
-                .map(BadgeDefinitionGenericEvent::getIdentifierTag).toList()::contains)
+                .map(FormulaEvent::asAddressableEventAddressTag)
+                .toList()::contains)
+        .distinct().map(AddressTag::getIdentifierTag)
         .toList();
 
     String updatedScore = calculateReputationEventScore(
-        eventVoteTags,
+        formulaUuids,
         previousReputationEvent,
         formulaEvents);
 
     BadgeAwardReputationEvent reputationEvent = createReputationEvent(
         voteReceiverPubkey,
         updatedScore,
-        previousReputationEvent.getBadgeDefinitionGenericEvent()
+        previousReputationEvent.getBadgeDefinitionEvent()
     );
 
     return reputationEvent;
   }
 
   private String calculateReputationEventScore(
-      List<IdentifierTag> voteEvents,
+      List<IdentifierTag> formulaUuids,
       BadgeAwardReputationEvent previousReputationEvent,
       List<FormulaEvent> formulaEvents) {
     String result =
-        voteEvents.stream().map(voteEventType ->
+        formulaUuids.stream().map(formulaUuid ->
                 formulaEvents.stream()
                     .filter(formulaEvent ->
-                        formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().equals(voteEventType)).collect(
+                        formulaEvent.getIdentifierTag().equals(formulaUuid)).collect(
                         Collectors.toMap(
                             formulaEvent ->
-                                formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().getUuid(),
+                                formulaEvent.getIdentifierTag().getUuid(),
                             FormulaEvent::getFormula,
-                            (prev, next) -> next, HashMap::new)).get(voteEventType.getUuid()))
+                            (prev, next) -> next, HashMap::new)).get(formulaUuid.getUuid()))
             .reduce(previousReputationEvent.getContent(), this::doCalc);
     return result;
   }

@@ -9,10 +9,10 @@ import com.prosilion.superconductor.autoconfigure.base.service.event.award.Cache
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceAddressTagService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheDereferenceEventTagService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceAddressTagService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceEventTagService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.tag.RemoteAbstractTagService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,29 +23,17 @@ import org.springframework.lang.NonNull;
 @Configuration
 public class AfterimageEventKindPluginConfig {
   @Bean
-  CacheDereferenceAddressTagService cacheDereferenceAddressTagService(
+  CacheReferenceAddressTagService cacheReferenceAddressTagService(
       @NonNull RedisCacheService redisCacheService,
-      @NonNull String afterimageRelayUrl,
-      @NonNull Duration requestTimeoutDuration) {
-    CacheDereferenceAddressTagService cacheDereferenceAddressTagService =
-        new CacheDereferenceAddressTagService(
-            redisCacheService,
-            afterimageRelayUrl,
-            Duration.ofMinutes(30));
-    return cacheDereferenceAddressTagService;
+      @NonNull RemoteAbstractTagService remoteAbstractTagService) {
+    return new CacheReferenceAddressTagService(redisCacheService, remoteAbstractTagService);
   }
 
   @Bean
-  CacheDereferenceEventTagService cacheDereferenceEventTagService(
+  CacheReferenceEventTagService cacheReferenceEventTagService(
       @NonNull RedisCacheService redisCacheService,
-      @NonNull String afterimageRelayUrl,
-      @NonNull Duration requestTimeoutDuration) {
-    CacheDereferenceEventTagService cacheDereferenceEventTagService =
-        new CacheDereferenceEventTagService(
-            redisCacheService,
-            afterimageRelayUrl,
-            Duration.ofMinutes(30));
-    return cacheDereferenceEventTagService;
+      @NonNull RemoteAbstractTagService remoteAbstractTagService) {
+    return new CacheReferenceEventTagService(redisCacheService, remoteAbstractTagService);
   }
 
   @Bean("eventKindMaterializers")

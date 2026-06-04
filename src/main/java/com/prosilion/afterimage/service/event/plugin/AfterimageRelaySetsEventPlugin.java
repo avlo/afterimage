@@ -43,9 +43,11 @@ public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEve
 
   @Override
   protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays) {
-    return new RelaySetsEvent(
+    RelaySetsEvent event = new RelaySetsEvent(
         identity,
         new RelaysTag(uniqueNewRelays.stream().map(Relay::new).toList()),
         "AfterimageRelaySetsEventPlugin created RelaySetsEvent");
+    log.debug("createEvent(..., @NonNull Set<String> uniqueNewRelays):\n {}", event.createPrettyPrintJson());
+    return event;
   }
 }
