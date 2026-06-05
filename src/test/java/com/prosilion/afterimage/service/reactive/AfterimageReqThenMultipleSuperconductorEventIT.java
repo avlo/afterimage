@@ -52,17 +52,17 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);

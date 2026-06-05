@@ -36,10 +36,10 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
   @Test
   void superconductorEventThenAfterimageReq() throws IOException, NostrException {
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
         "1",

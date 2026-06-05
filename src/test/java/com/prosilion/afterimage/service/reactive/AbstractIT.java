@@ -23,7 +23,6 @@ import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
-import com.prosilion.nostr.message.OkMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.IdentifierTag;
@@ -38,6 +37,8 @@ import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,16 +69,16 @@ public abstract class AbstractIT {
   protected final IdentifierTag formulaIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
 
   protected final Identity defnCreator =
-//      Identity.generateRandomIdentity();
-      Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
+      Identity.generateRandomIdentity();
+//      Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
   protected final Identity submitter =
-//        Identity.generateRandomIdentity();
-      Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
+      Identity.generateRandomIdentity();
+//      Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
 
   protected final Identity recipient =
-//        Identity.generateRandomIdentity();
-      Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+      Identity.generateRandomIdentity();
+//      Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
 
   protected final EventServiceIF eventServiceIF;
 
@@ -101,91 +102,40 @@ public abstract class AbstractIT {
     log.debug("definitionsCreatorIdentity: [{}]", defnCreator.getPublicKey().toHexString());
     log.debug("voteSubmitterIdentity: [{}]", submitter.getPublicKey().toHexString());
 
-////////////////////////////////
-//    START SUPERCONDUCTOR section
-//    create then submit SC awardUpvoteDefinitionEvent
-    awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
-        defnCreator,
-        upvoteIdentifierTag,
-        superconductorRelay,
-        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
+//  SUPERCONDUCTOR section
+    awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent(defnCreator);
+    submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl, badgeDefinitionEventFilter.apply(defnCreator.getPublicKey()));
 
-    log.debug("sending awardUpvoteDefinitionEvent {} to superconductorRelayUrl", awardUpvoteDefinitionEvent);
-    RequestSubscriber<OkMessage> awardUpvoteDefinitionEventSubscriber = new RequestSubscriber<>();
-    NostrEventPublisher superconductorRelayClient = new NostrEventPublisher(superconductorRelayUrl);
-    superconductorRelayClient.send(
-        new EventMessage(awardUpvoteDefinitionEvent), awardUpvoteDefinitionEventSubscriber);
-    assertEquals(true, awardUpvoteDefinitionEventSubscriber.getItems().getFirst().getFlag());
+    FormulaEvent plusOneFormulaEvent = createFormulaEvent(defnCreator);
+    submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaIdentifierTag));
 
-//    validate SC awardUpvoteDefinitionEvent item
-    List<BaseMessage> scUpvoteDefinitionEventMessageItems = new NostrSingleRequestService().send(
-        createSuperconductorReqMessageBadgeAwardDefinitionEvent(
-            Factory.generateRandomHex64String(),
-            defnCreator.getPublicKey()),
-        superconductorRelayUrl);
-
-    List<EventIF> returnedSuperconductorAwardUpvoteDefinitionEvents = getGenericEvents(scUpvoteDefinitionEventMessageItems);
-
-    assertEquals(returnedSuperconductorAwardUpvoteDefinitionEvents.getFirst().getId(), awardUpvoteDefinitionEvent.getId());
-    assertEquals(returnedSuperconductorAwardUpvoteDefinitionEvents.getFirst().getContent(), awardUpvoteDefinitionEvent.getContent());
-    assertEquals(returnedSuperconductorAwardUpvoteDefinitionEvents.getFirst().getPublicKey().toHexString(), awardUpvoteDefinitionEvent.getPublicKey().toHexString());
-    assertEquals(returnedSuperconductorAwardUpvoteDefinitionEvents.getFirst().getKind(), awardUpvoteDefinitionEvent.getKind());
-
-//    create then submit SC FormulaEvent
-    FormulaEvent plusOneFormulaEvent = new FormulaEvent(
-        defnCreator,
-        formulaIdentifierTag,
-        superconductorRelay,
-        awardUpvoteDefinitionEvent,
-        PLUS_ONE_FORMULA);
-    log.debug("creator public key:\n\n  {}\n\n", defnCreator.getPublicKey().toHexString());
-    NostrEventPublisher plusOneFormulaEventSCPublisher = new NostrEventPublisher(superconductorRelayUrl);
-    plusOneFormulaEventSCPublisher.send(new EventMessage(plusOneFormulaEvent));
-
-//    validate SC FormulaEvent item
-    List<BaseMessage> returnedSCFormulaEventsBaseMessages = new NostrSingleRequestService().send(
-        createSuperconductorReqMessageFormulaEvent(
-            Factory.generateRandomHex64String(),
-            defnCreator.getPublicKey(),
-            formulaIdentifierTag),
-        superconductorRelayUrl);
-
-    List<EventIF> returnedSCFormulaEvents = getGenericEvents(returnedSCFormulaEventsBaseMessages);
-    assertEquals(returnedSCFormulaEvents.getFirst().getId(), plusOneFormulaEvent.getId());
-    assertEquals(returnedSCFormulaEvents.getFirst().getContent(), plusOneFormulaEvent.getContent());
-    assertEquals(returnedSCFormulaEvents.getFirst().getPublicKey().toHexString(), plusOneFormulaEvent.getPublicKey().toHexString());
-    assertEquals(returnedSCFormulaEvents.getFirst().getKind(), plusOneFormulaEvent.getKind());
-
-//    create then submit SC BadgeDefinitionReputationEvent item
-    BadgeDefinitionReputationEvent badgeDefinitionReputationEventPlusOneFormula = new BadgeDefinitionReputationEvent(
-        defnCreator,
-        submitter.getPublicKey(),
-        reputationIdentifierTag,
-        afterimageRelay,
-        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        plusOneFormulaEvent);
-
-    eventServiceIF.processIncomingEvent(
-        new EventMessage(badgeDefinitionReputationEventPlusOneFormula.asGenericEventRecord()));
+//  AIMG section
+    simulateIncomingFollowSetsEventToAimg(
+        createBadgeDefinitionReputationEvent(defnCreator, submitter, afterimageRelay, plusOneFormulaEvent));
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
-  protected void simulateAimgFollowSetsHandler(EventIF eventIF) {
-    eventServiceIF.processIncomingEvent(new EventMessage(eventIF.asGenericEventRecord()));
-  }
+  protected Function<PublicKey, Filters> badgeAwardEventFilter = publicKey -> new Filters(
+      new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)),
+      new KindFilter(Kind.BADGE_AWARD_EVENT));
 
-  protected EventIF submitSCEvent(BaseEvent event, String url, Identity rewardRecipient) {
-    //  begin SC votes submissions  
+  protected Function<PublicKey, Filters> badgeDefinitionEventFilter = publicKey -> new Filters(
+      new AuthorFilter(publicKey),
+      new KindFilter(Kind.BADGE_DEFINITION_EVENT));
 
+  protected BiFunction<PublicKey, IdentifierTag, Filters> formulaEventFilter = (publicKey, identifierTag) ->
+      new Filters(
+          new AuthorFilter(publicKey),
+          new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA),
+          new IdentifierTagFilter(identifierTag));
+
+  protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {
 //  submit first Event to superconductor
-    submitAimgEvent(event, url);
+    submitRelayEvent(event, url);
 
 //    validate by submit Req for above badgeAwardUpvoteEvent to superconductor
-    List<BaseMessage> baseMessages =
-        new NostrSingleRequestService().send(
-            createSuperconductorReqMessageBadgeAwardEvent(
-                Factory.generateRandomHex64String(), rewardRecipient.getPublicKey()),
-            url);
+    List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
+        createSuperconductorReqMessageEvent(Factory.generateRandomHex64String(), filters), url);
 
     // TimeUnit.MILLISECONDS.sleep(2500);
     log.debug("retrieved superconductor events:");
@@ -202,41 +152,16 @@ public abstract class AbstractIT {
     return upvoteEventIF;
   }
 
-  protected void submitAimgEvent(BaseEvent event, String url) {
+  protected void submitRelayEvent(BaseEvent event, String url) {
     assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event)).getFlag());
   }
 
-  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Identity submitter, Identity recipient, Relay relay) {
-    return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
+  protected ReqMessage createSuperconductorReqMessageEvent(String subscriberId, Filters filters) {
+    return new ReqMessage(subscriberId, filters);
   }
 
-  protected ReqMessage createSuperconductorReqMessageBadgeAwardEvent(String subscriberId, PublicKey recipientPublicKey) {
-    return new ReqMessage(subscriberId,
-        new Filters(
-            new ReferencedPublicKeyFilter(new PubKeyTag(recipientPublicKey)),
-            new KindFilter(Kind.BADGE_AWARD_EVENT)));
-  }
-
-  private ReqMessage createSuperconductorReqMessageBadgeAwardDefinitionEvent(String subscriberId, PublicKey defnCreatorPublicKey) {
-    return new ReqMessage(subscriberId,
-        new Filters(
-            new AuthorFilter(defnCreatorPublicKey),
-            new KindFilter(Kind.BADGE_DEFINITION_EVENT)));
-  }
-
-  private ReqMessage createSuperconductorReqMessageFormulaEvent(String subscriberId, PublicKey defnCreatorPublicKey, IdentifierTag identifierTag) {
-    return new ReqMessage(subscriberId,
-        new Filters(
-            new AuthorFilter(defnCreatorPublicKey),
-            new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA),
-            new IdentifierTagFilter(identifierTag)));
-  }
-
-  protected BaseEvent createSearchRelaysListEventMessage(Relay shouldAlwaysBeAnSCRelay) {
-    return new SearchRelaysListEvent(
-        Identity.generateRandomIdentity(),
-        new RelaysTag(shouldAlwaysBeAnSCRelay),
-        "Search Relays List sent from aImg IT 5556");
+  protected void simulateIncomingFollowSetsEventToAimg(EventIF eventIF) {
+    eventServiceIF.processIncomingEvent(new EventMessage(eventIF.asGenericEventRecord()));
   }
 
   protected List<EventIF> submitAfterImageReq(Identity recipient, Identity defnCreator, String url) throws JsonProcessingException {
@@ -278,6 +203,49 @@ public abstract class AbstractIT {
             recipient.getPublicKey(),
             defnCreator.getPublicKey()),
         url, subscriber);
+  }
+
+  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Identity submitter, Identity recipient, Relay relay) {
+    return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
+  }
+
+  protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent(Identity defnCreator) {
+    return new BadgeDefinitionGenericEvent(
+        defnCreator,
+        upvoteIdentifierTag,
+        superconductorRelay,
+        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
+  }
+
+  protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent(
+      Identity defnCreator,
+      Identity submitter,
+      Relay afterimageRelay,
+      FormulaEvent plusOneFormulaEvent) {
+    return new BadgeDefinitionReputationEvent(
+        defnCreator,
+        submitter.getPublicKey(),
+        reputationIdentifierTag,
+        afterimageRelay,
+        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+        plusOneFormulaEvent);
+
+  }
+
+  protected FormulaEvent createFormulaEvent(Identity defnCreator) throws ParseException {
+    return new FormulaEvent(
+        defnCreator,
+        formulaIdentifierTag,
+        superconductorRelay,
+        awardUpvoteDefinitionEvent,
+        PLUS_ONE_FORMULA);
+  }
+
+  protected BaseEvent createSearchRelaysListEventMessage(Relay shouldAlwaysBeAnSCRelay) {
+    return new SearchRelaysListEvent(
+        Identity.generateRandomIdentity(),
+        new RelaysTag(shouldAlwaysBeAnSCRelay),
+        "Search Relays List sent from aImg IT 5556");
   }
 
   protected List<EventIF> getGenericEvents(List<BaseMessage> messages) {

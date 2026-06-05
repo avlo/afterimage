@@ -44,26 +44,26 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
 
   @Test
   void superconductorMultipleEventsThenAfterimageReq() throws IOException, NostrException {
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
         "1",
         submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // third upvote    
-    simulateAimgFollowSetsHandler(
+    simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, recipient));
+            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     List<EventIF> returnedAfterImageEvents_B = submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl);
 
