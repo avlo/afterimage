@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-public class SuperconductorEventThenAfterimageReqIT extends SuperconductorSingleEventThenAfterimageReqAbstractIT {
+public class SuperconductorMultipleEventsThenAfterimageReqIT extends SuperconductorEventsThenAfterimageReqAbstractIT {
   @Autowired
-  public SuperconductorEventThenAfterimageReqIT(
+  public SuperconductorMultipleEventsThenAfterimageReqIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, IOException, InterruptedException {
