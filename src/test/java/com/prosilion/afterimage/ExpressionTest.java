@@ -49,6 +49,7 @@ public class ExpressionTest {
     BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
+        afterimageInstanceIdentity.getPublicKey(),
         reputationIdentifierTag,
         relay,
         BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
@@ -68,6 +69,7 @@ public class ExpressionTest {
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
         afterimageInstanceIdentity,
+        afterimageInstanceIdentity.getPublicKey(),
         reputationIdentifierTag,
         relay,
         BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
