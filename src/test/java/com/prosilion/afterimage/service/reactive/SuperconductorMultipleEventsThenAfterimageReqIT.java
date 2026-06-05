@@ -1,15 +1,12 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
 import java.util.List;
@@ -33,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-public class SuperconductorMultipleEventsThenAfterimageReqIT extends SuperconductorEventsThenAfterimageReqAbstractIT {
+public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT {
   @Autowired
   public SuperconductorMultipleEventsThenAfterimageReqIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
@@ -44,39 +41,22 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends Superconduc
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException {
-    EventIF upvoteEvent = createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity);
-    simulateAimgFollowSetsHandler(upvoteEvent);
+    simulateAimgFollowSetsHandler(
+        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
 
-//    query Aimg for above badgeAwardUpvoteEvent
-    log.debug("query Aimg for above badgeAwardUpvoteEvent:");
-    List<BaseMessage> subscriber = new NostrSingleRequestService().send(
-        createAfterImageReqMessage(
-            Factory.generateRandomHex64String(),
-            voteReceierIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()),
-        afterimageRelayUrl);
-
-    log.debug("afterimage returned events:");
-    List<EventIF> returnedAimgReqGenericEvents_A = getGenericEvents(subscriber);
-
-    assertEquals("1", returnedAimgReqGenericEvents_A.getFirst().getContent());
+    assertEquals(
+        "1",
+        submitAfterImageReq(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
-    EventIF upvoteEvent2 = createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity);
-    simulateAimgFollowSetsHandler(upvoteEvent2);
+    simulateAimgFollowSetsHandler(
+        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
 
 // third upvote    
-    EventIF upvoteEvent3 = createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity);
-    simulateAimgFollowSetsHandler(upvoteEvent3);
+    simulateAimgFollowSetsHandler(
+        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
 
-    List<BaseMessage> afterImageEventsSubscriber_B = new NostrSingleRequestService().send(
-        createAfterImageReqMessage(
-            Factory.generateRandomHex64String(),
-            voteReceierIdentity.getPublicKey(),
-            definitionsCreatorIdentity.getPublicKey()),
-        afterimageRelayUrl);
-
-    List<EventIF> returnedAfterImageEvents_B = getGenericEvents(afterImageEventsSubscriber_B);
+    List<EventIF> returnedAfterImageEvents_B = submitAfterImageReq(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl);
 
     assertTrue(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
