@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Import(SingleContainerTestConfig.class)
 public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   @Autowired
   public AfterimageReqThenMultipleSuperconductorEventIT(
@@ -43,19 +46,23 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   }
 
   @Test
-  void testAfterimageReqThenSuperconductorTwoEvents() throws IOException, NostrException, InterruptedException {
+  void afterimageReqThenMultipleSuperconductorEvents() throws IOException, NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl, reputationRequestSubscriber);
+    submitAfterImageReqWithSubscriber(recipient, defnCreator, afterimageRelayUrl, reputationRequestSubscriber);
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -65,17 +72,17 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
-            .anyMatch(voteReceierIdentity.getPublicKey()::equals)));
+            .anyMatch(recipient.getPublicKey()::equals)));
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(AddressTag.class).stream()
             .map(AddressTag::getPublicKey)
-            .anyMatch(definitionsCreatorIdentity.getPublicKey()::equals)));
+            .anyMatch(defnCreator.getPublicKey()::equals)));
 
     assertFalse(returnedReputationEventIFs.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(AddressTag.class).stream()
             .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
-            .filter(addressTag -> addressTag.getPublicKey().equals(definitionsCreatorIdentity.getPublicKey()))
+            .filter(addressTag -> addressTag.getPublicKey().equals(defnCreator.getPublicKey()))
             .filter(addressTag -> addressTag.getIdentifierTag().equals(reputationIdentifierTag))
             .toList().isEmpty()));
 

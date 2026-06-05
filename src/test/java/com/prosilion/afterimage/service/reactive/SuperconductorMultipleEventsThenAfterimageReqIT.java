@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.EventIF;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -30,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Import(SingleContainerTestConfig.class)
 public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT {
   @Autowired
   public SuperconductorMultipleEventsThenAfterimageReqIT(
@@ -40,37 +43,43 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException {
+  void superconductorMultipleEventsThenAfterimageReq() throws IOException, NostrException {
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
     assertEquals(
         "1",
-        submitAfterImageReq(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl).getFirst().getContent());
+        submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
 // third upvote    
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
-    List<EventIF> returnedAfterImageEvents_B = submitAfterImageReq(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl);
+    List<EventIF> returnedAfterImageEvents_B = submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl);
 
     assertTrue(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
-            .anyMatch(publicKey -> publicKey.equals(voteReceierIdentity.getPublicKey()))));
+            .anyMatch(publicKey -> publicKey.equals(recipient.getPublicKey()))));
 
     assertTrue(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(AddressTag.class).stream()
             .map(AddressTag::getPublicKey)
-            .anyMatch(definitionsCreatorIdentity.getPublicKey()::equals)));
+            .anyMatch(defnCreator.getPublicKey()::equals)));
 
     assertFalse(returnedAfterImageEvents_B.stream().anyMatch(eventIF ->
         eventIF.findFirstTag(AddressTag.class).stream()
             .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
-            .filter(addressTag -> addressTag.getPublicKey().equals(definitionsCreatorIdentity.getPublicKey()))
+            .filter(addressTag -> addressTag.getPublicKey().equals(defnCreator.getPublicKey()))
             .filter(addressTag -> addressTag.getIdentifierTag().equals(reputationIdentifierTag))
             .toList().isEmpty()));
 

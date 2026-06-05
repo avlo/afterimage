@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -21,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Import(SingleContainerTestConfig.class)
 public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
   @Autowired
@@ -32,12 +35,14 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException {
+  void superconductorEventThenAfterimageReq() throws IOException, NostrException {
     simulateAimgFollowSetsHandler(
-        createAndSubmitVoteEvent(superconductorRelayUrl, voteSubmitterIdentity, voteReceierIdentity));
+        submitSCEvent(
+            createUpvoteEvent(submitter, recipient, superconductorRelay),
+            superconductorRelayUrl, recipient));
 
     assertEquals(
         "1",
-        submitAfterImageReq(voteReceierIdentity, definitionsCreatorIdentity, afterimageRelayUrl).getFirst().getContent());
+        submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl).getFirst().getContent());
   }
 }
