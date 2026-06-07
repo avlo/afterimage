@@ -32,7 +32,7 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
   public SuperconductorMultipleEventsThenAfterimageReqIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, IOException, InterruptedException {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
     super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
   }
 

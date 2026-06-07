@@ -4,7 +4,6 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -30,12 +29,12 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
   public SuperconductorSingleEventThenAfterimageReqIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, IOException, InterruptedException {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
     super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
   }
 
   @Test
-  void superconductorEventThenAfterimageReq() throws IOException, NostrException {
+  void superconductorEventThenAfterimageReq() throws NostrException {
     simulateIncomingFollowSetsEventToAimg(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),

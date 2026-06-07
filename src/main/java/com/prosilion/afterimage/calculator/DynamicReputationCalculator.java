@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.calculator;
 
-import com.ezylang.evalex.Expression;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.AddressableEvent;
@@ -17,7 +16,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.springframework.lang.NonNull;
 
 public class DynamicReputationCalculator implements ReputationCalculatorIF {
@@ -75,18 +73,8 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
                                 formulaEvent.getIdentifierTag().getUuid(),
                             FormulaEvent::getFormula,
                             (prev, next) -> next, HashMap::new)).get(formulaUuid.getUuid()))
-            .reduce(previousReputationEvent.getContent(), this::doCalc);
+            .reduce(previousReputationEvent.getScore(), ExpressionCalculator::calculate);
     return result;
-  }
-
-  @SneakyThrows
-  private String doCalc(String currentTotal, String operation) {
-    final String currentTotalString = "total";
-    BigDecimal result = new Expression(
-        String.format("%s %s", currentTotalString, operation))
-        .with(currentTotalString, new BigDecimal(currentTotal))
-        .evaluate().getNumberValue();
-    return result.toString();
   }
 
   private BadgeAwardReputationEvent createReputationEvent(

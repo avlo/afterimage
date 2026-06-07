@@ -23,7 +23,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @TestMethodOrder(MethodOrderer.MethodName.class)
@@ -35,7 +34,7 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   public AfterimageReqThenMultipleSuperconductorEventIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, IOException, InterruptedException {
+      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
     super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
   }
 
@@ -60,12 +59,11 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);
-    List<EventIF> returnedReputationEventIFs =
-        validateGeneralAfterimageRequestResults(
-            getGenericEvents(reputationRequestSubscriber.getItems()));
-    
-    assertEquals(2, returnedReputationEventIFs.size());
-    assertTrue(returnedReputationEventIFs.stream().map(EventIF::getContent).toList().contains("1"));
-    assertTrue(returnedReputationEventIFs.stream().map(EventIF::getContent).toList().contains("2"));
+
+// subscriber gets both events, starting with the first...    
+    List<EventIF> eventIFS = validateSpecificAfterimageRequestResults(reputationRequestSubscriber, 2, "1");
+
+// now validate the second    
+    assertEquals("2", eventIFS.getLast().getContent());
   }
 }

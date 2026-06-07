@@ -3,6 +3,8 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
+import com.prosilion.afterimage.calculator.ExpressionCalculator;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -12,17 +14,17 @@ import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.List;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 @ActiveProfiles("test")
-public class ExpressionTest {
+public class ExpressionCalculatorTest {
   public static final String UNIT_UPVOTE = "UNIT_UPVOTE";
   public static final String UNIT_DOWNVOTE = "UNIT_DOWNVOTE";
   public static final String UNIT_REPUTATION = "UNIT_REPUTATION";
@@ -42,7 +44,7 @@ public class ExpressionTest {
   public static final String FORMULA_MINUS_ONE = "FORMULA_MINUS_ONE";
   private final IdentifierTag formulaMinusOneIdentifierTag = new IdentifierTag(FORMULA_MINUS_ONE);
 
-  public ExpressionTest() throws ParseException {
+  public ExpressionCalculatorTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
     BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
@@ -82,7 +84,7 @@ public class ExpressionTest {
                 PLUS_ONE_FORMULA),
             new FormulaEvent(
                 afterimageInstanceIdentity,
-                formulaMinusOneIdentifierTag,
+                formulaMinusOneIdentifierTag, // convenient repurpose of minusOne tag to add another +1 event content 
                 relay,
                 downvoteDefinitionEvent,
                 PLUS_ONE_FORMULA)));
@@ -130,7 +132,7 @@ public class ExpressionTest {
         "0",
         badgeDefinitionReputationEventAddOneSubtractOne.getFormulaEvents().stream()
             .map(FormulaEvent::getFormula)
-            .reduce(this::doCalc)
+            .reduce(ExpressionCalculator::calculate)
             .orElseThrow());
   }
 
@@ -141,18 +143,8 @@ public class ExpressionTest {
         "2",
         badgeDefinitionReputationEventAddOneAddOne.getFormulaEvents().stream()
             .map(FormulaEvent::getFormula)
-            .reduce(this::doCalc)
+            .reduce(ExpressionCalculator::calculate)
             .orElseThrow());
-  }
-
-  @SneakyThrows
-  private String doCalc(String currentTotal, String operator) {
-    final String currentTotalString = "total";
-    BigDecimal result = new Expression(
-        String.format("%s %s", currentTotalString, operator))
-        .with(currentTotalString, new BigDecimal(currentTotal))
-        .evaluate().getNumberValue();
-    return result.toString();
   }
 
   @Test
@@ -178,6 +170,40 @@ public class ExpressionTest {
             .with(CURRENT_TOTAL_STRING, resultAfterUpvote)
             .and(UNIT_DOWNVOTE_STRING, UNIT_DOWNVOTE_VALUE)
             .evaluate().getNumberValue());
+  }
+
+  @Test
+  void testVariousOperations() {
+    testVariousSpaceTabFormatHandling("1", "0", "+", "1");
+    testVariousSpaceTabFormatHandling("-1", "0", "-", "1");
+
+    testVariousSpaceTabFormatHandling("10", "0", "+", "10");
+    testVariousSpaceTabFormatHandling("10", "10", "+", "0");
+    testVariousSpaceTabFormatHandling("10", "10", "-", "0");
+
+    testVariousSpaceTabFormatHandling("-1", "0", "+", "-1");
+
+    testVariousSpaceTabFormatHandling("-10", "0", "+", "-10");
+    testVariousSpaceTabFormatHandling("-20", "-10", "+", "-10");
+  }
+
+  void testVariousSpaceTabFormatHandling(String expected, String currentTotal, String operator, String operand) {
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, " " + operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, "   " + operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, "   " + operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, "   " + operator + "   " + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(currentTotal, "   " + operator + "   " + operand + "   "));
+    assertEquals(expected, ExpressionCalculator.calculate(" " + currentTotal, operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate("    " + currentTotal, operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate(" " + currentTotal + " ", operator + operand));
+    assertEquals(expected, ExpressionCalculator.calculate("  " + currentTotal + "   ", operator + operand));
+  }
+
+  @Test
+  void testExceptions() {
+    assertThrows(NumberFormatException.class, () -> ExpressionCalculator.calculate("+-10", " +  - 10"));
+    assertThrows(NostrException.class, () -> ExpressionCalculator.calculate("10", "0"));
   }
 
   private static Number parsePlusSign(String operand) throws java.text.ParseException {

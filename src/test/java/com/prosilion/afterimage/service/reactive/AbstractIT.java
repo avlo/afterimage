@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
@@ -62,13 +61,18 @@ public abstract class AbstractIT {
 
   public static final String REPUTATION = "TEST_REPUTATION";
   public static final String AWARD_UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
+  public static final String AWARD_UNIT_DOWNVOTE = "TEST_UNIT_DOWNVOTE";
   public static final String FORMULA_UNIT_UPVOTE = "FORMULA_UNIT_UPVOTE";
+  public static final String FORMULA_UNIT_DOWNVOTE = "FORMULA_UNIT_DOWNVOTE";
 
   public static final String PLUS_ONE_FORMULA = "+1";
+  public static final String MINUS_ONE_FORMULA = "-1";
 
   protected final IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
   protected final IdentifierTag upvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_UPVOTE);
-  protected final IdentifierTag formulaIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
+  protected final IdentifierTag downvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_DOWNVOTE);
+  protected final IdentifierTag formulaUpvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
+  protected final IdentifierTag formulaDownvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_DOWNVOTE);
 
   protected final Identity defnCreator =
       Identity.generateRandomIdentity();
@@ -85,6 +89,7 @@ public abstract class AbstractIT {
   protected final EventServiceIF eventServiceIF;
 
   protected final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
+  protected final BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent;
 
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrl;
@@ -108,8 +113,14 @@ public abstract class AbstractIT {
     awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent(defnCreator);
     submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl, badgeDefinitionEventFilter.apply(defnCreator.getPublicKey()));
 
-    FormulaEvent plusOneFormulaEvent = createFormulaEvent(defnCreator);
-    submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaIdentifierTag));
+    FormulaEvent plusOneFormulaEvent = createFormulaUpvoteEvent(defnCreator);
+    submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaUpvoteIdentifierTag));
+
+    awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent(defnCreator);
+    submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl, badgeDefinitionEventFilter.apply(defnCreator.getPublicKey()));
+
+    FormulaEvent minusOneFormulaEvent = createFormulaDownvoteEvent(defnCreator);
+    submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaDownvoteIdentifierTag));
 
 //  AIMG section
     simulateIncomingFollowSetsEventToAimg(
@@ -166,7 +177,7 @@ public abstract class AbstractIT {
     eventServiceIF.processIncomingEvent(new EventMessage(eventIF.asGenericEventRecord()));
   }
 
-  protected List<EventIF> submitAfterImageReq(Identity recipient, Identity defnCreator, String url) throws JsonProcessingException {
+  protected List<EventIF> submitAfterImageReq(Identity recipient, Identity defnCreator, String url) {
     log.debug("query Aimg for badgeAwardUpvoteEvent:");
     List<BaseMessage> subscriber = new NostrSingleRequestService().send(
         createAfterImageReqMessage(
@@ -179,7 +190,7 @@ public abstract class AbstractIT {
     return getGenericEvents(subscriber);
   }
 
-  protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey recipientPublicKey, PublicKey defnCreatorPublicKey) throws JsonProcessingException {
+  protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey recipientPublicKey, PublicKey defnCreatorPublicKey) {
     ExternalIdentityTagFilter externalIdentityTagFilter = new ExternalIdentityTagFilter(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
     return new ReqMessage(
         subscriberId,
@@ -198,7 +209,7 @@ public abstract class AbstractIT {
             externalIdentityTagFilter));
   }
 
-  protected void submitAfterImageReqWithSubscriber(Identity recipient, Identity defnCreator, String url, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException {
+  protected void submitAfterImageReqWithSubscriber(Identity recipient, Identity defnCreator, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
@@ -211,6 +222,10 @@ public abstract class AbstractIT {
     return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
   }
 
+  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createDownvoteEvent(Identity submitter, Identity recipient, Relay relay) {
+    return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardDownvoteDefinitionEvent);
+  }
+
   protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent(Identity defnCreator) {
     return new BadgeDefinitionGenericEvent(
         defnCreator,
@@ -219,13 +234,30 @@ public abstract class AbstractIT {
         String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
   }
 
-  protected FormulaEvent createFormulaEvent(Identity defnCreator) throws ParseException {
+  protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent(Identity defnCreator) {
+    return new BadgeDefinitionGenericEvent(
+        defnCreator,
+        downvoteIdentifierTag,
+        superconductorRelay,
+        String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
+  }
+
+  protected FormulaEvent createFormulaUpvoteEvent(Identity defnCreator) throws ParseException {
     return new FormulaEvent(
         defnCreator,
-        formulaIdentifierTag,
+        formulaUpvoteIdentifierTag,
         superconductorRelay,
         awardUpvoteDefinitionEvent,
         PLUS_ONE_FORMULA);
+  }
+
+  protected FormulaEvent createFormulaDownvoteEvent(Identity defnCreator) throws ParseException {
+    return new FormulaEvent(
+        defnCreator,
+        formulaDownvoteIdentifierTag,
+        superconductorRelay,
+        awardDownvoteDefinitionEvent,
+        MINUS_ONE_FORMULA);
   }
 
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent(
@@ -274,6 +306,15 @@ public abstract class AbstractIT {
             .anyMatch(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG::equals)));
 
     return returnedReputationEventIFs;
+  }
+
+  protected List<EventIF> validateSpecificAfterimageRequestResults(RequestSubscriber<BaseMessage> subscriber, int count, String expectedScore) {
+    List<EventIF> events =
+        validateGeneralAfterimageRequestResults(
+            getGenericEvents(subscriber.getItems()));
+    assertEquals(count, (long) events.size());
+    assertEquals(expectedScore, events.getFirst().getContent());
+    return events;
   }
 
   protected List<EventIF> getGenericEvents(List<BaseMessage> messages) {
