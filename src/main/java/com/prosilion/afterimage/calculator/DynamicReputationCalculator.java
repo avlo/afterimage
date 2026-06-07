@@ -2,8 +2,9 @@ package com.prosilion.afterimage.calculator;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.AddressableEvent;
+import com.prosilion.nostr.event.BadgeAwardAbstractEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -15,6 +16,7 @@ import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.lang.NonNull;
 
@@ -35,14 +37,15 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
       @NonNull List<FormulaEvent> formulaEvents,
       @NonNull FollowSetsEvent incomingFollowSetsEvent) throws NostrException {
 
-    List<IdentifierTag> formulaUuids = incomingFollowSetsEvent
-        .getBadgeDefinitionReputationEvent()
-        .getFormulaEvents().stream().map(AddressableEvent::asAddressableEventAddressTag)
+    List<IdentifierTag> formulaUuids = incomingFollowSetsEvent.getBadgeAwardGenericEvents()
+        .stream().map(BadgeAwardAbstractEvent::getBadgeDefinitionEvent)
+        .map(BadgeDefinitionGenericEvent::asAddressableEventAddressTag)
+        .map(AddressTag::getIdentifierTag)
+        .filter(Objects::nonNull)
         .filter(
             formulaEvents.stream()
-                .map(FormulaEvent::asAddressableEventAddressTag)
-                .toList()::contains)
-        .distinct().map(AddressTag::getIdentifierTag)
+                .map(FormulaEvent::getBadgeDefinitionGenericEvent)
+                .map(BadgeDefinitionGenericEvent::getIdentifierTag).toList()::contains)
         .toList();
 
     String updatedScore = calculateReputationEventScore(
@@ -67,10 +70,10 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
         formulaUuids.stream().map(formulaUuid ->
                 formulaEvents.stream()
                     .filter(formulaEvent ->
-                        formulaEvent.getIdentifierTag().equals(formulaUuid)).collect(
+                        formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().equals(formulaUuid)).collect(
                         Collectors.toMap(
                             formulaEvent ->
-                                formulaEvent.getIdentifierTag().getUuid(),
+                                formulaEvent.getBadgeDefinitionGenericEvent().getIdentifierTag().getUuid(),
                             FormulaEvent::getFormula,
                             (prev, next) -> next, HashMap::new)).get(formulaUuid.getUuid()))
             .reduce(previousReputationEvent.getScore(), ExpressionCalculator::calculate);

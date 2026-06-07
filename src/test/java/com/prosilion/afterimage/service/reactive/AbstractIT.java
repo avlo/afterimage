@@ -95,6 +95,15 @@ public abstract class AbstractIT {
   protected final String afterimageRelayUrl;
   protected final Relay superconductorRelay;
 
+  protected Function<PublicKey, Filters> badgeAwardEventFilter = publicKey -> new Filters(
+      new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)), new KindFilter(Kind.BADGE_AWARD_EVENT));
+
+  protected Function<PublicKey, Filters> badgeDefinitionEventFilter = publicKey -> new Filters(
+      new AuthorFilter(publicKey), new KindFilter(Kind.BADGE_DEFINITION_EVENT));
+
+  protected BiFunction<PublicKey, IdentifierTag, Filters> formulaEventFilter = (publicKey, identifierTag) ->
+      new Filters(new AuthorFilter(publicKey), new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA), new IdentifierTagFilter(identifierTag));
+
   public AbstractIT(
       @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
@@ -124,23 +133,9 @@ public abstract class AbstractIT {
 
 //  AIMG section
     simulateIncomingFollowSetsEventToAimg(
-        createBadgeDefinitionReputationEvent(defnCreator, submitter, afterimageRelay, plusOneFormulaEvent));
+        createBadgeDefinitionReputationEvent(defnCreator, submitter, afterimageRelay, plusOneFormulaEvent, minusOneFormulaEvent));
     TimeUnit.MILLISECONDS.sleep(1000);
   }
-
-  protected Function<PublicKey, Filters> badgeAwardEventFilter = publicKey -> new Filters(
-      new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)),
-      new KindFilter(Kind.BADGE_AWARD_EVENT));
-
-  protected Function<PublicKey, Filters> badgeDefinitionEventFilter = publicKey -> new Filters(
-      new AuthorFilter(publicKey),
-      new KindFilter(Kind.BADGE_DEFINITION_EVENT));
-
-  protected BiFunction<PublicKey, IdentifierTag, Filters> formulaEventFilter = (publicKey, identifierTag) ->
-      new Filters(
-          new AuthorFilter(publicKey),
-          new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA),
-          new IdentifierTagFilter(identifierTag));
 
   protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {
 //  submit first Event to superconductor
@@ -264,14 +259,14 @@ public abstract class AbstractIT {
       Identity defnCreator,
       Identity submitter,
       Relay afterimageRelay,
-      FormulaEvent plusOneFormulaEvent) {
+      FormulaEvent... formulaEvents) {
     return new BadgeDefinitionReputationEvent(
         defnCreator,
         submitter.getPublicKey(),
         reputationIdentifierTag,
         afterimageRelay,
         AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        plusOneFormulaEvent);
+        formulaEvents);
 
   }
 
