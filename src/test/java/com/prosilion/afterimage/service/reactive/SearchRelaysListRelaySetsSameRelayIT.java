@@ -4,6 +4,7 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +44,7 @@ public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
   @Test
   void searchRelaysListRelaySetsSameRelay() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> subscriber_1 = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(recipient, defnCreator, afterimageRelayUrl, subscriber_1);
+    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_1);
     validateSpecificAfterimageRequestResults(subscriber_1, 1, "1");
 
 //    submit 2nd SC upvote event
@@ -54,7 +55,7 @@ public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
 
 //  intro 2nd subscriber    
     RequestSubscriber<BaseMessage> subscriber_2 = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(recipient, defnCreator, afterimageRelayUrl, subscriber_2);
+    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_2);
     validateSpecificAfterimageRequestResults(subscriber_2, 1, "2");
 
 //  check subscriber_1 has received updated score        
@@ -67,7 +68,7 @@ public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg    
 
     RequestSubscriber<BaseMessage> subscriber_3 = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(recipient, defnCreator, afterimageRelayUrl, subscriber_3);
+    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_3);
     validateSpecificAfterimageRequestResults(subscriber_3, 1, "1");
 
 //  check subscriber_2 has received updated score    

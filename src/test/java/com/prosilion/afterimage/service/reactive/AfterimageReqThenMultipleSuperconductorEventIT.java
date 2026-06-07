@@ -5,6 +5,7 @@ import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.message.BaseMessage;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   @Test
   void afterimageReqThenMultipleSuperconductorEvents() throws IOException, NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(recipient, defnCreator, afterimageRelayUrl, reputationRequestSubscriber);
+    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC

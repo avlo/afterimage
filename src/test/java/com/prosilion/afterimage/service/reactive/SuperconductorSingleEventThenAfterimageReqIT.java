@@ -3,6 +3,7 @@ package com.prosilion.afterimage.service.reactive;
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
@@ -42,6 +43,6 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
     assertEquals(
         "1",
-        submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl).getFirst().getContent());
+        submitAfterImageReq(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
   }
 }

@@ -172,20 +172,20 @@ public abstract class AbstractIT {
     eventServiceIF.processIncomingEvent(new EventMessage(eventIF.asGenericEventRecord()));
   }
 
-  protected List<EventIF> submitAfterImageReq(Identity recipient, Identity defnCreator, String url) {
+  protected List<EventIF> submitAfterImageReq(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url) {
     log.debug("query Aimg for badgeAwardUpvoteEvent:");
     List<BaseMessage> subscriber = new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
-            recipient.getPublicKey(),
-            defnCreator.getPublicKey()),
+            defnCreator,
+            recipientPubKeyTag),
         url);
 
     log.debug("afterimage returned events:");
     return getGenericEvents(subscriber);
   }
 
-  protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey recipientPublicKey, PublicKey defnCreatorPublicKey) {
+  protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey defnCreatorPublicKey, PubKeyTag recipientPubKeyTag) {
     ExternalIdentityTagFilter externalIdentityTagFilter = new ExternalIdentityTagFilter(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
     return new ReqMessage(
         subscriberId,
@@ -199,17 +199,16 @@ public abstract class AbstractIT {
                     defnCreatorPublicKey,
                     reputationIdentifierTag)),
             new ReferencedPublicKeyFilter(
-                new PubKeyTag(
-                    recipientPublicKey)),
+                recipientPubKeyTag),
             externalIdentityTagFilter));
   }
 
-  protected void submitAfterImageReqWithSubscriber(Identity recipient, Identity defnCreator, String url, RequestSubscriber<BaseMessage> subscriber) {
+  protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
         createAfterImageReqMessage(
             Factory.generateRandomHex64String(),
-            recipient.getPublicKey(),
-            defnCreator.getPublicKey()),
+            defnCreator,
+            recipientPubKeyTag),
         url, subscriber);
   }
 

@@ -4,6 +4,7 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +46,7 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
 
     assertEquals(
         "1",
-        submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl).getFirst().getContent());
+        submitAfterImageReq(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
     simulateIncomingFollowSetsEventToAimg(
@@ -60,7 +61,7 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
             superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     List<EventIF> returnedAfterImageEvents_B = validateGeneralAfterimageRequestResults(
-        submitAfterImageReq(recipient, defnCreator, afterimageRelayUrl));
+        submitAfterImageReq(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl));
 
     assertTrue(returnedAfterImageEvents_B.stream().map(EventIF::getContent).anyMatch("3"::equals));
   }
