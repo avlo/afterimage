@@ -16,6 +16,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
+/**
+ * test name "SearchRelaysListRelaySetsSameRelay" means:
+ * BadgeDefinitionReputationEvent and SearchRelaysListEvent for same (5556) aImg
+ * note: varies from {@link SearchRelaysListRelaySetsIT}, which is docker 5557
+ */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
@@ -23,18 +28,18 @@ import org.springframework.test.context.ActiveProfiles;
 public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
   @Autowired
   public SearchRelaysListRelaySetsSameRelayIT(
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
     super(superconductorRelayUrl, afterimageRelayUrl);
 
     submitSCEvent(
-        createUpvoteEvent(submitter, recipient, superconductorRelay),
-        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(100);
 
     submitRelayEvent(
-        createSearchRelaysListEventMessage(superconductorRelay),
-        afterimageRelayUrl);
+       createSearchRelaysListEventMessage(superconductorRelay),
+       afterimageRelayUrl);
     TimeUnit.MILLISECONDS.sleep(1500);
   }
 
@@ -46,8 +51,8 @@ public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
 
 //    submit 2nd SC upvote event
     submitSCEvent(
-        createUpvoteEvent(submitter, recipient, superconductorRelay),
-        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg
 
 //  intro 2nd subscriber    
@@ -60,8 +65,8 @@ public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
 
 //    submit 3rd SC event, a downvote
     submitSCEvent(
-        createDownvoteEvent(submitter, recipient, superconductorRelay),
-        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       createDownvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg    
 
     RequestSubscriber<BaseMessage> subscriber_3 = new RequestSubscriber<>();
