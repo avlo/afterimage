@@ -19,15 +19,15 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * test name "SearchRelaysListRelaySetsSameRelay" means:
  * BadgeDefinitionReputationEvent and SearchRelaysListEvent for same (5556) aImg
- * note: varies from {@link SearchRelaysListRelaySetsIT}, which is docker 5557
+ * note: varies from {@link SearchRelaysListDockerRelayIT}, which is docker 5557
  */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(MultiContainerSameRelayTestConfig.class)
-public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
+public class SearchRelaysListSameRelayIT extends AbstractIT {
   @Autowired
-  public SearchRelaysListRelaySetsSameRelayIT(
+  public SearchRelaysListSameRelayIT(
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
     super(superconductorRelayUrl, afterimageRelayUrl);

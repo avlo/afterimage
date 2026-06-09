@@ -287,7 +287,7 @@ public abstract class AbstractIT {
        eventIF.findFirstTag(AddressTag.class).stream()
           .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
           .filter(addressTag -> addressTag.getPublicKey().equals(defnCreator.getPublicKey()))
-          .filter(addressTag -> addressTag.getIdentifierTag().equals(reputationIdentifierTag))
+          .filter(addressTag -> addressTag.requireIdentifierTag().equals(reputationIdentifierTag))
           .toList().isEmpty()));
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->

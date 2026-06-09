@@ -56,13 +56,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * test name "SearchRelaysListRelaySets" means:
  * BadgeDefinitionReputationEvent and SearchRelaysListEvent for docker (5557) aImg relay
- * note: varies from {@link SearchRelaysListRelaySetsSameRelayIT}, which is 5556
+ * note: varies from {@link SearchRelaysListSameRelayIT}, which is 5556
  */
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(MultiContainerTestConfig.class)
-public class SearchRelaysListRelaySetsIT {
+public class SearchRelaysListDockerRelayIT {
   public static final String REPUTATION = "TEST_REPUTATION";
   public static final String AWARD_UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
   public static final String FORMULA_UNIT_UPVOTE = "FORMULA_UNIT_UPVOTE";
@@ -96,7 +96,7 @@ public class SearchRelaysListRelaySetsIT {
   private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
 
   @Autowired
-  public SearchRelaysListRelaySetsIT(
+  public SearchRelaysListDockerRelayIT(
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
     this.superconductorRelayUrl = superconductorRelayUrl;
@@ -183,25 +183,6 @@ public class SearchRelaysListRelaySetsIT {
     submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
-
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 =
-       new BadgeAwardGenericEvent<>(
-          submitter,
-          recipient.getPublicKey(),
-          superconductorRelayTagUrl,
-          awardUpvoteDefinitionEvent,
-          String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()));
-//    TestSubscriber<BaseMessage> afterImageEventsSubscriber_9 = new TestSubscriber<>();
-//    final AfterimageMeshRelayService afterimageRepRequestClient_3 = new AfterimageMeshRelayService(afterimageRelayUri);
-//    afterimageRepRequestClient_3.send(
-//        createAfterImageReqMessage(Factory.generateRandomHex64String(), upvotedUser.getPublicKey()),
-//        afterImageEventsSubscriber_9);
-//
-//    List<BaseMessage> items_8 = afterImageEventsSubscriber_9.getItems();
-//    log.debug("  {}", items_8);
-//
-//    List<EventIF> returnedReqGenericEvents_4 = getGenericEvents(items_8);
-//    assertEquals("3", returnedReqGenericEvents_4.getFirst().getContent());
   }
 
   private BaseEvent createSearchRelaysListEventMessage() {
