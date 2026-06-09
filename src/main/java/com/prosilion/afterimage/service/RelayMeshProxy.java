@@ -63,8 +63,12 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
     log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(encode));
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
-        eventIF.map(EventIF::createPrettyPrintJson).orElse("EMPTY Optional<EventIF>.  will not call processIncoming()"));
+        eventIF.map(EventIF::createPrettyPrintJson).orElse("  EMPTY Optional<EventIF>.  will not call processIncoming()"));
     eventIF.ifPresent(this::processIncoming);
+  }
+
+  @Override
+  public void dispose() {
   }
 
   private void processIncoming(EventIF eventIF) {
@@ -73,6 +77,7 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
         eventIF.getKind().getName().toUpperCase(),
         eventIF.createPrettyPrintJson());
 
+    log.debug("calling eventKindPluginIF.processIncomingEvent(eventIF) using eventKindPluginIF type: [{}] ", eventKindPluginIF.getClass().getSimpleName());
     eventKindPluginIF.processIncomingEvent(eventIF);
   }
 
