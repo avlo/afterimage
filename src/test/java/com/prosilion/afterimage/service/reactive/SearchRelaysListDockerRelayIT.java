@@ -103,7 +103,7 @@ public class SearchRelaysListDockerRelayIT {
     this.afterimageRelayUrlTwo = afterimageRelayUrlTwo;
 
     superconductorRelayTagUrl = new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555");
-    afterimageRelayTagUrlTwo = new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5557");
+    afterimageRelayTagUrlTwo = new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556");
 
     awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
        defnCreator,
@@ -186,7 +186,7 @@ public class SearchRelaysListDockerRelayIT {
   }
 
   private BaseEvent createSearchRelaysListEventMessage() {
-    log.debug("\n\n\nSearch Relays List sent from aImg IT 5556...");
+    log.debug("\nSearch Relays List sent from aImg IT 5556...");
     return new SearchRelaysListEvent(
        Identity.generateRandomIdentity(),
        new RelaysTag(superconductorRelayTagUrl),
@@ -216,23 +216,6 @@ public class SearchRelaysListDockerRelayIT {
     ReqMessage reqMessage = reqMessageWithStuff;
     log.debug(Util.prettyFormatJson(reqMessage.encode()));
     return reqMessage;
-  }
-
-  protected ReqMessage createSuperconductorReqMessageEvent(String subscriberId, Filters filters) {
-    return new ReqMessage(subscriberId, filters);
-  }
-
-  protected List<EventIF> submitAfterImageReq(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url) throws JsonProcessingException {
-    log.debug("query Aimg for badgeAwardUpvoteEvent:");
-    List<BaseMessage> subscriber = new NostrSingleRequestService().send(
-       createAfterImageReqMessage(
-          Factory.generateRandomHex64String(),
-          defnCreator,
-          recipientPubKeyTag),
-       url);
-
-    log.debug("afterimage returned events:");
-    return getGenericEvents(subscriber);
   }
 
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException {

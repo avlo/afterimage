@@ -15,22 +15,20 @@ public interface ReqKindServiceIF {
   List<Kind> getKinds();
 
   default Kind getReqKindPluginKind(List<Filters> filtersList, List<Kind> kinds) throws NostrException {
-    Kind matchedKinds = filtersList.stream()
-        .flatMap(filters ->
-            filters.getFilterByType(KindFilter.FILTER_KEY).stream())
-        .reduce(this::apply)
-        .map(Filterable::getFilterable)
-        .map(Kind.class::cast)
-        .filter(kinds::contains)
-        .orElseThrow(() ->
-            new NostrException(
-                String.format("Valid Kind filter not specified, must be one of Kind [%s]",
-                    Strings.join(kinds, ','))));
-
-    return matchedKinds;
+    return filtersList.stream()
+       .flatMap(filters ->
+          filters.getFilterByType(KindFilter.FILTER_KEY).stream())
+       .reduce(this::apply)
+       .map(Filterable::getFilterable)
+       .map(Kind.class::cast)
+       .filter(kinds::contains)
+       .orElseThrow(() -> new NostrException(
+          String.format("Valid Kind filter not specified, must be one of Kind [%s]",
+             Strings.join(kinds, ','))));
   }
   private Filterable apply(Filterable filterable1, Filterable filterable2) {
     throw new NostrException(
-        String.format("Multiple matches found for KindFilter [%s, %s]", filterable1.getFilterKey(), filterable2.getFilterKey()));
+       String.format("Multiple matches found for KindFilter [%s, %s]",
+          filterable1.getFilterKey(), filterable2.getFilterKey()));
   }
 }
