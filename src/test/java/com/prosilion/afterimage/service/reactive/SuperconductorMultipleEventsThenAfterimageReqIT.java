@@ -5,15 +5,12 @@ import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.superconductor.base.service.event.EventServiceIF;
-import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -31,15 +28,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT {
   @Autowired
   public SuperconductorMultipleEventsThenAfterimageReqIT(
-      @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
-    super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
+    super(superconductorRelayUrl, afterimageRelayUrl);
   }
 
   @Test
-  void superconductorMultipleEventsThenAfterimageReq() throws IOException, NostrException {
-    simulateIncomingFollowSetsEventToAimg(
+  void superconductorMultipleEventsThenAfterimageReq() throws NostrException {
+    submitAimgEvent(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
             superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
@@ -49,13 +45,13 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
         submitAfterImageReq(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
-    simulateIncomingFollowSetsEventToAimg(
+    submitAimgEvent(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
             superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // third upvote    
-    simulateIncomingFollowSetsEventToAimg(
+    submitAimgEvent(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
             superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));

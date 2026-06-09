@@ -6,12 +6,10 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.subdivisions.client.RequestSubscriber;
-import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -25,10 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 public class SearchRelaysListRelaySetsSameRelayIT extends AbstractIT {
   @Autowired
   public SearchRelaysListRelaySetsSameRelayIT(
-      @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
-    super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
+    super(superconductorRelayUrl, afterimageRelayUrl);
 
     submitSCEvent(
         createUpvoteEvent(submitter, recipient, superconductorRelay),

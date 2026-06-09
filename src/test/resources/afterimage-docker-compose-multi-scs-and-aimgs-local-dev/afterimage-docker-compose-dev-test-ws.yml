@@ -53,7 +53,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SUPERCONDUCTOR_RELAY_URL: "ws://afterimage-app-two:5556"
-      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-two:5556"
+      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-two:5557"
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: afterimage-db-two
@@ -84,7 +84,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
       SUPERCONDUCTOR_RELAY_URL: "ws://afterimage-app-three:5556"
-      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-three:5556"
+      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-three:5558"
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
       LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
       SPRING_DATA_REDIS_HOST: afterimage-db-three

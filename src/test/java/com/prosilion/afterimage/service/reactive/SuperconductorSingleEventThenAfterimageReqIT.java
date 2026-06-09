@@ -4,13 +4,11 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.superconductor.base.service.event.EventServiceIF;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -28,15 +26,14 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
   @Autowired
   public SuperconductorSingleEventThenAfterimageReqIT(
-      @NonNull @Qualifier("eventService") EventServiceIF eventServiceIF,
       @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
       @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
-    super(eventServiceIF, superconductorRelayUrl, afterimageRelayUrl);
+    super(superconductorRelayUrl, afterimageRelayUrl);
   }
 
   @Test
   void superconductorEventThenAfterimageReq() throws NostrException {
-    simulateIncomingFollowSetsEventToAimg(
+    submitAimgEvent(
         submitSCEvent(
             createUpvoteEvent(submitter, recipient, superconductorRelay),
             superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));

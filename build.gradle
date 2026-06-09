@@ -62,7 +62,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'com.ezylang:EvalEx:3.5.0'
+    implementation 'com.ezylang:EvalEx:3.6.2'
 
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'com.prosilion:nostr-java-core:' + nostrJavaCoreVersion
@@ -180,6 +180,9 @@ void getServerPort() {
 bootRun {
     args += ["--server.port=${project.properties["server.port"]}"]
     args += ["--afterimage.relay.url=${project.properties["afterimage.relay.url"]}"]
+    args += ["--spring.cache.type=${project.properties["spring.cache.type"]}"]
+    args += ["--spring.data.redis.host=${project.properties["spring.data.redis.host"]}"]
+    args += ["--spring.data.redis.port=${project.properties["spring.data.redis.port"]}"]
 }
 
 tasks.register("bootRunLocalWss") {

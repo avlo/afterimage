@@ -13,7 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EmbeddedRedisStandalone
 @Slf4j
 public class MultiContainerTestConfig {
-  private final static String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
+  public final static String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
   public static final String AFTERIMAGE_APP_TWO = "afterimage-app-two";
   public static final String AFTERIMAGE_APP_THREE = "afterimage-app-three";
 
@@ -22,9 +22,9 @@ public class MultiContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeContainerLocalDev() {
     return new ComposeContainer(
-        new File("src/test/resources/docker-compose-local_ws.yml"))
-        .waitingFor("afterimage-db", Wait.forHealthcheck())
-        .withRemoveVolumes(true);
+       new File("src/test/resources/docker-compose-local_ws.yml"))
+       .waitingFor("afterimage-db", Wait.forHealthcheck())
+       .withRemoveVolumes(true);
   }
 
   @Bean
@@ -32,15 +32,15 @@ public class MultiContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
-        new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
+       new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
 // original Wait.forHealthcheck() calls do not work due to wget unavailable in container
-        .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
-        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-        .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())
-        .withExposedService(AFTERIMAGE_APP_TWO, 5556)
-        .waitingFor(AFTERIMAGE_APP_THREE, Wait.defaultWaitStrategy())
-        .withExposedService(AFTERIMAGE_APP_THREE, 5556)
-        .withRemoveVolumes(true);
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
+       .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())
+       .withExposedService(AFTERIMAGE_APP_TWO, 5556)
+       .waitingFor(AFTERIMAGE_APP_THREE, Wait.defaultWaitStrategy())
+       .withExposedService(AFTERIMAGE_APP_THREE, 5556)
+       .withRemoveVolumes(true);
   }
 
   @Bean

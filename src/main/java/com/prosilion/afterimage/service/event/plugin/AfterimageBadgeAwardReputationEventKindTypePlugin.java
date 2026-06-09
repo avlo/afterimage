@@ -39,13 +39,13 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   private final CacheFollowSetsEventServiceIF cacheFollowSetsEventServiceIF;
 
   public AfterimageBadgeAwardReputationEventKindTypePlugin(
-      @NonNull String afterimageRelayUrl,
-      @NonNull Identity aImgIdentity,
-      @NonNull NotifierService notifierService,
-      @NonNull EventKindTypePluginIF eventKindTypePlugin,
-      @NonNull RedisCacheService redisCacheService,
-      @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
-      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService) {
+     @NonNull String afterimageRelayUrl,
+     @NonNull Identity aImgIdentity,
+     @NonNull NotifierService notifierService,
+     @NonNull EventKindTypePluginIF eventKindTypePlugin,
+     @NonNull RedisCacheService redisCacheService,
+     @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService) {
     super(notifierService, eventKindTypePlugin);
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.aImgIdentity = aImgIdentity;
@@ -57,9 +57,9 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   @Override
   public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
-        incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
-        incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
-        incomingFollowSetsEventAsReputationEvent.createPrettyPrintJson());
+       incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
+       incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
+       incomingFollowSetsEventAsReputationEvent.createPrettyPrintJson());
 
     FollowSetsEvent materializedIncomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEventAsReputationEvent);
     log.debug("(0ofY) ... materializedIncomingFollowSetsEvent:\n{}", materializedIncomingFollowSetsEvent.createPrettyPrintJson());
@@ -74,26 +74,26 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
     log.debug("(2ofY) badgeDefinitionGenericEvents:\n[{}]", badgeDefinitionGenericEvents.stream().map(EventIF::createPrettyPrintJson));
 
     Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent =
-        cacheFollowSetsEventServiceIF.getBadgeAwardReputationEvent(materializedIncomingFollowSetsEvent);
+       cacheFollowSetsEventServiceIF.getBadgeAwardReputationEvent(materializedIncomingFollowSetsEvent);
 
     BadgeDefinitionReputationEvent existingReputationDefinitionEvent = materializedIncomingFollowSetsEvent.getBadgeDefinitionReputationEvent();
 
     log.debug("(4ofY) ... existingReputationDefinitionEvent:\n{}",
-        String.format("  [%s]", existingReputationDefinitionEvent.createPrettyPrintJson()));
+       String.format("  [%s]", existingReputationDefinitionEvent.createPrettyPrintJson()));
 
     BadgeAwardReputationEvent updatedBadgeAwardReputationEvent =
-        createBadgeAwardReputationEvent(
-            voteRecipientPublicKey,
-            existingReputationDefinitionEvent,
-            existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO));
+       createBadgeAwardReputationEvent(
+          voteRecipientPublicKey,
+          existingReputationDefinitionEvent,
+          existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO));
 
     log.debug("(5ofY) ... updatedBadgeAwardReputationEvent [{}]", updatedBadgeAwardReputationEvent.createPrettyPrintJson());
 
     BadgeAwardReputationEvent newReputationEvent = reputationCalculationServiceIF.calculateReputationEvent(
-        voteRecipientPublicKey,
-        updatedBadgeAwardReputationEvent,
-        existingReputationDefinitionEvent.getFormulaEvents(),
-        (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent);
+       voteRecipientPublicKey,
+       updatedBadgeAwardReputationEvent,
+       existingReputationDefinitionEvent.getFormulaEvents(),
+       (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent);
 
     log.debug("(6ofY) ... newReputationEvent:\n  {}", newReputationEvent.createPrettyPrintJson());
 
@@ -103,22 +103,22 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(
-      PublicKey badgeReceiverPubkey,
-      BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-      BigDecimal score) {
+     PublicKey badgeReceiverPubkey,
+     BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
+     BigDecimal score) {
     return new BadgeAwardReputationEvent(
-        aImgIdentity,
-        badgeReceiverPubkey,
-        new Relay(afterimageRelayUrl),
-        BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        badgeDefinitionReputationEvent,
-        score);
+       aImgIdentity,
+       badgeReceiverPubkey,
+       new Relay(afterimageRelayUrl),
+       BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       badgeDefinitionReputationEvent,
+       score);
   }
 
   private void deletePreviousBadgeAwardReputationEvent(EventIF previousReputationEvent) {
     cacheServiceIF.deleteEvent(
-        new DeletionEvent(
-            aImgIdentity,
-            List.of(new EventTag(previousReputationEvent.getId(), afterimageRelayUrl)), "aImg delete previous REPUTATION event"));
+       new DeletionEvent(
+          aImgIdentity,
+          List.of(new EventTag(previousReputationEvent.getId(), afterimageRelayUrl)), "aImg delete previous REPUTATION event"));
   }
 }
