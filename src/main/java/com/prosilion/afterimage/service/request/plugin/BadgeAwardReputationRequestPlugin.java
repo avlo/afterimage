@@ -5,6 +5,8 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.List;
@@ -26,8 +28,8 @@ public class BadgeAwardReputationRequestPlugin extends ReqKindTypePlugin {
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
     return new Filters(
        new KindFilter(getKind()),
-       getReferencedPublicKeyFilter(filtersList),
-       getAddressTagFilter(filtersList));
+       matchFilterableKey(filtersList, ReferencedPublicKeyFilter.FILTER_KEY),
+       matchFilterableKey(filtersList, AddressTagFilter.FILTER_KEY));
   }
 
   @Override

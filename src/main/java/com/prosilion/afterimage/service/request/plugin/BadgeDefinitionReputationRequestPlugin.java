@@ -1,15 +1,15 @@
 package com.prosilion.afterimage.service.request.plugin;
 
-import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.filter.event.AuthorFilter;
 import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +29,9 @@ public class BadgeDefinitionReputationRequestPlugin extends ReqKindTypePlugin {
   public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
     return new Filters(
        new KindFilter(getKind()),
-       getReferencedPublicKeyFilter(filtersList),
-       getAddressTagFilter(filtersList),
-       getExternalIdentiferTagFilter(filtersList));
-  }
-
-  private ExternalIdentityTagFilter getExternalIdentiferTagFilter(List<Filters> filtersList) {
-    return filtersList.stream()
-       .map(filters ->
-          filters.getFilterByType(ExternalIdentityTagFilter.FILTER_KEY))
-       .flatMap(Collection::stream)
-       .map(ExternalIdentityTagFilter.class::cast)
-       .findAny().orElseThrow(() -> new InvalidReputationReqJsonException(filtersList,
-          ExternalIdentityTagFilter.FILTER_KEY.concat(" tag")));
+       matchFilterableKey(filtersList, AuthorFilter.FILTER_KEY),
+       matchFilterableKey(filtersList, AddressTagFilter.FILTER_KEY),
+       matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY));
   }
 
   @Override
