@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
@@ -180,22 +181,31 @@ public abstract class AbstractIT {
     return getGenericEvents(subscriber);
   }
 
+  @SneakyThrows
   protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey defnCreatorPublicKey, PubKeyTag recipientPubKeyTag) {
-    ExternalIdentityTagFilter externalIdentityTagFilter = new ExternalIdentityTagFilter(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
-    return new ReqMessage(
+    ReqMessage reqMessage = new ReqMessage(
        subscriberId,
        new Filters(
           new KindFilter(
+
              Kind.BADGE_AWARD_EVENT),
+
 //            new IdentifierTagFilter(reputationIdentifierTag),
+
           new AddressTagFilter(
              new AddressTag(
                 Kind.BADGE_DEFINITION_EVENT,
                 defnCreatorPublicKey,
                 reputationIdentifierTag)),
+
           new ReferencedPublicKeyFilter(
              recipientPubKeyTag),
-          externalIdentityTagFilter));
+
+          new ExternalIdentityTagFilter(
+             BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)));
+
+    log.debug(reqMessage.encode());
+    return reqMessage;
   }
 
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
@@ -272,16 +282,10 @@ public abstract class AbstractIT {
   }
 
   protected List<EventIF> validateGeneralAfterimageRequestResults(List<EventIF> returnedReputationEventIFs) {
-    returnedReputationEventIFs.forEach(eventIF -> log.debug(eventIF.getId()));
-
-    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
-          .anyMatch(recipient.getPublicKey()::equals)));
-
-    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(AddressTag.class).stream()
-          .map(AddressTag::getPublicKey)
-          .anyMatch(defnCreator.getPublicKey()::equals)));
+    assertTrue(returnedReputationEventIFs.stream()
+       .map(eventIf -> eventIf.getTypeSpecificTags(PubKeyTag.class).stream().map(PubKeyTag::getPublicKey))
+       .flatMap(Function.identity())
+       .allMatch(recipient.getPublicKey()::equals));
 
     assertFalse(returnedReputationEventIFs.stream().anyMatch(eventIF ->
        eventIF.findFirstTag(AddressTag.class).stream()
@@ -290,9 +294,9 @@ public abstract class AbstractIT {
           .filter(addressTag -> addressTag.requireIdentifierTag().equals(reputationIdentifierTag))
           .toList().isEmpty()));
 
-    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(ExternalIdentityTag.class).stream()
-          .anyMatch(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG::equals)));
+    assertEquals(returnedReputationEventIFs.size(), returnedReputationEventIFs.stream()
+       .map(eventIf -> eventIf.getTypeSpecificTags(ExternalIdentityTag.class))
+       .toList().size());
 
     return returnedReputationEventIFs;
   }

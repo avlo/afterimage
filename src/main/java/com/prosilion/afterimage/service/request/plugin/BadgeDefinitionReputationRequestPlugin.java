@@ -6,8 +6,7 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.AuthorFilter;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.AddressTagFilter;
-import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
+import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.List;
@@ -30,8 +29,11 @@ public class BadgeDefinitionReputationRequestPlugin extends ReqKindTypePlugin {
     return new Filters(
        new KindFilter(getKind()),
        matchFilterableKey(filtersList, AuthorFilter.FILTER_KEY),
-       matchFilterableKey(filtersList, AddressTagFilter.FILTER_KEY),
-       matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY));
+       matchFilterableKey(filtersList, IdentifierTagFilter.FILTER_KEY)
+//       ,
+//       TODO: test below inclusion of matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)
+//       matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)
+    );
   }
 
   @Override

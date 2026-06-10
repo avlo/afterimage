@@ -6,6 +6,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg
 
 //  intro 2nd subscriber    
-    RequestSubscriber<BaseMessage> subscriber_2 = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> subscriber_2 = new RequestSubscriber<>(Duration.ofMinutes(3));
     submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_2);
     validateSpecificAfterimageRequestResults(subscriber_2, 1, "2");
 
@@ -69,7 +70,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg    
 
-    RequestSubscriber<BaseMessage> subscriber_3 = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> subscriber_3 = new RequestSubscriber<>(Duration.ofMinutes(3));
     submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_3);
     validateSpecificAfterimageRequestResults(subscriber_3, 1, "1");
 

@@ -18,6 +18,7 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
+import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -36,6 +37,7 @@ import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -162,7 +164,7 @@ public class SearchRelaysListDockerRelayIT {
   void testA_SuperconductorEventThenAfterimageReq() throws IOException, NostrException, InterruptedException {
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_A);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
@@ -180,7 +182,7 @@ public class SearchRelaysListDockerRelayIT {
 
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
   }
@@ -197,7 +199,28 @@ public class SearchRelaysListDockerRelayIT {
     assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event)).getFlag());
   }
 
-  private ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey defnCreatorPublicKey, PubKeyTag recipientPubKeyTag) throws JsonProcessingException {
+  @SneakyThrows
+  protected ReqMessage createAfterImageReqMessage(String subscriberId, PubKeyTag recipientPubKeyTag) {
+    ReqMessage reqMessage = new ReqMessage(
+       subscriberId,
+       new Filters(
+          new KindFilter(
+
+             Kind.BADGE_AWARD_EVENT),
+
+//            new IdentifierTagFilter(reputationIdentifierTag),
+
+          new ReferencedPublicKeyFilter(
+             recipientPubKeyTag),
+
+          new ExternalIdentityTagFilter(
+             BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)));
+
+    log.debug(reqMessage.encode());
+    return reqMessage;
+  }
+
+  private ReqMessage createAfterImageReqMessageIncludingDefnCreatorPublicKey(String subscriberId, PublicKey defnCreatorPublicKey, PubKeyTag recipientPubKeyTag) throws JsonProcessingException {
     ReqMessage reqMessageWithStuff = new ReqMessage(
        subscriberId,
        new Filters(
@@ -218,11 +241,10 @@ public class SearchRelaysListDockerRelayIT {
     return reqMessage;
   }
 
-  protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException {
+  protected void submitAfterImageReqWithSubscriber(PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) throws JsonProcessingException {
     new NostrSingleRequestService().send(
        createAfterImageReqMessage(
           Factory.generateRandomHex64String(),
-          defnCreator,
           recipientPubKeyTag),
        url, subscriber);
   }
@@ -237,6 +259,8 @@ public class SearchRelaysListDockerRelayIT {
   }
 
   protected List<EventIF> validateGeneralAfterimageRequestResults(List<EventIF> returnedReputationEventIFs) {
+    assertFalse(returnedReputationEventIFs.isEmpty());
+
     returnedReputationEventIFs.forEach(eventIF -> log.debug(eventIF.getId()));
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
