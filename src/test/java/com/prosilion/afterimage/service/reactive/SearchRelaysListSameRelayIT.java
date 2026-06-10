@@ -5,6 +5,7 @@ import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -29,9 +30,10 @@ import org.springframework.test.context.ActiveProfiles;
 public class SearchRelaysListSameRelayIT extends AbstractIT {
   @Autowired
   public SearchRelaysListSameRelayIT(
+     @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
-    super(superconductorRelayUrl, afterimageRelayUrl);
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
 
     submitSCEvent(
        createUpvoteEvent(submitter, recipient, superconductorRelay),
@@ -47,7 +49,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
   @Test
   void searchRelaysListRelaySetsSameRelay() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> subscriber_1 = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_1);
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_1);
     validateSpecificAfterimageRequestResults(subscriber_1, 1, "1");
 
 //    submit 2nd SC upvote event
@@ -58,7 +60,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
 
 //  intro 2nd subscriber    
     RequestSubscriber<BaseMessage> subscriber_2 = new RequestSubscriber<>(Duration.ofMinutes(3));
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_2);
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_2);
     validateSpecificAfterimageRequestResults(subscriber_2, 1, "2");
 
 //  check subscriber_1 has received updated score        
@@ -71,7 +73,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg    
 
     RequestSubscriber<BaseMessage> subscriber_3 = new RequestSubscriber<>(Duration.ofMinutes(3));
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_3);
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_3);
     validateSpecificAfterimageRequestResults(subscriber_3, 1, "1");
 
 //  check subscriber_2 has received updated score    

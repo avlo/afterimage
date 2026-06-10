@@ -4,6 +4,7 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.user.Identity;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -26,20 +27,21 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
   @Autowired
   public SuperconductorSingleEventThenAfterimageReqIT(
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
-    super(superconductorRelayUrl, afterimageRelayUrl);
+     @NonNull Identity afterimageInstanceIdentity,
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
   }
 
   @Test
   void superconductorEventThenAfterimageReq() throws NostrException {
     submitAimgEvent(
-        submitSCEvent(
-            createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+       submitSCEvent(
+          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
-        "1",
-        submitAfterImageReq(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
+       "1",
+       submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
   }
 }

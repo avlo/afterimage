@@ -6,6 +6,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.io.IOException;
 import java.util.List;
@@ -31,29 +32,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   @Autowired
   public AfterimageReqThenMultipleSuperconductorEventIT(
-      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
-    super(superconductorRelayUrl, afterimageRelayUrl);
+     @NonNull Identity afterimageInstanceIdentity,
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
   }
 
   @Test
   void afterimageReqThenMultipleSuperconductorEvents() throws IOException, NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(defnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
-        submitSCEvent(
-            createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+       submitSCEvent(
+          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
-        submitSCEvent(
-            createUpvoteEvent(submitter, recipient, superconductorRelay),
-            superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+       submitSCEvent(
+          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);

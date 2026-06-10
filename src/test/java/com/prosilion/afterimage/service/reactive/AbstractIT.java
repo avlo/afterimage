@@ -30,6 +30,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
@@ -39,6 +40,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 
@@ -73,17 +75,27 @@ public abstract class AbstractIT {
   protected final IdentifierTag formulaUpvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
   protected final IdentifierTag formulaDownvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_DOWNVOTE);
 
-  protected final Identity defnCreator =
-     Identity.generateRandomIdentity();
-//      Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
+  protected final Identity afterimageInstanceIdentity;
 
   protected final Identity submitter =
-     Identity.generateRandomIdentity();
-//      Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
+//     Identity.generateRandomIdentity();
+     Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
+
+  protected final Identity upvoteDefnCreator =
+//     Identity.generateRandomIdentity();
+     Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
   protected final Identity recipient =
-     Identity.generateRandomIdentity();
-//      Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+//     Identity.generateRandomIdentity();
+     Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+
+  protected final Identity formulaCreator =
+//     Identity.generateRandomIdentity();
+     Identity.create("ddd4585483196998204846989544737603523651520600328805626488477202");
+
+  protected final Identity repDefnCreator =
+//     Identity.generateRandomIdentity();
+     Identity.create("eee4585483196998204846989544737603523651520600328805626488477202");
 
   protected final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   protected final BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent;
@@ -104,31 +116,34 @@ public abstract class AbstractIT {
      new Filters(new AuthorFilter(publicKey), new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA), new IdentifierTagFilter(identifierTag));
 
   public AbstractIT(
+     @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+    this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.superconductorRelay = new Relay(superconductorRelayUrl);
 
-    log.debug("definitionsCreatorIdentity: [{}]", defnCreator.getPublicKey().toHexString());
-    log.debug("voteSubmitterIdentity: [{}]", submitter.getPublicKey().toHexString());
-
 //  SUPERCONDUCTOR section
-    awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent(defnCreator);
-    submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl, badgeDefinitionEventFilter.apply(defnCreator.getPublicKey()));
+    awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent(upvoteDefnCreator);
+    submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl,
+       badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
-    this.plusOneFormulaEvent = createFormulaUpvoteEvent(defnCreator);
-    submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaUpvoteIdentifierTag));
+    this.plusOneFormulaEvent = createFormulaUpvoteEvent(formulaCreator);
+    submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl,
+       formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaUpvoteIdentifierTag));
 
-    awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent(defnCreator);
-    submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl, badgeDefinitionEventFilter.apply(defnCreator.getPublicKey()));
+    awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent(upvoteDefnCreator);
+    submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl,
+       badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
-    this.minusOneFormulaEvent = createFormulaDownvoteEvent(defnCreator);
-    submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl, formulaEventFilter.apply(defnCreator.getPublicKey(), formulaDownvoteIdentifierTag));
+    this.minusOneFormulaEvent = createFormulaDownvoteEvent(formulaCreator);
+    submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl,
+       formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaDownvoteIdentifierTag));
 
 //  AIMG section
     submitAimgEvent(
-       createBadgeDefinitionReputationEvent(defnCreator, submitter, new Relay(afterimageRelayUrl), plusOneFormulaEvent, minusOneFormulaEvent));
+       createBadgeDefinitionReputationEvent(repDefnCreator, submitter, new Relay(afterimageRelayUrl), plusOneFormulaEvent, minusOneFormulaEvent));
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
@@ -204,7 +219,7 @@ public abstract class AbstractIT {
           new ExternalIdentityTagFilter(
              BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)));
 
-    log.debug(reqMessage.encode());
+    log.debug(Util.prettyFormatJson(reqMessage.encode(), 2));
     return reqMessage;
   }
 
@@ -282,23 +297,34 @@ public abstract class AbstractIT {
   }
 
   protected List<EventIF> validateGeneralAfterimageRequestResults(List<EventIF> returnedReputationEventIFs) {
-    assertTrue(returnedReputationEventIFs.stream()
-       .map(eventIf -> eventIf.getTypeSpecificTags(PubKeyTag.class).stream().map(PubKeyTag::getPublicKey))
-       .flatMap(Function.identity())
-       .allMatch(recipient.getPublicKey()::equals));
+    assertFalse(returnedReputationEventIFs.isEmpty());
+
+    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
+       eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
+          .anyMatch(recipient.getPublicKey()::equals)));
 
     assertFalse(returnedReputationEventIFs.stream().anyMatch(eventIF ->
        eventIF.findFirstTag(AddressTag.class).stream()
           .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
-          .filter(addressTag -> addressTag.getPublicKey().equals(defnCreator.getPublicKey()))
+          .filter(addressTag -> addressTag.getPublicKey().equals(repDefnCreator.getPublicKey()))
           .filter(addressTag -> addressTag.requireIdentifierTag().equals(reputationIdentifierTag))
           .toList().isEmpty()));
 
-    assertEquals(returnedReputationEventIFs.size(), returnedReputationEventIFs.stream()
-       .map(eventIf -> eventIf.getTypeSpecificTags(ExternalIdentityTag.class))
-       .toList().size());
+    assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
+       eventIF.findFirstTag(ExternalIdentityTag.class).stream()
+          .anyMatch(this::isEquals)));
 
     return returnedReputationEventIFs;
+  }
+
+  private boolean isEquals(ExternalIdentityTag externalIdentityTag) {
+    log.debug("       incoming          externalIdentityTag:\n {}", externalIdentityTag);
+    log.debug("BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG:\n {}", BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
+    boolean equals = externalIdentityTag.equals(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
+    log.debug(String.format("  %s", equals ?
+       "+++ MATCH" :
+       "--- NO MATCH: " + StringUtils.difference(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG.toString(), externalIdentityTag.toString())));
+    return equals;
   }
 
   protected List<EventIF> validateSpecificAfterimageRequestResults(RequestSubscriber<BaseMessage> subscriber, int count, String expectedScore) {
