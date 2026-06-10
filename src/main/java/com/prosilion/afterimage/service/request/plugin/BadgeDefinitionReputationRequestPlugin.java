@@ -4,7 +4,6 @@ import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.event.AuthorFilter;
-import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
@@ -25,10 +24,7 @@ public class BadgeDefinitionReputationRequestPlugin extends ReqKindTypePlugin {
 
   @Override
   public List<String> includeReputationVariantFilters() throws NostrException {
-    return List.of(
-       AuthorFilter.FILTER_KEY,
-       IdentifierTagFilter.FILTER_KEY,
-       ExternalIdentityTagFilter.FILTER_KEY);
+    return List.of(AuthorFilter.FILTER_KEY, IdentifierTagFilter.FILTER_KEY);
   }
 
   @Override

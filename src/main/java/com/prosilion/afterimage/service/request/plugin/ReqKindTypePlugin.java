@@ -28,20 +28,12 @@ public abstract class ReqKindTypePlugin implements ReqKindTypePluginIF {
 
   @Override
   final public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    Stream<String> additionalFilters = includeReputationVariantFilters().stream();
-
-    Stream<Filterable> filterables = additionalFilters.map(s ->
-       matchFilterableKey(filtersList, s));
-    Stream<Filterable> kindFilter = Stream.of(new KindFilter(getKind()));
-    Stream<Filterable> filterable = Stream.of(matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY));
-
-    Stream<Filterable> concat = Stream.concat(
-       Stream.concat(kindFilter, filterables)
-       , filterable);
-// TODO: revisit AddressTagFilter (repDefnCreator) inclusion/excluson
-//   , matchFilterableKey(filtersList, AddressTagFilter.FILTER_KEY)
-
-    return new Filters(concat.distinct().toList());
+    return new Filters(Stream.concat(
+       Stream.of(
+          new KindFilter(getKind()),
+          matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)),
+       includeReputationVariantFilters().stream()
+          .map(key -> matchFilterableKey(filtersList, key))).distinct().toList());
   }
 
   protected Filterable matchFilterableKey(List<Filters> filtersList, String key) {
