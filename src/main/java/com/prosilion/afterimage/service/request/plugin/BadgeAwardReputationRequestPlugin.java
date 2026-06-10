@@ -3,8 +3,6 @@ package com.prosilion.afterimage.service.request.plugin;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.filter.Filters;
-import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.user.Identity;
@@ -24,18 +22,12 @@ public class BadgeAwardReputationRequestPlugin extends ReqKindTypePlugin {
     log.debug("loaded BadgeAwardReputationRequestPlugin bean");
   }
 
-  @Override
-  public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    return new Filters(
-       new KindFilter(getKind()),
-       matchFilterableKey(filtersList, ReferencedPublicKeyFilter.FILTER_KEY)
-// TODO: test below inclusion of matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)
-//   where ExternalIdentityTagFilter proof value comes from ctor(aImgIdentity) parameter
-       , matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)
 
-// TODO: revisit below AddressTagFilter (repDefnCreator) inclusion/excluson
-//   , matchFilterableKey(filtersList, AddressTagFilter.FILTER_KEY)
-    );
+  @Override
+  public List<String> includeReputationVariantFilters() throws NostrException {
+    return List.of(
+       ReferencedPublicKeyFilter.FILTER_KEY,
+       ExternalIdentityTagFilter.FILTER_KEY);
   }
 
   @Override
