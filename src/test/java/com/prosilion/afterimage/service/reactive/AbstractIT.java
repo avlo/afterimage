@@ -2,7 +2,6 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.afterimage.util.Factory;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
@@ -35,6 +34,7 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -152,7 +152,7 @@ public abstract class AbstractIT {
     submitRelayEvent(event, url);
 //  sanity check event submissions processed by superconductor
     List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
-       createSuperconductorReqMessageEvent(Factory.generateRandomHex64String(), filters), url);
+       createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url);
 
     // TimeUnit.MILLISECONDS.sleep(2500);
     log.debug("retrieved superconductor events:");
@@ -185,7 +185,7 @@ public abstract class AbstractIT {
     log.debug("query Aimg for badgeAwardUpvoteEvent:");
     List<BaseMessage> subscriber = new NostrSingleRequestService().send(
        createAfterImageReqMessage(
-          Factory.generateRandomHex64String(),
+          generateRandomHex64String(),
           defnCreator,
           recipientPubKeyTag),
        url);
@@ -224,7 +224,7 @@ public abstract class AbstractIT {
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
        createAfterImageReqMessage(
-          Factory.generateRandomHex64String(),
+          generateRandomHex64String(),
           defnCreator,
           recipientPubKeyTag),
        url, subscriber);
@@ -336,5 +336,9 @@ public abstract class AbstractIT {
        .map(EventMessage.class::cast)
        .map(EventMessage::getEvent)
        .toList();
+  }
+
+  public static String generateRandomHex64String() {
+    return UUID.randomUUID().toString().concat(UUID.randomUUID().toString()).replaceAll("[^A-Za-z0-9]", "");
   }
 }
