@@ -5,13 +5,6 @@ services:
     hostname: localhost
     ports:
       - "6380:6379"
-#    environment:
-#      - "REDIS_ARGS=--appendonly yes"
-    networks:
-      - docker-network
 volumes:
   afterimage-db:
     driver: local
-networks:
-  docker-network:
-    driver: bridge

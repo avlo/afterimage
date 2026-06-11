@@ -10,7 +10,7 @@ TERMINAL_ENV=$WINDOW_TILE_TEMP_DIR/terminal_env
 
 horizontal_terminal_count=3
 vertical_terminal_count=2
-zoom_factor=.7
+zoom_factor=.6
 
 display_resolution_operands() {
   words=("$@")
@@ -145,14 +145,18 @@ sc_app_5555() {
   append_terminal_files "/home/nick/git/superconductor" $TERMINAL_CD
   append_terminal_files "sc_app_5555" $TERMINAL_ENV
   app_up_alias="gradle superconductor-app-redis:bootRunLocalWs -Pserver.port=5555 -Psuperconductor.relay.url=ws://localhost:5555 -Plogging.level.com.prosilion.superconductor=debug -Plogging.level.com.prosilion.subdivisions=debug"
+  app_up_alias="gradle superconductor-app-redis:bootRunLocalws -Pserver.port=5555 -Psuperconductor.relay.url=ws://localhost:5555 -Plogging.level.com.prosilion.superconductor=debug -Plogging.level.com.prosilion.subdivisions=debug \
+    -Pspring.data.redis.host=localhost -Pspring.data.redis.port=6379"
+#    -Dspring.profiles.active=local_ws -Pspring.cache.type=redis \
   create_app_terminal_env "sc_app_5555" "$app_up_alias"
 }
 
 aimg_app_5557() {
   append_terminal_files "aImg 5557" $TERMINAL_TITLE
   append_terminal_files "/home/nick/git/afterimage" $TERMINAL_CD
-  append_terminal_files "aimg_app_5557" $TERMINAL_ENV  
-  app_up_alias="gradle bootRunLocalWs -Pserver.port=5557 -Pafterimage.relay.url=ws://localhost:5557 -Pspring.data.redis.port=6381"
+  append_terminal_files "aimg_app_5557" $TERMINAL_ENV
+#  app_up_alias="gradle bootRunLocalWs -Pserver.port=5557 -Pafterimage.relay.url=ws://localhost:5557 -Pspring.cache.type=redis -Pspring.data.redis.host=localhost -Pspring.data.redis.port=6381"
+  app_up_alias="gradle bootRunLocalWs -Pserver.port=5557 -Pafterimage.relay.url=ws://localhost:5557 -Pspring.data.redis.host=localhost -Pspring.data.redis.port=6381"
   create_app_terminal_env "aimg_app_5557" "$app_up_alias"
 }
 
@@ -160,7 +164,8 @@ aimg_app_5558() {
   append_terminal_files "aImg 5558" $TERMINAL_TITLE
   append_terminal_files "/home/nick/git/afterimage" $TERMINAL_CD
   append_terminal_files "aimg_app_5558" $TERMINAL_ENV
-  app_up_alias="gradle bootRunLocalWs -Pserver.port=5558 -Pafterimage.relay.url=ws://localhost:5558 -Pspring.data.redis.port=6382"
+#  app_up_alias="gradle bootRunLocalWs -Pserver.port=5558 -Pafterimage.relay.url=ws://localhost:5558 -Pspring.cache.type=redis -Pspring.data.redis.host=localhost -Pspring.data.redis.port=6382"
+  app_up_alias="gradle bootRunLocalWs -Pserver.port=5558 -Pafterimage.relay.url=ws://localhost:5558 -Pspring.data.redis.host=localhost -Pspring.data.redis.port=6382"
   create_app_terminal_env "aimg_app_5558" "$app_up_alias"
 }
 
@@ -171,7 +176,7 @@ create_terminal_names() {
 
   sc_app_5555
   aimg_app_5557
-#  aimg_app_5558
+  aimg_app_5558
 }
 
 create_terminals() {
