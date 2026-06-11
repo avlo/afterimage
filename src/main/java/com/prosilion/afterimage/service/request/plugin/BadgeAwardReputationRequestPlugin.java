@@ -4,6 +4,7 @@ import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
+import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
 import java.util.List;
@@ -21,7 +22,6 @@ public class BadgeAwardReputationRequestPlugin extends ReqKindTypePlugin {
     log.debug("loaded BadgeAwardReputationRequestPlugin bean");
   }
 
-
   @Override
   public List<String> includeReputationVariantFilters() throws NostrException {
     return List.of(ReferencedPublicKeyFilter.FILTER_KEY);
@@ -35,5 +35,10 @@ public class BadgeAwardReputationRequestPlugin extends ReqKindTypePlugin {
   @Override
   public KindTypeIF getKindType() {
     return AfterimageKindType.BADGE_AWARD_REPUTATION_KIND_TYPE;
+  }
+
+  @Override
+  public ExternalIdentityTag getExternalIdentityTag() {
+    return AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
   }
 }

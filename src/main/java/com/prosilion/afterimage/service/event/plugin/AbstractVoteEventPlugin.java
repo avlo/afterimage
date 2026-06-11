@@ -40,15 +40,15 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   private final Relay relay;
 
   public AbstractVoteEventPlugin(
-      @NonNull String afterimageRelayUrl,
-      @NonNull CacheServiceIF cacheServiceIF,
-      @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
-      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
-      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
-      @NonNull AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin,
-      @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
-      @NonNull EventPlugin eventPlugin,
-      @NonNull Identity aImgIdentity) {
+     @NonNull String afterimageRelayUrl,
+     @NonNull CacheServiceIF cacheServiceIF,
+     @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
+     @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+     @NonNull AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin,
+     @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull Identity aImgIdentity) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
@@ -65,50 +65,51 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     log.debug("processing incoming voteEvent\n{}", voteEvent.createPrettyPrintJson());
 
     BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class)).orElseThrow(() ->
-        new NostrException(
-            String.format("no BadgeDefinitionUpvoteEvent matches incoming voteEvent:\n  %s", voteEvent.createPrettyPrintJson())));
+       new NostrException(
+          String.format("no BadgeDefinitionUpvoteEvent matches incoming voteEvent:\n  %s", voteEvent.createPrettyPrintJson())));
     log.debug("(1of13V) badgeDefinitionUpvoteEvent:\n  {}", badgeDefinitionUpvoteEvent.createPrettyPrintJson());
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> upvoteEventReconstructed =
-        new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionUpvoteEvent);
+       new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionUpvoteEvent);
 
     log.debug("(2of13V) upvoteEventReconstructed:\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
 
     FormulaEvent formulaEvent = cacheFormulaEventServiceIF.getBy(badgeDefinitionUpvoteEvent.asAddressableEventAddressTag())
-        .orElseThrow(() -> new NostrException(
-            String.format("no formulaEvent matches badgeDefinitionUpvoteEvent.asAddressableEventAddressTag():\n  %s",
-                badgeDefinitionUpvoteEvent.asAddressableEventAddressTag().toStringPrettyPrint())));
+       .orElseThrow(() -> new NostrException(
+          String.format("no formulaEvent matches badgeDefinitionUpvoteEvent.asAddressableEventAddressTag():\n  %s",
+             badgeDefinitionUpvoteEvent.asAddressableEventAddressTag().toStringPrettyPrint())));
     log.debug("(3of13V) Optional<FormulaEvent> formulaEvent:\n  {}", formulaEvent.createPrettyPrintJson());
 
     PubKeyTag recipientPublicKeyAsPubKeyTag = voteEvent.requireFirstTag(PubKeyTag.class);
     AddressTag formulaEventAddressableEventAddressTag = formulaEvent.asAddressableEventAddressTag();
 
-    List<BadgeDefinitionReputationEvent> byDirectTag = cacheBadgeDefinitionReputationEventService.getByDirectTag(formulaEventAddressableEventAddressTag);
+    log.debug("(4of13V) calling cacheBadgeDefinitionReputationEventService.getByDirectTag(addressTag):\n  {}", formulaEvent.createPrettyPrintJson());
     BadgeDefinitionReputationEvent existingReputationDefinitionEvent =
-        byDirectTag.stream().findFirst().orElseThrow(() ->
-            new NostrException(String.format("no BadgeDefinitionReputationEvent found for formulaEventAddressableEventAddressTag:\n  %s",
-                formulaEventAddressableEventAddressTag.toStringPrettyPrint())));
+       cacheBadgeDefinitionReputationEventService.getByDirectTag(formulaEventAddressableEventAddressTag).stream().findFirst().orElseThrow(() ->
+          new NostrException(String.format("no BadgeDefinitionReputationEvent found for formulaEventAddressableEventAddressTag:\n  %s",
+             formulaEventAddressableEventAddressTag.toStringPrettyPrint())));
+
     log.debug("(5of13V) existingReputationDefinitionEvent:\n  {}", existingReputationDefinitionEvent.createPrettyPrintJson());
 
     AddressTag existingReputationDefinitionEventAsAddressTag = existingReputationDefinitionEvent.asAddressableEventAddressTag();
     log.debug("(6of13V) calling cacheFollowSetsEventService.getBy(recipientPublicKeyAsPubKeyTag, addressTag):\n  [{}]\n  [{}]",
-        recipientPublicKeyAsPubKeyTag.getPublicKey(),
-        existingReputationDefinitionEventAsAddressTag);
+       recipientPublicKeyAsPubKeyTag.getPublicKey(),
+       existingReputationDefinitionEventAsAddressTag);
 
-    Optional<FollowSetsEvent> awardRecipientExistingFollowSets = cacheFollowSetsEventService.getBy(recipientPublicKeyAsPubKeyTag, existingReputationDefinitionEventAsAddressTag);
+    Optional<FollowSetsEvent> awardRecipientExistingFollowSets = cacheFollowSetsEventService.getBy(existingReputationDefinitionEventAsAddressTag);
 
     log.debug("(7of13V) ... awardRecipientExistingFollowSets:\n{}", awardRecipientExistingFollowSets
-        .map(EventIF::createPrettyPrintJson).orElse("no awardRecipientExistingFollowSets yet"));
+       .map(EventIF::createPrettyPrintJson).orElse("no awardRecipientExistingFollowSets yet"));
 
     FollowSetsEvent followSetsEventToSend = createFollowSetsEvent(
-        existingReputationDefinitionEvent,
-        Stream.concat(
-                awardRecipientExistingFollowSets
-                    .stream()
-                    .map(FollowSetsEvent::getBadgeAwardGenericEvents)
-                    .flatMap(Collection::stream),
-                Stream.of(upvoteEventReconstructed))
-            .toList());
+       existingReputationDefinitionEvent,
+       Stream.concat(
+             awardRecipientExistingFollowSets
+                .stream()
+                .map(FollowSetsEvent::getBadgeAwardGenericEvents)
+                .flatMap(Collection::stream),
+             Stream.of(upvoteEventReconstructed))
+          .toList());
     log.debug("(9of13V) ... followSetsEventToSend:\n{}", followSetsEventToSend.createPrettyPrintJson());
 
     log.debug("(10of13V) ... cacheServiceIF.save(upvoteEventReconstructed) ...");
@@ -122,13 +123,13 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   private FollowSetsEvent createFollowSetsEvent(
-      @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-      @NonNull List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericVoteEvent) {
+     @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
+     @NonNull List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericVoteEvent) {
     return new FollowSetsEvent(
-        aImgIdentity,
-        badgeDefinitionReputationEvent,
-        relay,
-        badgeAwardGenericVoteEvent);
+       aImgIdentity,
+       badgeDefinitionReputationEvent,
+       relay,
+       badgeAwardGenericVoteEvent);
   }
 
   @Override

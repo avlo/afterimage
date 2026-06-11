@@ -31,7 +31,7 @@ public abstract class ReqKindTypePlugin implements ReqKindTypePluginIF {
     return new Filters(Stream.concat(
        Stream.of(
           new KindFilter(getKind()),
-          matchFilterableKey(filtersList, ExternalIdentityTagFilter.FILTER_KEY)),
+          new ExternalIdentityTagFilter(getExternalIdentityTag())),
        includeReputationVariantFilters().stream()
           .map(key -> matchFilterableKey(filtersList, key))).distinct().toList());
   }
