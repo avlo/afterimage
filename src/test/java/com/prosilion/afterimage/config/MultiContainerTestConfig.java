@@ -14,8 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 public class MultiContainerTestConfig {
   public final static String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
-  public static final String AFTERIMAGE_APP_TWO = "afterimage-app-two";
-  public static final String AFTERIMAGE_APP_THREE = "afterimage-app-three";
+  public final static String AFTERIMAGE_APP_TWO = "afterimage-app-two";
+  public final static String AFTERIMAGE_APP_THREE = "afterimage-app-three";
 
   @Bean
 //  @RestartScope

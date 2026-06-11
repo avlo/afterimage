@@ -8,7 +8,6 @@ import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +38,7 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   }
 
   @Test
-  void afterimageReqThenMultipleSuperconductorEvents() throws IOException, NostrException, InterruptedException {
+  void afterimageReqThenMultipleSuperconductorEvents() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 

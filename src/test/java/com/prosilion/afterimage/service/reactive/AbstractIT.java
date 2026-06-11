@@ -125,33 +125,32 @@ public abstract class AbstractIT {
     this.superconductorRelay = new Relay(superconductorRelayUrl);
 
 //  SUPERCONDUCTOR section
-    awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent(upvoteDefnCreator);
+    this.awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent();
     submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl,
        badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
-    this.plusOneFormulaEvent = createFormulaUpvoteEvent(formulaCreator);
+    this.plusOneFormulaEvent = createFormulaUpvoteEvent();
     submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl,
        formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaUpvoteIdentifierTag));
 
-    awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent(upvoteDefnCreator);
+    this.awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent();
     submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl,
        badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
-    this.minusOneFormulaEvent = createFormulaDownvoteEvent(formulaCreator);
+    this.minusOneFormulaEvent = createFormulaDownvoteEvent();
     submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl,
        formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaDownvoteIdentifierTag));
 
 //  AIMG section
     submitAimgEvent(
-       createBadgeDefinitionReputationEvent(repDefnCreator, submitter, new Relay(afterimageRelayUrl), plusOneFormulaEvent, minusOneFormulaEvent));
+       createBadgeDefinitionReputationEvent());
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
   protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {
 //  submit first Event to superconductor
     submitRelayEvent(event, url);
-
-//    validate by submit Req for above badgeAwardUpvoteEvent to superconductor
+//  sanity check event submissions processed by superconductor
     List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
        createSuperconductorReqMessageEvent(Factory.generateRandomHex64String(), filters), url);
 
@@ -171,8 +170,7 @@ public abstract class AbstractIT {
   }
 
   protected void submitRelayEvent(EventIF event, String url) {
-    assertEquals(true, new NostrEventPublisher(url)
-       .send(new EventMessage(event.asGenericEventRecord())).getFlag());
+    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord())).getFlag());
   }
 
   protected void submitAimgEvent(EventIF eventIF) {
@@ -240,59 +238,55 @@ public abstract class AbstractIT {
     return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardDownvoteDefinitionEvent);
   }
 
-  protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent(Identity defnCreator) {
-    return new BadgeDefinitionGenericEvent(
-       defnCreator,
+  protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent() {
+    BadgeDefinitionGenericEvent badgeDefinitionGenericEvent = new BadgeDefinitionGenericEvent(
+       upvoteDefnCreator,
        upvoteIdentifierTag,
        superconductorRelay,
-       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
+       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
+    return badgeDefinitionGenericEvent;
   }
 
-  protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent(Identity defnCreator) {
+  protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
     return new BadgeDefinitionGenericEvent(
-       defnCreator,
+       upvoteDefnCreator,
        downvoteIdentifierTag,
        superconductorRelay,
-       String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey()));
+       String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
   }
 
-  protected FormulaEvent createFormulaUpvoteEvent(Identity defnCreator) throws ParseException {
+  protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
     return new FormulaEvent(
-       defnCreator,
+       formulaCreator,
        formulaUpvoteIdentifierTag,
        superconductorRelay,
        awardUpvoteDefinitionEvent,
        PLUS_ONE_FORMULA);
   }
 
-  protected FormulaEvent createFormulaDownvoteEvent(Identity defnCreator) throws ParseException {
+  protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
     return new FormulaEvent(
-       defnCreator,
+       formulaCreator,
        formulaDownvoteIdentifierTag,
        superconductorRelay,
        awardDownvoteDefinitionEvent,
        MINUS_ONE_FORMULA);
   }
 
-  protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent(
-     Identity defnCreator,
-     Identity submitter,
-     Relay afterimageRelay,
-     FormulaEvent... formulaEvents) {
+  protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
     return new BadgeDefinitionReputationEvent(
-       defnCreator,
+       repDefnCreator,
        submitter.getPublicKey(),
        reputationIdentifierTag,
-       afterimageRelay,
+       new Relay(afterimageRelayUrl),
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       formulaEvents);
-
+       plusOneFormulaEvent, minusOneFormulaEvent);
   }
 
-  protected BaseEvent createSearchRelaysListEventMessage(Relay shouldAlwaysBeAnSCRelay) {
+  protected BaseEvent createSearchRelaysListEventMessage() {
     return new SearchRelaysListEvent(
        Identity.generateRandomIdentity(),
-       new RelaysTag(shouldAlwaysBeAnSCRelay),
+       new RelaysTag(superconductorRelay),
        "Search Relays List sent from aImg IT 5556");
   }
 

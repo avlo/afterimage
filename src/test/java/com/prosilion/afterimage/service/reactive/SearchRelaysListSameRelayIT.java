@@ -41,7 +41,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     TimeUnit.MILLISECONDS.sleep(100);
 
     submitRelayEvent(
-       createSearchRelaysListEventMessage(superconductorRelay),
+       createSearchRelaysListEventMessage(),
        afterimageRelayUrl);
     TimeUnit.MILLISECONDS.sleep(1500);
   }
