@@ -44,7 +44,7 @@ services:
       timeout: 2s
 # aImg App2 5557 (docker container)
   afterimage-app-two:
-    image: afterimage-nostr-reputation-relay:1.2.0
+    image: afterimage-nostr-reputation-relay:1.3.0
     ports:
       - "5557:5556"
     depends_on:
@@ -75,7 +75,7 @@ services:
       timeout: 2s
 # aImg App2 5558 (docker container)
   afterimage-app-three:
-    image: afterimage-nostr-reputation-relay:1.2.0
+    image: afterimage-nostr-reputation-relay:1.3.0
     ports:
       - "5558:5556"
     depends_on:
