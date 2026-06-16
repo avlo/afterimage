@@ -33,6 +33,7 @@ import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -169,8 +170,34 @@ public abstract class AbstractIT {
     return upvoteEventIF;
   }
 
+  protected EventIF submitSCEventWithDuration_backup(BaseEvent event, String url, Filters filters) {
+//  submit first Event to superconductor
+    submitRelayEvent(event, url);
+//  sanity check event submissions processed by superconductor
+    List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
+       createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url, Duration.ofMinutes(5));
+
+    // TimeUnit.MILLISECONDS.sleep(2500);
+    log.debug("retrieved superconductor events:");
+    List<EventIF> receivedEventIFs = getGenericEvents(baseMessages);
+    receivedEventIFs.stream().map(EventIF::asGenericEventRecord).map(GenericEventRecord::createPrettyPrintJson).forEach(log::debug);
+
+    EventIF upvoteEventIF = receivedEventIFs.getFirst();
+
+    assertEquals(upvoteEventIF.getId(), event.getId());
+    assertEquals(upvoteEventIF.getContent(), event.getContent());
+    assertEquals(upvoteEventIF.getPublicKey().toHexString(), event.getPublicKey().toHexString());
+    assertEquals(upvoteEventIF.getKind(), event.getKind());
+
+    return upvoteEventIF;
+  }
+  
   protected void submitRelayEvent(EventIF event, String url) {
     assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord())).getFlag());
+  }
+
+  protected void submitRelayEventWithDuration_backup(EventIF event, String url) {
+    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), Duration.ofMinutes(5)).getFlag());
   }
 
   protected void submitAimgEvent(EventIF eventIF) {
@@ -220,7 +247,7 @@ public abstract class AbstractIT {
     log.debug(Util.prettyFormatJson(reqMessage.encode(), 2));
     return reqMessage;
   }
-
+  
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
        createAfterImageReqMessage(
@@ -284,6 +311,7 @@ public abstract class AbstractIT {
   }
 
   protected BaseEvent createSearchRelaysListEventMessage() {
+    Util.debug(log, "createSearchRelaysListEventMessage to url:  {}", superconductorRelay.getUrl(), true, '1');
     return new SearchRelaysListEvent(
        Identity.generateRandomIdentity(),
        new RelaysTag(superconductorRelay),
