@@ -14,6 +14,7 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
+import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
@@ -52,6 +53,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
     this.cacheServiceIF = redisCacheService;
     this.reputationCalculationServiceIF = reputationCalculationServiceIF;
     this.cacheFollowSetsEventServiceIF = cacheFollowSetsEventService;
+    Util.debug(log, "using afterimageRelayUrl: [{}]", afterimageRelayUrl, true, '6');
   }
 
   @Override

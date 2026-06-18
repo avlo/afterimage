@@ -236,7 +236,7 @@ run with docker logging displayed to console:
 ### 3.  Run locally as executable jar
 
     $ cd <your_git_home_dir>/afterimage
-    $ java -jar target/afterimage-nostr-reputation-relay-1.3.0.war  
+    $ java -jar target/afterimage-nostr-reputation-relay-1.3.0.war -Dafterimage.relay.url=ws://localhost:5556
 
 ----
 
