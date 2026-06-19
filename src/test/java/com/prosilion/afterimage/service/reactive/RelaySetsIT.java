@@ -10,7 +10,6 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -53,12 +52,45 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 //  now notify 5557 (via RELAY SETS EVENT) of 5556's existence
     submitRelayEvent(
        createRelaysSetsEventMessage(), afterimageRelayUrlThree);
-    TimeUnit.MILLISECONDS.sleep(2000);
+    TimeUnit.MILLISECONDS.sleep(1000);
 
-    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofMinutes(5));
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
+
+    submitSCEvent(
+       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+    TimeUnit.MILLISECONDS.sleep(1000);
+
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>();
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "2");
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "2");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "2");
+
+    submitSCEvent(
+       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+    TimeUnit.MILLISECONDS.sleep(1000);
+//
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
+
+//    submitSCEvent(
+//       createUpvoteEvent(submitter, recipient, superconductorRelay),
+//       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+//    TimeUnit.MILLISECONDS.sleep(1000);
+//
+//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "4");
+//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "4");
   }
 
   private BaseEvent createRelaysSetsEventMessage() {
