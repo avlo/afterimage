@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.json.JsonComparator;
 import org.springframework.test.json.JsonComparison;
 
+import static com.prosilion.afterimage.service.reactive.AbstractIT.AWARD_UNIT_UPVOTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
@@ -32,27 +33,27 @@ public class EventMessageSerializerTest {
 
   public EventMessageSerializerTest() {
     this.genericEventRecordWithAddressTag = new GenericEventRecord(
-        "5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001",
-        new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
-        1111111111111L,
-        Kind.BADGE_AWARD_EVENT,
-        List.of(
-            new AddressTag(Kind.BADGE_DEFINITION_EVENT,
-                new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
-                new IdentifierTag(ExpressionCalculatorTest.UNIT_UPVOTE),
-                relay)),
-        "matching kind, author, identity-tag filter test",
-        new Signature("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"));
+       "5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001",
+       new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
+       1111111111111L,
+       Kind.BADGE_AWARD_EVENT,
+       List.of(
+          new AddressTag(Kind.BADGE_DEFINITION_EVENT,
+             new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
+             new IdentifierTag(AWARD_UNIT_UPVOTE),
+             relay)),
+       "matching kind, author, identity-tag filter test",
+       new Signature("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"));
 
     this.genericEventRecordWithEventTag = new GenericEventRecord(
-        "5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001",
-        new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
-        1111111111111L,
-        Kind.BADGE_AWARD_EVENT,
-        List.of(
-            new EventTag("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984", url)),
-        "matching kind, author, identity-tag filter test",
-        new Signature("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"));
+       "5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001",
+       new PublicKey("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984"),
+       1111111111111L,
+       Kind.BADGE_AWARD_EVENT,
+       List.of(
+          new EventTag("bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984", url)),
+       "matching kind, author, identity-tag filter test",
+       new Signature("86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"));
 
 //    BadgeAwardGenericEvent<BadgeDefinitionAwardEvent> badgeAwardGenericEvent = new BadgeAwardGenericEvent<BadgeDefinitionAwardEvent>(
 //        Identity.generateRandomIdentity(),
@@ -71,33 +72,33 @@ public class EventMessageSerializerTest {
   @Test
   void testStringEventMessageAddressTagGenericEventKindEncoder() throws IOException, NostrException {
     getStringEquals(
-        new EventMessage(
-            genericEventRecordWithAddressTag.asGenericEventRecord()),
-        expectedStringWithAddressTagShouldMatch());
+       new EventMessage(
+          genericEventRecordWithAddressTag.asGenericEventRecord()),
+       expectedStringWithAddressTagShouldMatch());
   }
 
   @Test
   void testJsonEventMessageAddressTagGenericEventKindEncoder() throws IOException, NostrException {
     getJsonEquals(
-        new EventMessage(
-            genericEventRecordWithAddressTag.asGenericEventRecord()),
-        expectedStringWithAddressTagShouldMatch());
+       new EventMessage(
+          genericEventRecordWithAddressTag.asGenericEventRecord()),
+       expectedStringWithAddressTagShouldMatch());
   }
 
   @Test
   void testStringEventMessageEventTagGenericEventKindEncoder() throws IOException, NostrException {
     getStringEquals(
-        new EventMessage(
-            genericEventRecordWithEventTag.asGenericEventRecord()),
-        expectedStringWithEventTagShouldMatch());
+       new EventMessage(
+          genericEventRecordWithEventTag.asGenericEventRecord()),
+       expectedStringWithEventTagShouldMatch());
   }
 
   @Test
   void testJsonEventMessageEventTagGenericEventKindEncoder() throws IOException, NostrException {
     getJsonEquals(
-        new EventMessage(
-            genericEventRecordWithEventTag.asGenericEventRecord()),
-        expectedStringWithEventTagShouldMatch());
+       new EventMessage(
+          genericEventRecordWithEventTag.asGenericEventRecord()),
+       expectedStringWithEventTagShouldMatch());
   }
 
   private void getStringEquals(EventMessage eventMessage, String expected) throws IOException, NostrException {
@@ -129,11 +130,11 @@ public class EventMessageSerializerTest {
 
   private String expectedStringWithAddressTagShouldMatch() {
     return """
-        ["EVENT",{"id":"5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001","pubkey":"bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","created_at":1111111111111,"kind":8,"tags":[["a","30009:bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984:UNIT_UPVOTE","ws://localhost:5555"]],"content":"matching kind, author, identity-tag filter test","sig":"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"}]""";
+       ["EVENT",{"id":"5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001","pubkey":"bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","created_at":1111111111111,"kind":8,"tags":[["a","30009:bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984:TEST_UNIT_UPVOTE","ws://localhost:5555"]],"content":"matching kind, author, identity-tag filter test","sig":"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"}]""";
   }
 
   private String expectedStringWithEventTagShouldMatch() {
     return """
-        ["EVENT",{"id":"5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001","pubkey":"bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","created_at":1111111111111,"kind":8,"tags":[["e","bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","ws://localhost:5555"]],"content":"matching kind, author, identity-tag filter test","sig":"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"}]""";
+       ["EVENT",{"id":"5f66a36101d3d152c6270e18f5622d1f8bce4ac5da9ab62d7c3cc0006e590001","pubkey":"bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","created_at":1111111111111,"kind":8,"tags":[["e","bbbd79f81439ff794cf5ac5f7bff9121e257f399829e472c7a14d3e86fe76984","ws://localhost:5555"]],"content":"matching kind, author, identity-tag filter test","sig":"86f25c161fec51b9e441bdb2c09095d5f8b92fdce66cb80d9ef09fad6ce53eaa14c5e16787c42f5404905536e43ebec0e463aee819378a4acbe412c533e60546"}]""";
   }
 }

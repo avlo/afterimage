@@ -9,7 +9,6 @@ import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -19,75 +18,75 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.MINUS_ONE_FORMULA;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.PLUS_ONE_FORMULA;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.downvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaDownvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaUpvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.reputationIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteDefnCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteIdentifierTag;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 @ActiveProfiles("test")
 public class ExpressionCalculatorTest {
-  public static final String UNIT_UPVOTE = "UNIT_UPVOTE";
-  public static final String UNIT_DOWNVOTE = "UNIT_DOWNVOTE";
-  public static final String UNIT_REPUTATION = "UNIT_REPUTATION";
-  public static final String PLUS_ONE_FORMULA = "+1";
-  public static final String MINUS_ONE_FORMULA = "-1";
 
-  public static final IdentifierTag upvoteIdentifierTag = new IdentifierTag(UNIT_UPVOTE);
-  public static final IdentifierTag downvoteIdentifierTag = new IdentifierTag(UNIT_DOWNVOTE);
-  public static final IdentifierTag reputationIdentifierTag = new IdentifierTag(UNIT_REPUTATION);
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
   private final Relay relay = new Relay("ws://localhost:5555");
 
-  public static final String FORMULA_PLUS_ONE = "FORMULA_PLUS_ONE";
-  private final IdentifierTag formulaPlusOneIdentifierTag = new IdentifierTag(FORMULA_PLUS_ONE);
-
-  public static final String FORMULA_MINUS_ONE = "FORMULA_MINUS_ONE";
-  private final IdentifierTag formulaMinusOneIdentifierTag = new IdentifierTag(FORMULA_MINUS_ONE);
-
   public ExpressionCalculatorTest() throws ParseException {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
-    BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, upvoteIdentifierTag, relay);
-    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(afterimageInstanceIdentity, downvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
+       upvoteDefnCreator,
+       upvoteIdentifierTag,
+       relay,
+       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
+
+    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, downvoteIdentifierTag, relay);
+
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
-        afterimageInstanceIdentity,
-        afterimageInstanceIdentity.getPublicKey(),
-        reputationIdentifierTag,
-        relay,
-        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        List.of(
-            new FormulaEvent(
-                afterimageInstanceIdentity,
-                formulaPlusOneIdentifierTag,
-                relay,
-                upvoteDefinitionEvent,
-                PLUS_ONE_FORMULA),
-            new FormulaEvent(
-                afterimageInstanceIdentity,
-                formulaMinusOneIdentifierTag,
-                relay,
-                downvoteDefinitionEvent,
-                MINUS_ONE_FORMULA)));
+       afterimageInstanceIdentity,
+       afterimageInstanceIdentity.getPublicKey(),
+       reputationIdentifierTag,
+       relay,
+       BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       List.of(
+          new FormulaEvent(
+             afterimageInstanceIdentity,
+             formulaUpvoteIdentifierTag,
+             relay,
+             upvoteDefinitionEvent,
+             PLUS_ONE_FORMULA),
+          new FormulaEvent(
+             afterimageInstanceIdentity,
+             formulaDownvoteIdentifierTag,
+             relay,
+             downvoteDefinitionEvent,
+             MINUS_ONE_FORMULA)));
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
-        afterimageInstanceIdentity,
-        afterimageInstanceIdentity.getPublicKey(),
-        reputationIdentifierTag,
-        relay,
-        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        List.of(
-            new FormulaEvent(
-                afterimageInstanceIdentity,
-                formulaPlusOneIdentifierTag,
-                relay,
-                upvoteDefinitionEvent,
-                PLUS_ONE_FORMULA),
-            new FormulaEvent(
-                afterimageInstanceIdentity,
-                formulaMinusOneIdentifierTag, // convenient repurpose of minusOne tag to add another +1 event content 
-                relay,
-                downvoteDefinitionEvent,
-                PLUS_ONE_FORMULA)));
+       afterimageInstanceIdentity,
+       afterimageInstanceIdentity.getPublicKey(),
+       reputationIdentifierTag,
+       relay,
+       BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       List.of(
+          new FormulaEvent(
+             afterimageInstanceIdentity,
+             formulaUpvoteIdentifierTag,
+             relay,
+             upvoteDefinitionEvent,
+             PLUS_ONE_FORMULA),
+          new FormulaEvent(
+             afterimageInstanceIdentity,
+             formulaDownvoteIdentifierTag,
+             relay,
+             downvoteDefinitionEvent,
+             PLUS_ONE_FORMULA)));
   }
 
   @Test
@@ -95,9 +94,9 @@ public class ExpressionCalculatorTest {
     Expression expression = new Expression("(a + b)");
     Number parse = NumberFormat.getInstance().parse("2.5");
     BigDecimal numberValue = expression
-        .with("a", 3.5)
-        .and("b", parse)
-        .evaluate().getNumberValue();
+       .with("a", 3.5)
+       .and("b", parse)
+       .evaluate().getNumberValue();
 
     log.info("numberValue.toString(): {}", numberValue.toString());
     log.info("numberValue.toEngineeringString(): {}", numberValue.toEngineeringString());
@@ -112,39 +111,39 @@ public class ExpressionCalculatorTest {
     String UNIT_UPVOTE_VALUE = "+1";
 
     BigDecimal resultAfterUpvote = new Expression(
-        String.format("%s %s", CURRENT_TOTAL_STRING, UNIT_UPVOTE_VALUE))
-        .with(CURRENT_TOTAL_STRING, startingTotalIsZero)
-        .evaluate().getNumberValue();
+       String.format("%s %s", CURRENT_TOTAL_STRING, UNIT_UPVOTE_VALUE))
+       .with(CURRENT_TOTAL_STRING, startingTotalIsZero)
+       .evaluate().getNumberValue();
     assertEquals(new BigDecimal("1"), resultAfterUpvote);
 
     String UNIT_DOWNVOTE_VALUE = "-1";
     assertEquals(
-        new BigDecimal("0"),
-        new Expression(String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_DOWNVOTE_VALUE))
-            .with(CURRENT_TOTAL_STRING, resultAfterUpvote)
-            .evaluate().getNumberValue());
+       new BigDecimal("0"),
+       new Expression(String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_DOWNVOTE_VALUE))
+          .with(CURRENT_TOTAL_STRING, resultAfterUpvote)
+          .evaluate().getNumberValue());
   }
 
   @Test
   void testAddOneSubtractOne() {
     log.info(badgeDefinitionReputationEventAddOneSubtractOne.getContent());
     assertEquals(
-        "0",
-        badgeDefinitionReputationEventAddOneSubtractOne.getFormulaEvents().stream()
-            .map(FormulaEvent::getFormula)
-            .reduce(ExpressionCalculator::calculate)
-            .orElseThrow());
+       "0",
+       badgeDefinitionReputationEventAddOneSubtractOne.getFormulaEvents().stream()
+          .map(FormulaEvent::getFormula)
+          .reduce(ExpressionCalculator::calculate)
+          .orElseThrow());
   }
 
   @Test
   void testAddOneAddOne() {
     log.info(badgeDefinitionReputationEventAddOneAddOne.getContent());
     assertEquals(
-        "2",
-        badgeDefinitionReputationEventAddOneAddOne.getFormulaEvents().stream()
-            .map(FormulaEvent::getFormula)
-            .reduce(ExpressionCalculator::calculate)
-            .orElseThrow());
+       "2",
+       badgeDefinitionReputationEventAddOneAddOne.getFormulaEvents().stream()
+          .map(FormulaEvent::getFormula)
+          .reduce(ExpressionCalculator::calculate)
+          .orElseThrow());
   }
 
   @Test
@@ -156,20 +155,20 @@ public class ExpressionCalculatorTest {
     Number UNIT_UPVOTE_VALUE = parsePlusSign("+1");
 
     BigDecimal resultAfterUpvote = new Expression(
-        String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_UPVOTE_STRING))
-        .with(CURRENT_TOTAL_STRING, startingTotalIsZero)
-        .and(UNIT_UPVOTE_STRING, UNIT_UPVOTE_VALUE)
-        .evaluate().getNumberValue();
+       String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_UPVOTE_STRING))
+       .with(CURRENT_TOTAL_STRING, startingTotalIsZero)
+       .and(UNIT_UPVOTE_STRING, UNIT_UPVOTE_VALUE)
+       .evaluate().getNumberValue();
     assertEquals(new BigDecimal("1"), resultAfterUpvote);
 
     String UNIT_DOWNVOTE_STRING = downvoteIdentifierTag.getUuid();
     Number UNIT_DOWNVOTE_VALUE = parsePlusSign("-1");
     assertEquals(
-        new BigDecimal("0"),
-        new Expression(String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_DOWNVOTE_STRING))
-            .with(CURRENT_TOTAL_STRING, resultAfterUpvote)
-            .and(UNIT_DOWNVOTE_STRING, UNIT_DOWNVOTE_VALUE)
-            .evaluate().getNumberValue());
+       new BigDecimal("0"),
+       new Expression(String.format("%s + %s", CURRENT_TOTAL_STRING, UNIT_DOWNVOTE_STRING))
+          .with(CURRENT_TOTAL_STRING, resultAfterUpvote)
+          .and(UNIT_DOWNVOTE_STRING, UNIT_DOWNVOTE_VALUE)
+          .evaluate().getNumberValue());
   }
 
   @Test

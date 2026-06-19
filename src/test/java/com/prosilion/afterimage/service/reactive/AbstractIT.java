@@ -70,31 +70,31 @@ public abstract class AbstractIT {
   public static final String PLUS_ONE_FORMULA = "+1";
   public static final String MINUS_ONE_FORMULA = "-1";
 
-  protected final IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
-  protected final IdentifierTag upvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_UPVOTE);
-  protected final IdentifierTag downvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_DOWNVOTE);
-  protected final IdentifierTag formulaUpvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
-  protected final IdentifierTag formulaDownvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_DOWNVOTE);
+  public final static IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
+  public final static IdentifierTag upvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_UPVOTE);
+  public final static IdentifierTag downvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_DOWNVOTE);
+  public final static IdentifierTag formulaUpvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
+  public final static IdentifierTag formulaDownvoteIdentifierTag = new IdentifierTag(FORMULA_UNIT_DOWNVOTE);
 
   protected final Identity afterimageInstanceIdentity;
 
-  protected final Identity submitter =
+  public final static Identity submitter =
 //     Identity.generateRandomIdentity();
      Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
 
-  protected final Identity upvoteDefnCreator =
+  public final static Identity upvoteDefnCreator =
 //     Identity.generateRandomIdentity();
      Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
-  protected final Identity recipient =
+  public final static Identity recipient =
 //     Identity.generateRandomIdentity();
      Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
 
-  protected final Identity formulaCreator =
+  public final static Identity formulaCreator =
 //     Identity.generateRandomIdentity();
      Identity.create("ddd4585483196998204846989544737603523651520600328805626488477202");
 
-  protected final Identity repDefnCreator =
+  public final static Identity repDefnCreator =
 //     Identity.generateRandomIdentity();
      Identity.create("eee4585483196998204846989544737603523651520600328805626488477202");
 
@@ -120,6 +120,7 @@ public abstract class AbstractIT {
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+    log.debug("afterimageInstanceIdentity: [{}]", afterimageInstanceIdentity.getPublicKey());
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrl = afterimageRelayUrl;
@@ -191,7 +192,7 @@ public abstract class AbstractIT {
 
     return upvoteEventIF;
   }
-  
+
   protected void submitRelayEvent(EventIF event, String url) {
     assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord())).getFlag());
   }
@@ -247,7 +248,7 @@ public abstract class AbstractIT {
     log.debug(Util.prettyFormatJson(reqMessage.encode(), 2));
     return reqMessage;
   }
-  
+
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
        createAfterImageReqMessage(

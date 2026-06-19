@@ -14,8 +14,8 @@ import com.prosilion.nostr.user.Identity;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.prosilion.afterimage.config.MultiContainerTestConfig.AFTERIMAGE_APP_TWO;
-import static com.prosilion.afterimage.config.MultiContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
+import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
+import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
 
 @Slf4j
 public class AbstractDockerRelayIT extends AbstractIT {

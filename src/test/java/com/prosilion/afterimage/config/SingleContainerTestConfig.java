@@ -15,17 +15,17 @@ public class SingleContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeSingleContainerLocalDev() {
     return new ComposeContainer(
-        new File("src/test/resources/docker-compose-local_ws.yml"))
-        .waitingFor("afterimage-db", Wait.forHealthcheck())
-        .withRemoveVolumes(true);
+       new File("src/test/resources/docker-compose-local_ws.yml"))
+       .waitingFor("afterimage-db", Wait.forHealthcheck())
+       .withRemoveVolumes(true);
   }
 
   @Bean
   @ServiceConnection
   public ComposeContainer composeSingleContainerSuperconductorDocker() {
     return new ComposeContainer(
-        new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-        .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
-        .withRemoveVolumes(true);
+       new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
+       .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
+       .withRemoveVolumes(true);
   }
 }

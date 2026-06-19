@@ -15,7 +15,6 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.cache.tag.CacheKindAddressTagServiceIF;
@@ -55,7 +54,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
     this.cacheKindAddressTagServiceIF = cacheKindAddressTagServiceIF;
     this.badgeAwardReputationEventKindTypePlugin = badgeAwardReputationEventKindTypePlugin;
     this.relay = new Relay(afterimageRelayUrl);
-    Util.debug(log, "using afterimageRelayUrl: [{}]", afterimageRelayUrl, true, '7');
+    log.debug("using afterimageRelayUrl: [{}]", afterimageRelayUrl);
   }
 
   @Override

@@ -12,11 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @EmbeddedRedisStandalone
 @Slf4j
-public class MultiContainerTestConfig {
-  public final static String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
-  public final static String AFTERIMAGE_APP_TWO = "afterimage-app-two";
-  public final static String AFTERIMAGE_APP_THREE = "afterimage-app-three";
-
+public class MultiContainerTestConfig extends ContainerTestConfig {
   @Bean
 //  @RestartScope
   @ServiceConnection
@@ -34,6 +30,7 @@ public class MultiContainerTestConfig {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
 // original Wait.forHealthcheck() calls do not work due to wget unavailable in container
+//  TODO: above potentially reconcilable via 'busybox wget' 
        .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
        .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())

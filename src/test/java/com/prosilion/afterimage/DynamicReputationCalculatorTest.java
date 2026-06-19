@@ -3,6 +3,7 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.afterimage.service.reactive.AbstractIT;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
@@ -18,169 +19,160 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.AWARD_UNIT_UPVOTE;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.FORMULA_UNIT_UPVOTE;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.MINUS_ONE_FORMULA;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.PLUS_ONE_FORMULA;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.downvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaDownvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaUpvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.recipient;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.repDefnCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.reputationIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.submitter;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteDefnCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteIdentifierTag;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @ActiveProfiles("test")
 public class DynamicReputationCalculatorTest {
-  public static final String REPUTATION = "TEST_REPUTATION";
-  public static final String AWARD_UNIT_UPVOTE = "TEST_UNIT_UPVOTE";
-  public static final String AWARD_UNIT_DOWNVOTE = "TEST_UNIT_DOWNVOTE";
-  public static final String FORMULA_UNIT_UPVOTE = "FORMULA_UNIT_UPVOTE";
-  public static final String FORMULA_UNIT_DOWNVOTE = "FORMULA_UNIT_DOWNVOTE";
 
-  public static final String PLUS_ONE_FORMULA = "+1";
-  public static final String MINUS_ONE_FORMULA = "-1";
-
-  protected final IdentifierTag reputationIdentifierTag = new IdentifierTag(REPUTATION);
-  protected final IdentifierTag upvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_UPVOTE);
-  protected final IdentifierTag downvoteIdentifierTag = new IdentifierTag(AWARD_UNIT_DOWNVOTE);
-  protected final IdentifierTag formulaPlusOneIdentifierTag = new IdentifierTag(FORMULA_UNIT_UPVOTE);
-  protected final IdentifierTag formulaMinusOneIdentifierTag = new IdentifierTag(FORMULA_UNIT_DOWNVOTE);
-
-  private final Identity aImgIdentity;
-  private final Identity defnCreator = Identity.generateRandomIdentity();
-  private final Identity submitter = Identity.generateRandomIdentity();
-  private final Identity recipient = Identity.generateRandomIdentity();
-
-  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne;
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
   private final Relay relay = new Relay("ws://localhost:5555");
 
   private final FormulaEvent plusOneFormulaEvent;
-  private final FormulaEvent minusOneFormulaEvent;
+  private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   private final BadgeAwardReputationEvent emptyNoReputationYetBadgeAwardEvent;
   private final DynamicReputationCalculator dynamicReputationCalculator;
 
-  public DynamicReputationCalculatorTest() throws ParseException {
-    this.aImgIdentity = Identity.generateRandomIdentity();
-    this.dynamicReputationCalculator = new DynamicReputationCalculator(relay.getUrl(), aImgIdentity);
+  protected final Identity afterimageInstanceIdentity = Identity.create("2684585483196998204846989544737603523651520600328805626488477202");
 
-    BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(aImgIdentity, upvoteIdentifierTag, relay);
-    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(aImgIdentity, downvoteIdentifierTag, relay);
+  public DynamicReputationCalculatorTest() throws ParseException {
+    this.dynamicReputationCalculator = new DynamicReputationCalculator(relay.getUrl(), this.afterimageInstanceIdentity);
+
+    this.awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, upvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, downvoteIdentifierTag, relay);
 
     this.plusOneFormulaEvent = new FormulaEvent(
-        aImgIdentity,
-        formulaPlusOneIdentifierTag,
-        relay,
-        upvoteDefinitionEvent,
-        PLUS_ONE_FORMULA);
-    this.minusOneFormulaEvent = new FormulaEvent(
-        aImgIdentity,
-        formulaMinusOneIdentifierTag,
-        relay,
-        downvoteDefinitionEvent,
-        MINUS_ONE_FORMULA);
+       formulaCreator,
+       formulaUpvoteIdentifierTag,
+       relay,
+       awardUpvoteDefinitionEvent,
+       PLUS_ONE_FORMULA);
 
-    this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
-        aImgIdentity,
-        aImgIdentity.getPublicKey(),
-        reputationIdentifierTag,
-        relay,
-        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        List.of(
-            plusOneFormulaEvent,
-            minusOneFormulaEvent));
+    FormulaEvent minusOneFormulaEvent = new FormulaEvent(
+       formulaCreator,
+       formulaDownvoteIdentifierTag,
+       relay,
+       awardDownvoteDefinitionEvent,
+       MINUS_ONE_FORMULA);
+
+//    BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
+//       upvoteDefnCreator,
+//       upvoteDefnCreator.getPublicKey(),
+//       reputationIdentifierTag,
+//       relay,
+//       BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+//       List.of(
+//          plusOneFormulaEvent,
+//          minusOneFormulaEvent));
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
-        aImgIdentity,
-        aImgIdentity.getPublicKey(),
-        reputationIdentifierTag,
-        relay,
-        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        List.of(
-            plusOneFormulaEvent,
-            new FormulaEvent(
-                aImgIdentity,
-                formulaMinusOneIdentifierTag, // convenient repurpose of minusOne tag to add another +1 event content
-                relay,
-                downvoteDefinitionEvent,
-                PLUS_ONE_FORMULA)));
+       repDefnCreator,
+       submitter.getPublicKey(),
+       reputationIdentifierTag,
+       relay,
+       AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       plusOneFormulaEvent, minusOneFormulaEvent);
 
     this.emptyNoReputationYetBadgeAwardEvent = new BadgeAwardReputationEvent(
-        aImgIdentity,
-        recipient.getPublicKey(),
-        relay,
-        AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        badgeDefinitionReputationEventAddOneAddOne,
-        new BigDecimal("0"));
+       afterimageInstanceIdentity,
+       recipient.getPublicKey(),
+       relay,
+       BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       badgeDefinitionReputationEventAddOneAddOne,
+       new BigDecimal("0"));
   }
 
   @Test
   void testCalculatorOnePlusOne() throws ParseException {
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
-        recipient.getPublicKey(),
-        emptyNoReputationYetBadgeAwardEvent,
-        List.of(
-            plusOneFormulaEvent,
-            new FormulaEvent(
-                aImgIdentity,
-                new IdentifierTag(FORMULA_UNIT_UPVOTE + "_AGAIN"),
-                relay,
-                new BadgeDefinitionGenericEvent(aImgIdentity, new IdentifierTag(AWARD_UNIT_UPVOTE + "_AGAIN"), relay),
-                PLUS_ONE_FORMULA)),
-        new FollowSetsEvent(
-            aImgIdentity,
-            badgeDefinitionReputationEventAddOneAddOne,
-            relay,
-            createBadgeAwardEvent(upvoteIdentifierTag)));
+       recipient.getPublicKey(),
+       emptyNoReputationYetBadgeAwardEvent,
+       List.of(
+          plusOneFormulaEvent,
+          new FormulaEvent(
+             formulaCreator,
+             new IdentifierTag(FORMULA_UNIT_UPVOTE + "_AGAIN"),
+             relay,
+             new BadgeDefinitionGenericEvent(upvoteDefnCreator, new IdentifierTag(AWARD_UNIT_UPVOTE + "_AGAIN"), relay),
+             PLUS_ONE_FORMULA)),
+       new FollowSetsEvent(
+          afterimageInstanceIdentity,
+          badgeDefinitionReputationEventAddOneAddOne,
+          relay,
+          createBadgeAwardEvent(upvoteIdentifierTag)));
 
     assertEquals("1", badgeAwardReputationEvent.getContent());
   }
 
   @Test
   void testCalculatorOnePlusTen() throws ParseException {
-    String AWARD_TEN_UPVOTE = "AWARD_TEN_UPVOTE";
-    IdentifierTag upvoteTenIdentifierTag = new IdentifierTag(AWARD_TEN_UPVOTE);
-
-    String FORMULA_10_UPVOTE = "FORMULA_10_UPVOTE";
-    IdentifierTag formulaPlusTenIdentifierTag = new IdentifierTag(FORMULA_10_UPVOTE);
-
+    String AWARD_10_UPVOTE = "TEST_10_UPVOTE";
+    String FORMULA_10_UPVOTE = "FORMULA_TEN_UPVOTE";
+    IdentifierTag formulaIdentifierTag = new IdentifierTag(FORMULA_10_UPVOTE);
+    IdentifierTag reputationDefinitionIdentifierTag = new IdentifierTag(AWARD_10_UPVOTE);
     FormulaEvent plusTenFormulaEvent = new FormulaEvent(
-        aImgIdentity,
-        formulaPlusTenIdentifierTag,
-        relay,
-        new BadgeDefinitionGenericEvent(aImgIdentity, upvoteTenIdentifierTag, relay),
-        "+10");
+       formulaCreator,
+       formulaIdentifierTag,
+       relay,
+       new BadgeDefinitionGenericEvent(upvoteDefnCreator, reputationDefinitionIdentifierTag, relay),
+       "+10");
 
     BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddTen = new BadgeDefinitionReputationEvent(
-        aImgIdentity,
-        aImgIdentity.getPublicKey(),
-        reputationIdentifierTag,
-        relay,
-        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        plusTenFormulaEvent);
+       repDefnCreator,
+       submitter.getPublicKey(),
+       AbstractIT.reputationIdentifierTag,
+       relay,
+       BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       plusTenFormulaEvent);
 
     BadgeAwardReputationEvent badgeAwardNoRepYet = new BadgeAwardReputationEvent(
-        aImgIdentity,
-        recipient.getPublicKey(),
-        relay,
-        AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
-        badgeDefinitionReputationEventAddTen,
-        new BigDecimal("0"));
+       afterimageInstanceIdentity,
+       recipient.getPublicKey(),
+       relay,
+       BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       badgeDefinitionReputationEventAddTen,
+       new BigDecimal("0"));
+
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardPlus10Event = createBadgeAwardEvent(reputationDefinitionIdentifierTag);
+    FollowSetsEvent incomingFollowSetsEvent = new FollowSetsEvent(
+       afterimageInstanceIdentity,
+       badgeDefinitionReputationEventAddTen,
+       relay,
+       badgeAwardPlus10Event);
 
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
-        recipient.getPublicKey(),
-        badgeAwardNoRepYet,
-        List.of(
-            plusTenFormulaEvent),
-        new FollowSetsEvent(
-            aImgIdentity,
-            badgeDefinitionReputationEventAddTen,
-            relay,
-            createBadgeAwardEvent(formulaPlusTenIdentifierTag)));
+       recipient.getPublicKey(),
+       badgeAwardNoRepYet,
+       List.of(
+          plusTenFormulaEvent),
+       incomingFollowSetsEvent);
 
     assertEquals("10", badgeAwardReputationEvent.getContent());
   }
 
   private BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createBadgeAwardEvent(IdentifierTag identifierTag) {
     return new BadgeAwardGenericEvent<>(
-        submitter, recipient.getPublicKey(), relay,
-        new BadgeDefinitionGenericEvent(
-            defnCreator,
-            identifierTag,
-            relay,
-            String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", defnCreator.getPublicKey())));
+       submitter, recipient.getPublicKey(), relay,
+       new BadgeDefinitionGenericEvent(
+          upvoteDefnCreator,
+          identifierTag,
+          relay,
+          String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey())));
   }
 }

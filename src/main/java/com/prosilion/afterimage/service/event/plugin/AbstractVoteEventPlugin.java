@@ -13,7 +13,6 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
@@ -59,7 +58,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     this.afterimageFollowSetsEventKindPlugin = afterimageFollowSetsEventKindPlugin;
     this.cacheFormulaEventServiceIF = cacheFormulaEventServiceIF;
     this.relay = new Relay(afterimageRelayUrl);
-    Util.debug(log, "using afterimageRelayUrl: [{}]", afterimageRelayUrl, true, '5');
+    log.debug("using afterimageRelayUrl: [{}]", afterimageRelayUrl);
   }
 
   @Override
