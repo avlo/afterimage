@@ -93,7 +93,7 @@ public class AbstractDockerRelayIT extends AbstractIT {
        reputationIdentifierTag,
        new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       plusOneFormulaEvent);
+       plusOneFormulaEvent, minusOneFormulaEvent);
   }
 
   @Override

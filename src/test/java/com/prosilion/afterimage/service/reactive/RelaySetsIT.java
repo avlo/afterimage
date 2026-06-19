@@ -10,6 +10,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
   @Test
   void testFollowSetsEvent() throws InterruptedException {
 // aImg_2 sanity check  
-    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
        aImg_2_EventSubscriber_A);
@@ -52,9 +53,9 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 //  now notify 5557 (via RELAY SETS EVENT) of 5556's existence
     submitRelayEvent(
        createRelaysSetsEventMessage(), afterimageRelayUrlThree);
-    TimeUnit.MILLISECONDS.sleep(1000);
+    TimeUnit.MILLISECONDS.sleep(1500);
 
-    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
@@ -64,10 +65,10 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(1000);
 
-    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
-    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>();
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
@@ -80,17 +81,18 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
        createUpvoteEvent(submitter, recipient, superconductorRelay),
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(1000);
-//
+
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
 
-//    submitSCEvent(
-//       createUpvoteEvent(submitter, recipient, superconductorRelay),
-//       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
-//    TimeUnit.MILLISECONDS.sleep(1000);
-//
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "4");
-//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "4");
+    submitSCEvent(
+       createDownvoteEvent(submitter, recipient, superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+    TimeUnit.MILLISECONDS.sleep(5000);
+
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
+    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "2");
   }
 
   private BaseEvent createRelaysSetsEventMessage() {

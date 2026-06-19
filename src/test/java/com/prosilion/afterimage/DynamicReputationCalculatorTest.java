@@ -41,10 +41,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 public class DynamicReputationCalculatorTest {
 
-  private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
+  private final BadgeDefinitionReputationEvent badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent;
   private final Relay relay = new Relay("ws://localhost:5555");
 
   private final FormulaEvent plusOneFormulaEvent;
+  private final FormulaEvent minusOneFormulaEvent;
   private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   private final BadgeAwardReputationEvent emptyNoReputationYetBadgeAwardEvent;
   private final DynamicReputationCalculator dynamicReputationCalculator;
@@ -64,7 +65,7 @@ public class DynamicReputationCalculatorTest {
        awardUpvoteDefinitionEvent,
        PLUS_ONE_FORMULA);
 
-    FormulaEvent minusOneFormulaEvent = new FormulaEvent(
+    this.minusOneFormulaEvent = new FormulaEvent(
        formulaCreator,
        formulaDownvoteIdentifierTag,
        relay,
@@ -81,7 +82,7 @@ public class DynamicReputationCalculatorTest {
 //          plusOneFormulaEvent,
 //          minusOneFormulaEvent));
 
-    this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
+    this.badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
        repDefnCreator,
        submitter.getPublicKey(),
        reputationIdentifierTag,
@@ -94,12 +95,33 @@ public class DynamicReputationCalculatorTest {
        recipient.getPublicKey(),
        relay,
        BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       badgeDefinitionReputationEventAddOneAddOne,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
        new BigDecimal("0"));
   }
 
   @Test
-  void testCalculatorOnePlusOne() throws ParseException {
+  void testCalculatorOnePlusOne() {
+    BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
+       recipient.getPublicKey(),
+       emptyNoReputationYetBadgeAwardEvent,
+       List.of(
+          plusOneFormulaEvent,
+          minusOneFormulaEvent),
+       new FollowSetsEvent(
+          afterimageInstanceIdentity,
+          badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+          relay,
+          List.of(
+             createBadgeAwardEvent(upvoteIdentifierTag),
+             createBadgeAwardEvent(downvoteIdentifierTag),
+             createBadgeAwardEvent(upvoteIdentifierTag),
+             createBadgeAwardEvent(upvoteIdentifierTag))));
+
+    assertEquals("2", badgeAwardReputationEvent.getContent());
+  }
+
+  @Test
+  void testCalculatorOneMinusOne() throws ParseException {
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
        emptyNoReputationYetBadgeAwardEvent,
@@ -113,7 +135,7 @@ public class DynamicReputationCalculatorTest {
              PLUS_ONE_FORMULA)),
        new FollowSetsEvent(
           afterimageInstanceIdentity,
-          badgeDefinitionReputationEventAddOneAddOne,
+          badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
           relay,
           createBadgeAwardEvent(upvoteIdentifierTag)));
 
