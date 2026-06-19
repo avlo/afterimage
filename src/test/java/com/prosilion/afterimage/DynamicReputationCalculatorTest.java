@@ -46,16 +46,16 @@ public class DynamicReputationCalculatorTest {
 
   private final FormulaEvent plusOneFormulaEvent;
   private final FormulaEvent minusOneFormulaEvent;
-  private final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   private final BadgeAwardReputationEvent emptyNoReputationYetBadgeAwardEvent;
   private final DynamicReputationCalculator dynamicReputationCalculator;
 
-  protected final Identity afterimageInstanceIdentity = Identity.create("2684585483196998204846989544737603523651520600328805626488477202");
+  protected final Identity afterimageInstanceIdentity = Identity.generateRandomIdentity(); 
+//     Identity.create("2684585483196998204846989544737603523651520600328805626488477202"); // aImg-test private key
 
   public DynamicReputationCalculatorTest() throws ParseException {
     this.dynamicReputationCalculator = new DynamicReputationCalculator(relay.getUrl(), this.afterimageInstanceIdentity);
 
-    this.awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, upvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, upvoteIdentifierTag, relay);
     BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, downvoteIdentifierTag, relay);
 
     this.plusOneFormulaEvent = new FormulaEvent(
@@ -71,16 +71,6 @@ public class DynamicReputationCalculatorTest {
        relay,
        awardDownvoteDefinitionEvent,
        MINUS_ONE_FORMULA);
-
-//    BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
-//       upvoteDefnCreator,
-//       upvoteDefnCreator.getPublicKey(),
-//       reputationIdentifierTag,
-//       relay,
-//       BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-//       List.of(
-//          plusOneFormulaEvent,
-//          minusOneFormulaEvent));
 
     this.badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
        repDefnCreator,
@@ -122,22 +112,30 @@ public class DynamicReputationCalculatorTest {
 
   @Test
   void testCalculatorOneMinusOne() throws ParseException {
+    String VARIANT = "_VARIANT";
+    IdentifierTag formulaUpvoteIdentifierTagVariant = new IdentifierTag(FORMULA_UNIT_UPVOTE + VARIANT);
+    IdentifierTag badgeDefnIdentifierTagVariant = new IdentifierTag(AWARD_UNIT_UPVOTE + VARIANT);
+
+    FormulaEvent secondFormulaShouldNotInterfereWithFirstFormula = new FormulaEvent(
+       formulaCreator,
+       formulaUpvoteIdentifierTagVariant,
+       relay,
+       new BadgeDefinitionGenericEvent(upvoteDefnCreator, badgeDefnIdentifierTagVariant, relay),
+       PLUS_ONE_FORMULA);
+
+    FollowSetsEvent followSetsSingleUpvote = new FollowSetsEvent(
+       afterimageInstanceIdentity,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       relay,
+       createBadgeAwardEvent(upvoteIdentifierTag));
+    
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
        emptyNoReputationYetBadgeAwardEvent,
        List.of(
           plusOneFormulaEvent,
-          new FormulaEvent(
-             formulaCreator,
-             new IdentifierTag(FORMULA_UNIT_UPVOTE + "_AGAIN"),
-             relay,
-             new BadgeDefinitionGenericEvent(upvoteDefnCreator, new IdentifierTag(AWARD_UNIT_UPVOTE + "_AGAIN"), relay),
-             PLUS_ONE_FORMULA)),
-       new FollowSetsEvent(
-          afterimageInstanceIdentity,
-          badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-          relay,
-          createBadgeAwardEvent(upvoteIdentifierTag)));
+          secondFormulaShouldNotInterfereWithFirstFormula),
+       followSetsSingleUpvote);
 
     assertEquals("1", badgeAwardReputationEvent.getContent());
   }
