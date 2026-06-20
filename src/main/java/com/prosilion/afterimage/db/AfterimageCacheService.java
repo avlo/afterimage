@@ -11,7 +11,7 @@
 //import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
 //import java.util.List;
 //import java.util.Optional;
-//import org.springframework.lang.NonNull;
+//import lombok.NonNull;
 //
 //public class AfterimageCacheService {
 //  private final CacheBadgeDefinitionReputationEventService defnReputationEventService;

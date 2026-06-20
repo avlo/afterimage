@@ -3,6 +3,7 @@ package com.prosilion.afterimage.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -13,15 +14,19 @@ import com.prosilion.subdivisions.client.reactive.MultiRelaySubscriptionsManager
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 
 @Slf4j
 public class RelayMeshProxy implements RelayMeshProxyIF {
   private final EventKindPluginIF eventKindPluginIF;
+  @Getter
+  private final Relay relay;
 
-  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF) {
+  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF, @NonNull Relay relay) {
     this.eventKindPluginIF = eventKindPluginIF;
+    this.relay = relay;
   }
 
   @Override
@@ -34,26 +39,26 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
   @Override
   public void activateRequestFlux(@NonNull Filters filters, @NonNull String relayUrl) {
     log.debug("activateRequestFlux() called with filters:\n  [{}]\nrelayUrl: [{}]",
-        filters.toString(2),
-        relayUrl);
+       filters.toString(2),
+       relayUrl);
 
     String subscriptionId = Util.generateRandomHex64String();
     log.debug("calling new MultiRelaySubscriptionsManager().send(...) with subscriptionId: [{}]", subscriptionId);
     try {
       new MultiRelaySubscriptionsManager()
-          .send(
-              new ReqMessage(
-                  subscriptionId,
-                  filters),
-              relayUrl,
-              new RequestSubscriberDelegate<>(this));
+         .send(
+            new ReqMessage(
+               subscriptionId,
+               filters),
+            relayUrl,
+            new RequestSubscriberDelegate<>(this));
     } catch (JsonProcessingException e) {
       throw new NostrException("activateRequestFlux(...) multiRelaySubscriptionsManager.send(...) shit the bed", e);
     }
   }
 
   @Override
-  public void doDelegate(@NonNull BaseMessage baseMessage) {
+  public void doDelegate(@NonNull BaseMessage baseMessage, @NonNull Relay relay) {
     String encode;
     try {
       encode = baseMessage.encode();
@@ -63,29 +68,29 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
     log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(encode));
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
-        eventIF.map(EventIF::createPrettyPrintJson).orElse("  EMPTY Optional<EventIF>.  will not call processIncoming()"));
-    eventIF.ifPresent(this::processIncoming);
+       eventIF.map(EventIF::createPrettyPrintJson).orElse("  EMPTY Optional<EventIF>.  will not call processIncoming()"));
+    eventIF.ifPresent(eventIF1 -> processIncoming(eventIF1, relay));
   }
 
   @Override
   public void dispose() {
   }
 
-  private void processIncoming(EventIF eventIF) {
+  private void processIncoming(EventIF eventIF, Relay relay) {
     log.debug("**** RelayMeshProxy **** callback retrieved incoming...:\n  Kind[{}]: {}\ncontent:\n{}",
-        eventIF.getKind().getValue(),
-        eventIF.getKind().getName().toUpperCase(),
-        eventIF.createPrettyPrintJson());
+       eventIF.getKind().getValue(),
+       eventIF.getKind().getName().toUpperCase(),
+       eventIF.createPrettyPrintJson());
 
     log.debug("calling eventKindPluginIF.processIncomingEvent(eventIF) using eventKindPluginIF type: [{}] ", eventKindPluginIF.getClass().getSimpleName());
-    eventKindPluginIF.processIncomingEvent(eventIF);
+    eventKindPluginIF.processIncomingEvent(eventIF, relay);
   }
 
   private Optional<EventIF> filterEventMessageEvent(BaseMessage returnedBaseMessage) {
     Optional<EventIF> eventIF = Optional.of(returnedBaseMessage)
-        .filter(EventMessage.class::isInstance)
-        .map(EventMessage.class::cast)
-        .map(EventMessage::getEvent);
+       .filter(EventMessage.class::isInstance)
+       .map(EventMessage.class::cast)
+       .map(EventMessage::getEvent);
     return eventIF;
   }
 }

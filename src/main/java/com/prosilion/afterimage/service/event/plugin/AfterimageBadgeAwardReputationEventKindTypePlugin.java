@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 
@@ -56,7 +56,9 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEventAsReputationEvent) {
+  public GenericEventRecord processIncomingEvent(
+     @NonNull EventIF incomingFollowSetsEventAsReputationEvent,
+     @NonNull Relay relay) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
        incomingFollowSetsEventAsReputationEvent.getKind().getValue(),
        incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
@@ -100,7 +102,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
 
 //    TODO: possibly reverse order below
     existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent); // delete old
-    return super.processIncomingEvent(newReputationEvent); // save new
+    return super.processIncomingEvent(newReputationEvent, relay); // save new
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(

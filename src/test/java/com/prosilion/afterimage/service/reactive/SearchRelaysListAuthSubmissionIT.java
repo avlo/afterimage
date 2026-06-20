@@ -37,7 +37,7 @@
 //import org.springframework.beans.factory.annotation.Qualifier;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.lang.NonNull;
+//import lombok.NonNull;
 //import org.springframework.test.context.ActiveProfiles;
 //import org.springframework.test.context.TestPropertySource;
 //

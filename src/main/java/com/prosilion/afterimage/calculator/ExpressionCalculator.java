@@ -7,7 +7,7 @@ import com.prosilion.nostr.NostrException;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public class ExpressionCalculator {
   private static final String VALID_MATH_OPERATORS_REGEX = "[+\\-*/]";

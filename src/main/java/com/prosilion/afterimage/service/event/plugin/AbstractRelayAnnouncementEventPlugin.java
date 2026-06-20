@@ -18,8 +18,8 @@ import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishing
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 
 @Slf4j
 public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
@@ -38,7 +38,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     this.eventKindPluginIF = eventKindPluginIF;
   }
 
-  public GenericEventRecord processIncomingEvent(EventIF event) {
+  public GenericEventRecord processIncomingEvent(@NonNull EventIF event, @NonNull Relay relay) {
     if (cacheServiceIF.getEventByEventId(event.getId()).isPresent())
       return event.asGenericEventRecord();
 
@@ -67,7 +67,9 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     }
 
 //  saves new unique relays 
-    GenericEventRecord genericEventRecord = super.processIncomingEvent(createEvent(aImgIdentity, uniqueNewRelays));
+    GenericEventRecord genericEventRecord = super.processIncomingEvent(
+       createEvent(aImgIdentity, uniqueNewRelays),
+       relay);
 
     log.debug("RelayMeshProxy will send request filters:\n  [{}]\nto new relay(s):\n{}",
        getFilters().toString(2),
@@ -78,7 +80,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
     log.debug("calling new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays) ...");
     log.debug("... using eventKindPluginIF type: [{}] ...", eventKindPluginIF.getClass().getSimpleName());
-    new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays);
+    new RelayMeshProxy(eventKindPluginIF, relay).activateRequestFlux(getFilters(), uniqueNewRelays);
 
     return genericEventRecord;
   }

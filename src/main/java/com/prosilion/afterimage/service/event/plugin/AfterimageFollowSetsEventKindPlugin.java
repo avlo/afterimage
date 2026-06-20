@@ -26,8 +26,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 
 @Slf4j
 public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlugin { // kind 30_000
@@ -58,7 +58,9 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent) {
+  public GenericEventRecord processIncomingEvent(
+     @NonNull EventIF incomingFollowSetsEvent,
+     @NonNull Relay relay) {
     FollowSetsEvent materializedFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent);
     log.debug("materializedFollowSetsEvent:\n{}", materializedFollowSetsEvent.createPrettyPrintJson());
 
@@ -100,14 +102,14 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
     log.debug("(8ofX) ... notifierFollowSetsEvent:\n  {}", notifierFollowSetsEvent.createPrettyPrintJson());
 
     existingFollowSetsEventOpt.ifPresent(this::deletePreviousFollowSetsEvent);
-    super.processIncomingEvent(notifierFollowSetsEvent);
+    super.processIncomingEvent(notifierFollowSetsEvent, relay);
     log.debug("(9ofX) super.processIncomingEvent(notifierFollowSetsEvent) called...");
 
     FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
        materializedFollowSetsEvent.getBadgeDefinitionReputationEvent(),
        nonMatchingVoteEvents);
     log.debug("(10ofX) ... createFollowSetsEvent(...) method successfully created followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
-    GenericEventRecord genericEventRecord = badgeAwardReputationEventKindTypePlugin.processIncomingEvent(followsSetAsReputationEvent);
+    GenericEventRecord genericEventRecord = badgeAwardReputationEventKindTypePlugin.processIncomingEvent(followsSetAsReputationEvent, relay);
 
     log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}", genericEventRecord.createPrettyPrintJson());
     return genericEventRecord;

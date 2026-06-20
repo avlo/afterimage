@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public class DynamicReputationCalculator implements ReputationCalculatorIF {
   private final Identity aImgIdentity;

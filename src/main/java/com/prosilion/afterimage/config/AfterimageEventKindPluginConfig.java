@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 @Configuration
 public class AfterimageEventKindPluginConfig {

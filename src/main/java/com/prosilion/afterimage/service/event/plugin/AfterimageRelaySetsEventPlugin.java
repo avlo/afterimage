@@ -13,7 +13,7 @@ import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 @Slf4j
 public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEventPlugin {

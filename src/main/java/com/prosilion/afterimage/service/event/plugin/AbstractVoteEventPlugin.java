@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 
 @Slf4j
 // our SportsCar extends CarDecorator
@@ -62,7 +62,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent) {
+  public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent, @NonNull Relay relay) {
     log.debug("processing incoming voteEvent\n{}", voteEvent.createPrettyPrintJson());
 
     BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class)).orElseThrow(() ->
@@ -118,7 +118,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     log.debug("(11of13V) ... saved ...");
 
     log.debug("(12of13V) ... calling followSetsEventToSend.stream().map(afterimageFollowSetsEventKindPlugin::processIncomingEvent) ...");
-    GenericEventRecord unused = afterimageFollowSetsEventKindPlugin.processIncomingEvent(followSetsEventToSend);
+    GenericEventRecord unused = afterimageFollowSetsEventKindPlugin.processIncomingEvent(followSetsEventToSend, relay);
     log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
     return upvoteEventReconstructed.asGenericEventRecord();
   }

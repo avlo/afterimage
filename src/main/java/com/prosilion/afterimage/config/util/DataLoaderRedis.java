@@ -4,7 +4,7 @@ import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public class DataLoaderRedis implements DataLoaderRedisIF {
   private final CacheServiceIF afterimageCacheService;

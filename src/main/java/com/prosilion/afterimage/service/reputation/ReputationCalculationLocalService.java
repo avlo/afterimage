@@ -6,7 +6,7 @@ import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.user.PublicKey;
 import java.util.List;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public class ReputationCalculationLocalService implements ReputationCalculationServiceIF {
   ReputationCalculatorIF reputationCalculator;
