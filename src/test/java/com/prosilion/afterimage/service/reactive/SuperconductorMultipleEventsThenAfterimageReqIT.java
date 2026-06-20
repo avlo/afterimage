@@ -39,7 +39,7 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
   void superconductorMultipleEventsThenAfterimageReq() throws NostrException {
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          createUpvoteEvent(superconductorRelay),
           superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
@@ -49,13 +49,13 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
 // second upvote    
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          createUpvoteEvent(superconductorRelay),
           superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
 // third upvote    
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          createUpvoteEvent(superconductorRelay),
           superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     List<EventIF> returnedAfterImageEvents_B = validateGeneralAfterimageRequestResults(

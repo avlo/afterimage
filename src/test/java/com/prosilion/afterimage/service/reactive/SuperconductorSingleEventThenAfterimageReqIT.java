@@ -2,9 +2,13 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.service.event.plugin.AbstractVoteEventPlugin;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -13,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,14 +37,30 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
   }
 
   @Test
-  void superconductorEventThenAfterimageReq() throws NostrException {
+  void aSuperconductorEventThenAfterimageReq() throws NostrException {
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
+          createUpvoteEvent(superconductorRelay),
           superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
        "1",
+       submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
+  }
+
+  @Test
+  void bSuperconductorEventEmptyAddressTagRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> event = new BadgeAwardGenericEvent<>(
+       submitter, recipient.getPublicKey(), superconductorRelay, awardUpvoteDefinitionEvent);
+
+    submitAimgEvent(
+       submitSCEvent(
+          AbstractVoteEventPlugin.emptyAddressTagRelayTriesSourceRelay(
+             event, event.getAddressTag(), awardUpvoteDefinitionEvent),
+          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+
+    assertEquals(
+       "2",
        submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
   }
 }

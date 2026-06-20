@@ -39,11 +39,11 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import lombok.NonNull;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -258,21 +258,20 @@ public abstract class AbstractIT {
        url, subscriber);
   }
 
-  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Identity submitter, Identity recipient, Relay relay) {
-    return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
+  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Relay relay) {
+    return new BadgeAwardGenericEvent<>(AbstractIT.submitter, AbstractIT.recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
   }
 
-  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createDownvoteEvent(Identity submitter, Identity recipient, Relay relay) {
-    return new BadgeAwardGenericEvent<>(submitter, recipient.getPublicKey(), relay, awardDownvoteDefinitionEvent);
+  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createDownvoteEvent(Relay relay) {
+    return new BadgeAwardGenericEvent<>(AbstractIT.submitter, AbstractIT.recipient.getPublicKey(), relay, awardDownvoteDefinitionEvent);
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent() {
-    BadgeDefinitionGenericEvent badgeDefinitionGenericEvent = new BadgeDefinitionGenericEvent(
+    return new BadgeDefinitionGenericEvent(
        upvoteDefnCreator,
        upvoteIdentifierTag,
        superconductorRelay,
        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
-    return badgeDefinitionGenericEvent;
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {

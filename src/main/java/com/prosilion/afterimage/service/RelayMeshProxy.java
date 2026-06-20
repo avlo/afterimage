@@ -87,10 +87,9 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
   }
 
   private Optional<EventIF> filterEventMessageEvent(BaseMessage returnedBaseMessage) {
-    Optional<EventIF> eventIF = Optional.of(returnedBaseMessage)
+    return Optional.of(returnedBaseMessage)
        .filter(EventMessage.class::isInstance)
        .map(EventMessage.class::cast)
        .map(EventMessage::getEvent);
-    return eventIF;
   }
 }

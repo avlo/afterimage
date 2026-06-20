@@ -36,7 +36,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
 
     submitSCEvent(
-       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       createUpvoteEvent(superconductorRelay),
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(100);
 
@@ -54,7 +54,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
 
 //    submit 2nd SC upvote event
     submitSCEvent(
-       createUpvoteEvent(submitter, recipient, superconductorRelay),
+       createUpvoteEvent(superconductorRelay),
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg
 
@@ -68,7 +68,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
 
 //    submit 3rd SC event, a downvote
     submitSCEvent(
-       createDownvoteEvent(submitter, recipient, superconductorRelay),
+       createDownvoteEvent(superconductorRelay),
        superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
     TimeUnit.MILLISECONDS.sleep(2000); // give time for upvoteEvent to propagate to aImg    
 

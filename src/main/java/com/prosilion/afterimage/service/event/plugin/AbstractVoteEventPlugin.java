@@ -12,6 +12,7 @@ import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
@@ -66,13 +67,13 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     log.debug("processing incoming voteEvent\n{}", voteEvent.createPrettyPrintJson());
 
     AddressTag voteEventAddressTag = voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class);
-    Relay consolidatedRelay = Optional.ofNullable(voteEventAddressTag.requireRelay()).orElse(relay);
+    Relay consolidatedRelay = voteEventAddressTag.findRelay().orElse(relay);
 
     log.debug("processIncomingEvent(voteEvent, Relay):\n  " +
           "voteEventAddressTag Relay: [ {} ]\n  " +
           "eventual consolidated Relay: [ {} ]",
-       Optional.ofNullable(voteEventAddressTag.getRelay()).map(Relay::getUrl).orElse("NULL"),
-       consolidatedRelay);
+       voteEventAddressTag.findRelay().map(Relay::getUrl).orElse("NULL"),
+       consolidatedRelay.getUrl());
 
     AddressTag addressTag = new AddressTag(
        voteEventAddressTag.getKind(),
@@ -85,8 +86,8 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
           String.format("no BadgeDefinitionUpvoteEvent matches incoming voteEvent:\n  %s", voteEvent.createPrettyPrintJson())));
     log.debug("(1of13V) badgeDefinitionUpvoteEvent:\n  {}", badgeDefinitionUpvoteEvent.createPrettyPrintJson());
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> upvoteEventReconstructed =
-       new BadgeAwardGenericEvent<>(voteEvent.asGenericEventRecord(), aTag -> badgeDefinitionUpvoteEvent);
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> upvoteEventReconstructed = emptyAddressTagRelayTriesSourceRelay(
+       voteEvent, addressTag, badgeDefinitionUpvoteEvent);
 
     log.debug("(2of13V) upvoteEventReconstructed:\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
 
@@ -136,6 +137,27 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
     GenericEventRecord unused = afterimageFollowSetsEventKindPlugin.processIncomingEvent(followSetsEventToSend, relay);
     log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
     return upvoteEventReconstructed.asGenericEventRecord();
+  }
+
+  public static BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> emptyAddressTagRelayTriesSourceRelay(
+     EventIF event,
+     AddressTag addressTag,
+     BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent) {
+    return new BadgeAwardGenericEvent<>(
+       new GenericEventRecord(
+          event.getId(),
+          event.getPublicKey(),
+          event.getCreatedAt(),
+          event.getKind(),
+          List.of(new AddressTag(
+                addressTag.getKind(),
+                addressTag.getPublicKey(),
+                addressTag.requireIdentifierTag(),
+                addressTag.requireRelay()),
+             new RelayTag(addressTag.requireRelay()),
+             event.requireFirstTag(PubKeyTag.class)),
+          event.getContent(),
+          event.getSignature()), aTag -> badgeDefinitionUpvoteEvent);
   }
 
   private FollowSetsEvent createFollowSetsEvent(
