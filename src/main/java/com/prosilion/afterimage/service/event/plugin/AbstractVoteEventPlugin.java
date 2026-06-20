@@ -65,7 +65,22 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent, @NonNull Relay relay) {
     log.debug("processing incoming voteEvent\n{}", voteEvent.createPrettyPrintJson());
 
-    BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class)).orElseThrow(() ->
+    AddressTag voteEventAddressTag = voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class);
+    Relay consolidatedRelay = Optional.ofNullable(voteEventAddressTag.requireRelay()).orElse(relay);
+
+    log.debug("processIncomingEvent(voteEvent, Relay):\n  " +
+          "voteEventAddressTag Relay: [ {} ]\n  " +
+          "eventual consolidated Relay: [ {} ]",
+       Optional.ofNullable(voteEventAddressTag.getRelay()).map(Relay::getUrl).orElse("NULL"),
+       consolidatedRelay);
+
+    AddressTag addressTag = new AddressTag(
+       voteEventAddressTag.getKind(),
+       voteEventAddressTag.getPublicKey(),
+       voteEventAddressTag.requireIdentifierTag(),
+       consolidatedRelay);
+
+    BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(addressTag).orElseThrow(() ->
        new NostrException(
           String.format("no BadgeDefinitionUpvoteEvent matches incoming voteEvent:\n  %s", voteEvent.createPrettyPrintJson())));
     log.debug("(1of13V) badgeDefinitionUpvoteEvent:\n  {}", badgeDefinitionUpvoteEvent.createPrettyPrintJson());
