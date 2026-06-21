@@ -236,13 +236,13 @@ run with docker logging displayed to console:
 ### 3.  Run locally as executable jar
 
     $ cd <your_git_home_dir>/afterimage
-    $ java -jar target/afterimage-nostr-reputation-relay-1.3.0.war -Dafterimage.relay.url=ws://localhost:5556
+    $ java -jar target/afterimage-nostr-reputation-relay-1.3.1.war -Dafterimage.relay.url=ws://localhost:5556
 
 ----
 
 ### 4.  Run using pre-existing local application-server-container instance
 
-    $ cp <your_git_home_dir>/afterimage/target/afterimage-nostr-reputation-relay-1.3.0.war <your_container/instance/deployment_directory>
+    $ cp <your_git_home_dir>/afterimage/target/afterimage-nostr-reputation-relay-1.3.1.war <your_container/instance/deployment_directory>
 
 ----
 
