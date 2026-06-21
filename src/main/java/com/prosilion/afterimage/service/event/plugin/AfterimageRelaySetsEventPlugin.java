@@ -12,41 +12,41 @@ import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEventPlugin {
   public AfterimageRelaySetsEventPlugin(
-      @NonNull Identity aImgIdentity,
-      @NonNull CacheServiceIF cacheServiceIF,
-      @NonNull EventPlugin eventPlugin,
-      @NonNull EventKindPluginIF eventKindPluginIF) {
+     @NonNull Identity aImgIdentity,
+     @NonNull CacheServiceIF cacheServiceIF,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull EventKindPluginIF eventKindPluginIF) {
     super(aImgIdentity, cacheServiceIF, eventPlugin, eventKindPluginIF);
   }
 
   @Override
   protected Filters getFilters() {
     log.debug("getFilters() of kind [{}]: {}",
-        Kind.FOLLOW_SETS.getValue(),
-        Kind.FOLLOW_SETS.getName().toUpperCase());
+       Kind.FOLLOW_SETS.getValue(),
+       Kind.FOLLOW_SETS.getName().toUpperCase());
     return new Filters(new KindFilter(Kind.FOLLOW_SETS));
   }
 
   @Override
   public Kind getKind() {
     log.debug("getKind Kind[{}]: {}",
-        Kind.RELAY_SETS.getValue(),
-        Kind.RELAY_SETS.getName().toUpperCase());
+       Kind.RELAY_SETS.getValue(),
+       Kind.RELAY_SETS.getName().toUpperCase());
     return Kind.RELAY_SETS;
   }
 
   @Override
-  protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays) {
+  protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<Relay> uniqueNewRelays) {
     RelaySetsEvent event = new RelaySetsEvent(
-        identity,
-        new RelaysTag(uniqueNewRelays.stream().map(Relay::new).toList()),
-        "AfterimageRelaySetsEventPlugin created RelaySetsEvent");
+       identity,
+       new RelaysTag(uniqueNewRelays),
+       "AfterimageRelaySetsEventPlugin created RelaySetsEvent");
     log.debug("createEvent(..., @NonNull Set<String> uniqueNewRelays):\n {}", event.createPrettyPrintJson());
     return event;
   }

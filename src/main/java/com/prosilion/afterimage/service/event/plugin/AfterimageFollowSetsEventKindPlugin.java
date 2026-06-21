@@ -58,10 +58,10 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(
+  public Optional<GenericEventRecord> processIncomingEvent(
      @NonNull EventIF incomingFollowSetsEvent,
      @NonNull Relay relay) {
-    FollowSetsEvent materializedFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent);
+    FollowSetsEvent materializedFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent).orElseThrow();
     log.debug("materializedFollowSetsEvent:\n{}", materializedFollowSetsEvent.createPrettyPrintJson());
 
     PublicKey upvotedUserPubKeyTagPublicKey = materializedFollowSetsEvent.getAwardRecipientPulicKey();
@@ -109,9 +109,10 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
        materializedFollowSetsEvent.getBadgeDefinitionReputationEvent(),
        nonMatchingVoteEvents);
     log.debug("(10ofX) ... createFollowSetsEvent(...) method successfully created followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
-    GenericEventRecord genericEventRecord = badgeAwardReputationEventKindTypePlugin.processIncomingEvent(followsSetAsReputationEvent, relay);
+    Optional<GenericEventRecord> genericEventRecord = badgeAwardReputationEventKindTypePlugin.processIncomingEvent(followsSetAsReputationEvent, relay);
 
-    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}", genericEventRecord.createPrettyPrintJson());
+    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}",
+       genericEventRecord.map(GenericEventRecord::createPrettyPrintJson).orElse("EMTPTY"));
     return genericEventRecord;
   }
 

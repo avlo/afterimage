@@ -15,6 +15,7 @@ import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -49,7 +50,7 @@ public class DynamicReputationCalculatorTest {
   private final BadgeAwardReputationEvent emptyNoReputationYetBadgeAwardEvent;
   private final DynamicReputationCalculator dynamicReputationCalculator;
 
-  protected final Identity afterimageInstanceIdentity = Identity.generateRandomIdentity(); 
+  protected final Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 //     Identity.create("2684585483196998204846989544737603523651520600328805626488477202"); // aImg-test private key
 
   public DynamicReputationCalculatorTest() throws ParseException {
@@ -93,7 +94,7 @@ public class DynamicReputationCalculatorTest {
   void testCalculatorOnePlusOne() {
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
-       emptyNoReputationYetBadgeAwardEvent,
+       Optional.of(emptyNoReputationYetBadgeAwardEvent),
        List.of(
           plusOneFormulaEvent,
           minusOneFormulaEvent),
@@ -105,7 +106,7 @@ public class DynamicReputationCalculatorTest {
              createBadgeAwardEvent(upvoteIdentifierTag),
              createBadgeAwardEvent(downvoteIdentifierTag),
              createBadgeAwardEvent(upvoteIdentifierTag),
-             createBadgeAwardEvent(upvoteIdentifierTag))));
+             createBadgeAwardEvent(upvoteIdentifierTag)))).get();
 
     assertEquals("2", badgeAwardReputationEvent.getContent());
   }
@@ -128,14 +129,14 @@ public class DynamicReputationCalculatorTest {
        badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
        relay,
        createBadgeAwardEvent(upvoteIdentifierTag));
-    
+
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
-       emptyNoReputationYetBadgeAwardEvent,
+       Optional.of(emptyNoReputationYetBadgeAwardEvent),
        List.of(
           plusOneFormulaEvent,
           secondFormulaShouldNotInterfereWithFirstFormula),
-       followSetsSingleUpvote);
+       followSetsSingleUpvote).get();
 
     assertEquals("1", badgeAwardReputationEvent.getContent());
   }
@@ -178,10 +179,10 @@ public class DynamicReputationCalculatorTest {
 
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
-       badgeAwardNoRepYet,
+       Optional.of(badgeAwardNoRepYet),
        List.of(
           plusTenFormulaEvent),
-       incomingFollowSetsEvent);
+       incomingFollowSetsEvent).get();
 
     assertEquals("10", badgeAwardReputationEvent.getContent());
   }

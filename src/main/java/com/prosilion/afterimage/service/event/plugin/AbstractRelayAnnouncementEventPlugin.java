@@ -9,13 +9,16 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -38,9 +41,10 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
     this.eventKindPluginIF = eventKindPluginIF;
   }
 
-  public GenericEventRecord processIncomingEvent(@NonNull EventIF event, @NonNull Relay relay) {
-    if (cacheServiceIF.getEventByEventId(event.getId()).isPresent())
-      return event.asGenericEventRecord();
+  public Optional<GenericEventRecord> processIncomingEvent(@NonNull EventIF event, @NonNull Relay relay) {
+    Optional<GenericEventRecord> eventByEventId = cacheServiceIF.getEventByEventId(event.getId());
+    if (eventByEventId.isPresent())
+      return eventByEventId;
 
     log.debug("processing incoming Kind[{}]:{}\n{}",
        event.getKind().getValue(),
@@ -51,23 +55,24 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
        event.getKind().equals(getKind()),
        event.getKind().getName(), List.of(getKind().getName()));
 
-    List<Relay> relaysTags = event.requireFirstTag(RelaysTag.class).getRelays();
+    Set<Relay> relaysTagRelays = event.requireFirstTag(RelaysTag.class).getRelays();
 
-    Set<String> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
-       .map(EventIF::requireRelayTagUrl)
+    Set<Relay> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
+       .map(EventIF::requireRelayTag)
+       .map(RelayTag::getRelay)
        .collect(Collectors.toSet());
 
-    Set<String> uniqueNewRelays = Sets.difference(
-       relaysTags.stream().map(Relay::getUrl).collect(Collectors.toSet()),
+    Set<Relay> uniqueNewRelays = Sets.difference(
+       new HashSet<>(relaysTagRelays),
        existingKnownRelays);
 
     if (uniqueNewRelays.isEmpty()) {
       log.debug("did not discover any new unique relays, not saving incoming SearchRelaysList/RelaySets event, just return");
-      return event.asGenericEventRecord();
+      return Optional.empty();
     }
 
 //  saves new unique relays 
-    GenericEventRecord genericEventRecord = super.processIncomingEvent(
+    Optional<GenericEventRecord> genericEventRecord = super.processIncomingEvent(
        createEvent(aImgIdentity, uniqueNewRelays),
        relay);
 
@@ -80,7 +85,7 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
     log.debug("calling new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays) ...");
     log.debug("... using eventKindPluginIF type: [{}] ...", eventKindPluginIF.getClass().getSimpleName());
-    new RelayMeshProxy(eventKindPluginIF, relay).activateRequestFlux(getFilters(), uniqueNewRelays);
+    new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays);
 
     return genericEventRecord;
   }
@@ -89,5 +94,5 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
   abstract public Kind getKind();
 
-  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<String> uniqueNewRelays);
+  abstract protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<Relay> uniqueNewRelays);
 }

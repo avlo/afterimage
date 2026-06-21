@@ -21,14 +21,15 @@ import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import lombok.NonNull;
 
 @Configuration
 public class AfterimageEventKindPluginConfig {
@@ -71,8 +72,8 @@ public class AfterimageEventKindPluginConfig {
   @Bean
   EventPlugin eventPlugin(
      @NonNull CacheServiceIF cacheServiceIF,
-     @NonNull @Qualifier("eventKindMaterializers") Map<Kind, Function<EventIF, BaseEvent>> eventKindMaterializers,
-     @NonNull @Qualifier("eventKindTypeMaterializers") Map<Kind, Function<EventIF, BaseEvent>> eventKindTypeMaterializers,
+     @NonNull @Qualifier("eventKindMaterializers") Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindMaterializers,
+     @NonNull @Qualifier("eventKindTypeMaterializers") Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindTypeMaterializers,
      @NonNull @Qualifier("kindClassStringMap") Map<Kind, String> kindClassStringMap) {
     return new EventPlugin(
        cacheServiceIF,
@@ -82,12 +83,12 @@ public class AfterimageEventKindPluginConfig {
   }
 
   @Bean("eventKindMaterializers")
-  Map<Kind, Function<EventIF, BaseEvent>> eventKindMaterializers(
+  Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindMaterializers(
      @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
      @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
      @NonNull CacheFormulaEventService cacheFormulaEventService) {
-    Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
+    Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
 
     kindFxnMap.put(
        Kind.BADGE_AWARD_EVENT,
@@ -109,10 +110,10 @@ public class AfterimageEventKindPluginConfig {
   }
 
   @Bean("eventKindTypeMaterializers")
-  Map<Kind, Function<EventIF, BaseEvent>> eventKindTypeMaterializers(
+  Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindTypeMaterializers(
      @NonNull CacheBadgeAwardReputationEventService cacheBadgeAwardReputationEventService,
      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService) {
-    Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
+    Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
 
     kindFxnMap.put(
        Kind.BADGE_AWARD_EVENT,

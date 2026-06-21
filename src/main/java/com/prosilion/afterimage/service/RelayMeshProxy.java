@@ -9,56 +9,62 @@ import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.util.Util;
+import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.RequestSubscriberDelegate;
 import com.prosilion.subdivisions.client.reactive.MultiRelaySubscriptionsManager;
 import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Subscription;
 
 @Slf4j
 public class RelayMeshProxy implements RelayMeshProxyIF {
-  private final EventKindPluginIF eventKindPluginIF;
   @Getter
-  private final Relay relay;
+  private final Duration timeout = RequestSubscriber.DEFAULT_TIMEOUT_3000_MS;
 
-  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF, @NonNull Relay relay) {
+  private final EventKindPluginIF eventKindPluginIF;
+  private final Map<Subscription, Relay> subscriptionRelayMap = new HashMap<>();
+
+  public RelayMeshProxy(@NonNull EventKindPluginIF eventKindPluginIF) {
     this.eventKindPluginIF = eventKindPluginIF;
-    this.relay = relay;
   }
 
   @Override
-  public void activateRequestFlux(@NonNull Filters filters, @NonNull Set<String> relayUrl) {
-    for (String relay : relayUrl) {
+  public void activateRequestFlux(@NonNull Filters filters, @NonNull Set<Relay> relays) {
+    for (Relay relay : relays) {
       activateRequestFlux(filters, relay);
     }
   }
 
   @Override
-  public void activateRequestFlux(@NonNull Filters filters, @NonNull String relayUrl) {
-    log.debug("activateRequestFlux() called with filters:\n  [{}]\nrelayUrl: [{}]",
-       filters.toString(2),
-       relayUrl);
+  public void activateRequestFlux(@NonNull Filters filters, @NonNull Relay relay) {
+    log.debug("activateRequestFlux() called with filters:\n  [{}]\nrelay: [{}]", filters.toString(2), relay);
 
     String subscriptionId = Util.generateRandomHex64String();
     log.debug("calling new MultiRelaySubscriptionsManager().send(...) with subscriptionId: [{}]", subscriptionId);
     try {
+      RequestSubscriberDelegate<BaseMessage> subscriberDelegate = new RequestSubscriberDelegate<>(this);
       new MultiRelaySubscriptionsManager()
          .send(
             new ReqMessage(
                subscriptionId,
                filters),
-            relayUrl,
-            new RequestSubscriberDelegate<>(this));
+            relay.getUrl(),
+            subscriberDelegate);
+      subscriptionRelayMap.put(subscriberDelegate.getSubscription(), relay);
     } catch (JsonProcessingException e) {
       throw new NostrException("activateRequestFlux(...) multiRelaySubscriptionsManager.send(...) shit the bed", e);
     }
   }
 
   @Override
-  public void doDelegate(@NonNull BaseMessage baseMessage, @NonNull Relay relay) {
+  public void doDelegate(@NonNull BaseMessage baseMessage, @NonNull Subscription subscription) {
     String encode;
     try {
       encode = baseMessage.encode();
@@ -69,7 +75,10 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
        eventIF.map(EventIF::createPrettyPrintJson).orElse("  EMPTY Optional<EventIF>.  will not call processIncoming()"));
-    eventIF.ifPresent(eventIF1 -> processIncoming(eventIF1, relay));
+
+    Relay relay = subscriptionRelayMap.get(subscription);
+    log.debug("subscriptionRelayMap.get(subscription):\n  [{}]\nreturned relay:\n  [{}]", subscription, relay);
+    eventIF.ifPresent(event -> processIncoming(event, relay));
   }
 
   @Override

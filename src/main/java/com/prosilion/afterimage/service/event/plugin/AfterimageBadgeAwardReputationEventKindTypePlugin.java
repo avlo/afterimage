@@ -22,10 +22,11 @@ import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKin
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 
@@ -56,7 +57,7 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(
+  public Optional<GenericEventRecord> processIncomingEvent(
      @NonNull EventIF incomingFollowSetsEventAsReputationEvent,
      @NonNull Relay relay) {
     log.debug("processing incoming Kind[{}]:{}\n{}",
@@ -64,45 +65,51 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
        incomingFollowSetsEventAsReputationEvent.getKind().getName().toUpperCase(),
        incomingFollowSetsEventAsReputationEvent.createPrettyPrintJson());
 
-    FollowSetsEvent materializedIncomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEventAsReputationEvent);
-    log.debug("(0ofY) ... materializedIncomingFollowSetsEvent:\n{}", materializedIncomingFollowSetsEvent.createPrettyPrintJson());
+    Optional<FollowSetsEvent> materializedIncomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEventAsReputationEvent);
+    log.debug("(0ofY) ... materializedIncomingFollowSetsEvent:\n{}", materializedIncomingFollowSetsEvent
+       .map(EventIF::createPrettyPrintJson).orElse("EMPTY"));
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardUpvoteEvents = materializedIncomingFollowSetsEvent.getBadgeAwardGenericEvents();
-    log.debug("(1ofY) ... badgeAwardUpvoteEvents:\n{}", badgeAwardUpvoteEvents.stream().map(EventIF::createPrettyPrintJson));
+    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardUpvoteEvents = materializedIncomingFollowSetsEvent.map(FollowSetsEvent::getBadgeAwardGenericEvents).stream().flatMap(Collection::stream).toList();
 
-    PublicKey voteRecipientPublicKey = materializedIncomingFollowSetsEvent.getAwardRecipientPulicKey();
+    PublicKey voteRecipientPublicKey = materializedIncomingFollowSetsEvent.map(
+       FollowSetsEvent::getAwardRecipientPulicKey).orElseThrow();
 
     List<BadgeDefinitionGenericEvent> badgeDefinitionGenericEvents = badgeAwardUpvoteEvents.stream().map(BadgeAwardAbstractEvent::getBadgeDefinitionEvent).toList();
 
     log.debug("(2ofY) badgeDefinitionGenericEvents:\n[{}]", badgeDefinitionGenericEvents.stream().map(EventIF::createPrettyPrintJson));
 
-    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent =
-       cacheFollowSetsEventServiceIF.getBadgeAwardReputationEvent(materializedIncomingFollowSetsEvent);
+    Optional<BadgeAwardReputationEvent> existingBadgeAwardReputationEvent = materializedIncomingFollowSetsEvent.flatMap(cacheFollowSetsEventServiceIF::getBadgeAwardReputationEvent);
 
-    BadgeDefinitionReputationEvent existingReputationDefinitionEvent = materializedIncomingFollowSetsEvent.getBadgeDefinitionReputationEvent();
+    Optional<BadgeDefinitionReputationEvent> existingReputationDefinitionEvent = materializedIncomingFollowSetsEvent.map(FollowSetsEvent::getBadgeDefinitionReputationEvent);
 
     log.debug("(4ofY) ... existingReputationDefinitionEvent:\n{}",
-       String.format("  [%s]", existingReputationDefinitionEvent.createPrettyPrintJson()));
+       String.format("  [%s]", existingReputationDefinitionEvent.map(EventIF::createPrettyPrintJson).orElse("EMPTY")));
 
-    BadgeAwardReputationEvent updatedBadgeAwardReputationEvent =
+    Optional<BadgeAwardReputationEvent> updatedBadgeAwardReputationEvent = existingReputationDefinitionEvent.map(e ->
        createBadgeAwardReputationEvent(
           voteRecipientPublicKey,
-          existingReputationDefinitionEvent,
-          existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO));
+          e,
+          existingBadgeAwardReputationEvent.map(BadgeAwardAbstractEvent::getContent).map(BigDecimal::new).orElse(BigDecimal.ZERO)));
 
-    log.debug("(5ofY) ... updatedBadgeAwardReputationEvent [{}]", updatedBadgeAwardReputationEvent.createPrettyPrintJson());
+    log.debug("(5ofY) ... updatedBadgeAwardReputationEvent [{}]", updatedBadgeAwardReputationEvent.map(
+       EventIF::createPrettyPrintJson).orElse("EMPTY"));
 
-    BadgeAwardReputationEvent newReputationEvent = reputationCalculationServiceIF.calculateReputationEvent(
+
+    Optional<BadgeAwardReputationEvent> newReputationEvent = reputationCalculationServiceIF.calculateReputationEvent(
        voteRecipientPublicKey,
        updatedBadgeAwardReputationEvent,
-       existingReputationDefinitionEvent.getFormulaEvents(),
+       existingReputationDefinitionEvent.map(BadgeDefinitionReputationEvent::getFormulaEvents).orElse(List.of()),
        (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent);
 
-    log.debug("(6ofY) ... newReputationEvent:\n  {}", newReputationEvent.createPrettyPrintJson());
+    log.debug("(6ofY) ... newReputationEvent:\n  {}", newReputationEvent.map(EventIF::createPrettyPrintJson).orElse("EMPTY"));
 
 //    TODO: possibly reverse order below
     existingBadgeAwardReputationEvent.ifPresent(this::deletePreviousBadgeAwardReputationEvent); // delete old
-    return super.processIncomingEvent(newReputationEvent, relay); // save new
+
+    Optional<GenericEventRecord> genericEventRecord = newReputationEvent.flatMap(e ->
+       super.processIncomingEvent(e, relay));
+
+    return genericEventRecord;
   }
 
   private BadgeAwardReputationEvent createBadgeAwardReputationEvent(

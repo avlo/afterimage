@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
@@ -63,7 +63,7 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
   }
 
   @Override
-  public GenericEventRecord processIncomingEvent(@NonNull EventIF voteEvent, @NonNull Relay relay) {
+  public Optional<GenericEventRecord> processIncomingEvent(@NonNull EventIF voteEvent, @NonNull Relay relay) {
     log.debug("processing incoming voteEvent\n{}", voteEvent.createPrettyPrintJson());
 
     AddressTag voteEventAddressTag = voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class);
@@ -81,64 +81,61 @@ public abstract class AbstractVoteEventPlugin extends NonPublishingEventKindPlug
        voteEventAddressTag.requireIdentifierTag(),
        consolidatedRelay);
 
-    BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(addressTag).orElseThrow(() ->
-       new NostrException(
-          String.format("no BadgeDefinitionUpvoteEvent matches incoming voteEvent:\n  %s", voteEvent.createPrettyPrintJson())));
-    log.debug("(1of13V) badgeDefinitionUpvoteEvent:\n  {}", badgeDefinitionUpvoteEvent.createPrettyPrintJson());
+    Optional<BadgeDefinitionGenericEvent> badgeDefinitionUpvoteEvent = cacheBadgeDefinitionGenericEventService.getBy(addressTag);
+    log.debug("(1of13V) badgeDefinitionUpvoteEvent:\n  {}", badgeDefinitionUpvoteEvent
+       .map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> upvoteEventReconstructed = emptyAddressTagRelayTriesSourceRelay(
-       voteEvent, addressTag, badgeDefinitionUpvoteEvent);
+    Optional<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> upvoteEventReconstructed =
+       badgeDefinitionUpvoteEvent.map(ev ->
+          emptyAddressTagRelayTriesSourceRelay(
+             voteEvent, addressTag, ev));
 
-    log.debug("(2of13V) upvoteEventReconstructed:\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
+    log.debug("(2of13V) upvoteEventReconstructed:\n  {}", upvoteEventReconstructed.map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
 
-    FormulaEvent formulaEvent = cacheFormulaEventServiceIF.getBy(badgeDefinitionUpvoteEvent.asAddressableEventAddressTag())
-       .orElseThrow(() -> new NostrException(
-          String.format("no formulaEvent matches badgeDefinitionUpvoteEvent.asAddressableEventAddressTag():\n  %s",
-             badgeDefinitionUpvoteEvent.asAddressableEventAddressTag().toStringPrettyPrint())));
-    log.debug("(3of13V) Optional<FormulaEvent> formulaEvent:\n  {}", formulaEvent.createPrettyPrintJson());
+    Optional<FormulaEvent> formulaEvent = badgeDefinitionUpvoteEvent.map(AddressableEvent::asAddressableEventAddressTag).flatMap(cacheFormulaEventServiceIF::getBy);
 
-    PubKeyTag recipientPublicKeyAsPubKeyTag = voteEvent.requireFirstTag(PubKeyTag.class);
-    AddressTag formulaEventAddressableEventAddressTag = formulaEvent.asAddressableEventAddressTag();
+    log.debug("(3of13V) Optional<FormulaEvent> formulaEvent:\n  {}", formulaEvent.map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
 
-    log.debug("(4of13V) calling cacheBadgeDefinitionReputationEventService.getByDirectTag(addressTag):\n  {}", formulaEvent.createPrettyPrintJson());
-    BadgeDefinitionReputationEvent existingReputationDefinitionEvent =
-       cacheBadgeDefinitionReputationEventService.getByDirectTag(formulaEventAddressableEventAddressTag).stream().findFirst().orElseThrow(() ->
-          new NostrException(String.format("no BadgeDefinitionReputationEvent found for formulaEventAddressableEventAddressTag:\n  %s",
-             formulaEventAddressableEventAddressTag.toStringPrettyPrint())));
+    Optional<AddressTag> formulaEventAddressableEventAddressTag = formulaEvent.map(AddressableEvent::asAddressableEventAddressTag);
 
-    log.debug("(5of13V) existingReputationDefinitionEvent:\n  {}", existingReputationDefinitionEvent.createPrettyPrintJson());
+    Optional<BadgeDefinitionReputationEvent> existingReputationDefinitionEvent =
+       formulaEventAddressableEventAddressTag.flatMap(cacheBadgeDefinitionReputationEventService::getByDirectTag).stream().findFirst();
 
-    AddressTag existingReputationDefinitionEventAsAddressTag = existingReputationDefinitionEvent.asAddressableEventAddressTag();
-    log.debug("(6of13V) calling cacheFollowSetsEventService.getBy(recipientPublicKeyAsPubKeyTag, addressTag):\n  [{}]\n  [{}]",
-       recipientPublicKeyAsPubKeyTag.getPublicKey(),
-       existingReputationDefinitionEventAsAddressTag);
+    log.debug("(5of13V) existingReputationDefinitionEvent:\n  {}", existingReputationDefinitionEvent.map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
 
-    Optional<FollowSetsEvent> awardRecipientExistingFollowSets = cacheFollowSetsEventService.getBy(existingReputationDefinitionEventAsAddressTag);
+    Optional<FollowSetsEvent> awardRecipientExistingFollowSets = existingReputationDefinitionEvent.map(AddressableEvent::asAddressableEventAddressTag)
+       .flatMap(cacheFollowSetsEventService::getBy);
 
     log.debug("(7of13V) ... awardRecipientExistingFollowSets:\n{}", awardRecipientExistingFollowSets
        .map(EventIF::createPrettyPrintJson).orElse("no awardRecipientExistingFollowSets yet"));
 
-    FollowSetsEvent followSetsEventToSend = createFollowSetsEvent(
-       existingReputationDefinitionEvent,
-       Stream.concat(
-             awardRecipientExistingFollowSets
-                .stream()
-                .map(FollowSetsEvent::getBadgeAwardGenericEvents)
-                .flatMap(Collection::stream),
-             Stream.of(upvoteEventReconstructed))
-          .toList());
-    log.debug("(9of13V) ... followSetsEventToSend:\n{}", followSetsEventToSend.createPrettyPrintJson());
+    Optional<FollowSetsEvent> followSetsEventToSend = existingReputationDefinitionEvent.map(ev ->
+       createFollowSetsEvent(
+          ev,
+          Stream.concat(
+                awardRecipientExistingFollowSets
+                   .map(FollowSetsEvent::getBadgeAwardGenericEvents)
+                   .stream().flatMap(Collection::stream),
+                upvoteEventReconstructed.stream())
+             .toList()));
+
+    log.debug("(9of13V) ... followSetsEventToSend:\n{}", followSetsEventToSend.map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
 
     log.debug("(10of13V) ... cacheServiceIF.save(upvoteEventReconstructed) ...");
-    cacheServiceIF.save(upvoteEventReconstructed);
+
+    upvoteEventReconstructed.map(cacheServiceIF::save);
     log.debug("(11of13V) ... saved ...");
 
     log.debug("(12of13V) ... calling followSetsEventToSend.stream().map(afterimageFollowSetsEventKindPlugin::processIncomingEvent) ...");
-    GenericEventRecord unused = afterimageFollowSetsEventKindPlugin.processIncomingEvent(followSetsEventToSend, relay);
-    log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}", upvoteEventReconstructed.createPrettyPrintJson());
-    return upvoteEventReconstructed.asGenericEventRecord();
+
+    followSetsEventToSend.map(e -> afterimageFollowSetsEventKindPlugin.processIncomingEvent(e, relay));
+
+    log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}",
+       upvoteEventReconstructed.map(EventIF::createPrettyPrintJson).orElse("EMPTY OPTIONAL"));
+    return upvoteEventReconstructed.map(EventIF::asGenericEventRecord);
   }
 
+  //  TODO: public only for test, consider rxr
   public static BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> emptyAddressTagRelayTriesSourceRelay(
      EventIF event,
      AddressTag addressTag,
