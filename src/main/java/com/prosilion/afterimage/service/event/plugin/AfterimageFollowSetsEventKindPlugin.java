@@ -1,10 +1,10 @@
 package com.prosilion.afterimage.service.event.plugin;
 
-import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
+import com.prosilion.nostr.event.AbstractSetsEvent;
+import com.prosilion.nostr.event.AddressableEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.BadgeSetsEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -12,9 +12,8 @@ import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.nostr.tag.RelayTag;
+import com.prosilion.nostr.tag.SetsPairedEvents;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.cache.tag.CacheKindAddressTagServiceIF;
@@ -25,6 +24,8 @@ import com.prosilion.superconductor.base.service.request.subscriber.NotifierServ
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -58,75 +59,73 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
   }
 
   @Override
-  public Optional<GenericEventRecord> processIncomingEvent(
-     @NonNull EventIF incomingFollowSetsEvent,
-     @NonNull Relay relay) {
+  public Optional<GenericEventRecord> processIncomingEvent(@NonNull EventIF incomingFollowSetsEvent, @NonNull Relay relay) {
     FollowSetsEvent materializedFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEvent).orElseThrow();
     log.debug("materializedFollowSetsEvent:\n{}", materializedFollowSetsEvent.createPrettyPrintJson());
 
-    PublicKey upvotedUserPubKeyTagPublicKey = materializedFollowSetsEvent.getAwardRecipientPulicKey();
-    Optional<GenericEventRecord> existingFollowSetsEventGEROpt = cacheKindAddressTagServiceIF.getBy(
-       Kind.FOLLOW_SETS,
-       new PubKeyTag(upvotedUserPubKeyTagPublicKey),
-       materializedFollowSetsEvent.getAddressTag()).stream().findFirst();
-    log.debug("(5ofX) ... existingFollowSetsEventGEROpt:\n  {}",
-       existingFollowSetsEventGEROpt
-          .map(genericEventRecord -> genericEventRecord.createPrettyPrintJson())
-          .orElse("EMPTY existingFollowSetsEventGEROpt OPTIONAL"));
+    Set<BadgeDefinitionReputationEvent> existingDefnReputationEvents =
+       materializedFollowSetsEvent.getBadgeSetsEvents().stream()
+          .map(BadgeSetsEvent::getBadgeDefinitionReputationEvent).collect(Collectors.toSet());
 
-    Optional<FollowSetsEvent> existingFollowSetsEventOpt = existingFollowSetsEventGEROpt.flatMap(event ->
-       cacheFollowSetsEventServiceIF.getEvent(
-          event.getId(),
-          event.getTypeSpecificTags(RelayTag.class).getFirst().getRelay().getUrl()));
-    log.debug("(5ofX) ... existingFollowSetsEventOpt:\n  {}",
-       existingFollowSetsEventOpt
-          .map(EventIF::createPrettyPrintJson)
-          .orElse("EMPTY existingFollowSetsEventOpt OPTIONAL"));
+    Set<FollowSetsEvent> awardRecipientExistingFollowSets =
+       existingDefnReputationEvents.stream()
+          .map(AddressableEvent::asAddressableEventAddressTag)
+          .map(aTag -> cacheFollowSetsEventServiceIF.getBy(
+             new PubKeyTag(materializedFollowSetsEvent.getAwardRecipientPublicKey()), aTag))
+          .flatMap(Collection::stream).collect(Collectors.toSet());
+    log.debug("(7of13V) ... awardRecipientExistingFollowSets:\n{}", awardRecipientExistingFollowSets.stream()
+       .map(EventIF::createPrettyPrintJson).collect(Collectors.joining(",\n  ")));
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> existingVoteEvents = existingFollowSetsEventOpt.stream().map(FollowSetsEvent::getBadgeAwardGenericEvents).flatMap(Collection::stream).toList();
-    log.debug("(6ofX) ... existingFollowSetsEventOpt:\n  {}", existingVoteEvents.stream().map(EventIF::createPrettyPrintJson));
+    //  filter FollowSetsEvents containing matching badgeDefinitionReputationEvent 
+    Set<FollowSetsEvent> targetedFollowSets =
+       existingDefnReputationEvents.stream()
+          .map(AddressableEvent::asAddressableEventAddressTag)
+          .map(addressTagReconstructed ->
+             awardRecipientExistingFollowSets.stream()
+                .filter(followSetsEvent ->
+                   followSetsEvent.getSetsPairedEventsList().stream()
+                      .map(SetsPairedEvents::getAddressTag).toList()
+                      .contains(addressTagReconstructed)))
+          .flatMap(Stream::distinct)
+          .collect(Collectors.toSet());
 
-    List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> nonMatchingVoteEvents =
-       materializedFollowSetsEvent.getBadgeAwardGenericEvents().stream()
-          .filter(incomingBadgeAwardVoteEvent ->
-             !existingVoteEvents.contains(incomingBadgeAwardVoteEvent)).toList();
-    log.debug("(7ofX) ... nonMatchingVoteEvents:");
-    nonMatchingVoteEvents.stream().map(EventIF::createPrettyPrintJson).forEach(log::debug);
-    log.debug("end (7ofX) debug stmts");
+    List<String> voteEventIds = materializedFollowSetsEvent.getBadgeSetsEvents().stream()
+       .map(AbstractSetsEvent::getEventTags).flatMap(Collection::stream).map(EventTag::idEvent).toList();
 
-    FollowSetsEvent notifierFollowSetsEvent = createFollowSetsEvent(
-       materializedFollowSetsEvent.getBadgeDefinitionReputationEvent(),
-       Stream.concat(
-          existingVoteEvents.stream(),
-          nonMatchingVoteEvents.stream()).toList());
-    log.debug("(8ofX) ... notifierFollowSetsEvent:\n  {}", notifierFollowSetsEvent.createPrettyPrintJson());
+//  if all followSets' badgeSets' award events already contain incoming voteEvent, just return 
+    if (targetedFollowSets.stream().allMatch(setsPairedEvents ->
+       setsPairedEvents.getSetsPairedEventsList().stream()
+          .map(SetsPairedEvents::getAwardEventId)
+          .anyMatch(voteEventIds::contains))) {
+      return Optional.of(materializedFollowSetsEvent.asGenericEventRecord());
+    }
 
-    existingFollowSetsEventOpt.ifPresent(this::deletePreviousFollowSetsEvent);
-    super.processIncomingEvent(notifierFollowSetsEvent, relay);
-    log.debug("(9ofX) super.processIncomingEvent(notifierFollowSetsEvent) called...");
+    Set<FollowSetsEvent> followSetsEventToSend =
+       materializedFollowSetsEvent.getBadgeSetsEvents().stream()
+          .map(AbstractSetsEvent::getEventTags)
+          .flatMap(Collection::stream)
+          .flatMap(eventTag ->
+             targetedFollowSets.stream().map(followSetsEvent ->
+                followSetsEvent.createNewFromExisting(
+                   aImgIdentity,
+                   followSetsEvent.getBadgeSetsEvents().stream().map(inner ->
+                         inner.createNewFromExisting(
+                            aImgIdentity,
+                            new SetsPairedEvents(
+                               inner.asAddressableEventAddressTag(),
+                               eventTag,
+                               materializedFollowSetsEvent.getAwardRecipientPublicKey())))
+                      .toList()))).collect(Collectors.toSet());
 
-    FollowSetsEvent followsSetAsReputationEvent = createFollowSetsEvent(
-       materializedFollowSetsEvent.getBadgeDefinitionReputationEvent(),
-       nonMatchingVoteEvents);
-    log.debug("(10ofX) ... createFollowSetsEvent(...) method successfully created followsSetAsReputationEvent:\n  {}", followsSetAsReputationEvent.createPrettyPrintJson());
-    Optional<GenericEventRecord> genericEventRecord = badgeAwardReputationEventKindTypePlugin.processIncomingEvent(followsSetAsReputationEvent, relay);
+    log.debug("(12of13V) ... calling followSetsEventToSend.stream().map(afterimageFollowSetsEventKindPlugin::processIncomingEvent) ...");
+    followSetsEventToSend.forEach(e -> processIncomingEvent(e, relay));
 
-    log.debug("(11ofX) super.processIncomingEvent(notifierFollowSetsEvent) completed, returned genericEventRecord:\n  {}",
-       genericEventRecord.map(GenericEventRecord::createPrettyPrintJson).orElse("EMTPTY"));
-    return genericEventRecord;
-  }
+    targetedFollowSets.forEach(this::deletePreviousFollowSetsEvent);
 
-  private FollowSetsEvent createFollowSetsEvent(
-     @NonNull BadgeDefinitionReputationEvent badgeDefinitionReputationEvent,
-     @NonNull List<BadgeAwardGenericEvent<BadgeDefinitionGenericEvent>> badgeAwardGenericVoteEvents) {
-    FollowSetsEvent followSetsEvent = new FollowSetsEvent(
-       aImgIdentity,
-       badgeDefinitionReputationEvent,
-       relay,
-       badgeAwardGenericVoteEvents,
-       DynamicReputationCalculator.class.getSimpleName());
-    log.debug("createFollowSetsEvent() created FollowSetsEvent: {}", followSetsEvent.createPrettyPrintJson());
-    return followSetsEvent;
+    log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}",
+       materializedFollowSetsEvent.createPrettyPrintJson());
+    return Optional.of(materializedFollowSetsEvent.asGenericEventRecord());
+
   }
 
   private void deletePreviousFollowSetsEvent(FollowSetsEvent previousFollowSetsEvent) {
@@ -135,7 +134,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
           aImgIdentity,
           List.of(new EventTag(
              previousFollowSetsEvent.getId(),
-             previousFollowSetsEvent.requireRelayTagUrl())), "aImg delete previous FOLLOW_SETS event"));
+             previousFollowSetsEvent.getRelay().map(Relay::getUrl).orElse(null))), "aImg delete previous FOLLOW_SETS event"));
   }
 
   @Override

@@ -31,10 +31,10 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
   private final EventKindPluginIF eventKindPluginIF;
 
   public AbstractRelayAnnouncementEventPlugin(
-     @NonNull Identity aImgIdentity,
-     @NonNull CacheServiceIF cacheServiceIF,
-     @NonNull EventPlugin eventPlugin,
-     @NonNull EventKindPluginIF eventKindPluginIF) {
+    @NonNull Identity aImgIdentity,
+    @NonNull CacheServiceIF cacheServiceIF,
+    @NonNull EventPlugin eventPlugin,
+    @NonNull EventKindPluginIF eventKindPluginIF) {
     super(eventPlugin);
     this.aImgIdentity = aImgIdentity;
     this.cacheServiceIF = cacheServiceIF;
@@ -47,24 +47,25 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
       return eventByEventId;
 
     log.debug("processing incoming Kind[{}]:{}\n{}",
-       event.getKind().getValue(),
-       event.getKind().getName().toUpperCase(),
-       event.createPrettyPrintJson());
+      event.getKind().getValue(),
+      event.getKind().getName().toUpperCase(),
+      event.createPrettyPrintJson());
 
     InvalidKindException.testBoolean(
-       event.getKind().equals(getKind()),
-       event.getKind().getName(), List.of(getKind().getName()));
+      event.getKind().equals(getKind()),
+      event.getKind().getName(), List.of(getKind().getName()));
 
     Set<Relay> relaysTagRelays = event.requireFirstTag(RelaysTag.class).getRelays();
 
     Set<Relay> existingKnownRelays = cacheServiceIF.getByKind(getKind()).stream()
-       .map(EventIF::requireRelayTag)
-       .map(RelayTag::getRelay)
-       .collect(Collectors.toSet());
+      .map(EventIF::getRelayTag)
+      .flatMap(Optional::stream)
+      .map(RelayTag::getRelay)
+      .collect(Collectors.toSet());
 
     Set<Relay> uniqueNewRelays = Sets.difference(
-       new HashSet<>(relaysTagRelays),
-       existingKnownRelays);
+      new HashSet<>(relaysTagRelays),
+      existingKnownRelays);
 
     if (uniqueNewRelays.isEmpty()) {
       log.debug("did not discover any new unique relays, not saving incoming SearchRelaysList/RelaySets event, just return");
@@ -73,15 +74,15 @@ public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishing
 
 //  saves new unique relays 
     Optional<GenericEventRecord> genericEventRecord = super.processIncomingEvent(
-       createEvent(aImgIdentity, uniqueNewRelays),
-       relay);
+      createEvent(aImgIdentity, uniqueNewRelays),
+      relay);
 
     log.debug("RelayMeshProxy will send request filters:\n  [{}]\nto new relay(s):\n{}",
-       getFilters().toString(2),
-       uniqueNewRelays.stream()
-          .map(s ->
-             String.format("  [%s]", s))
-          .collect(Collectors.joining(",\n")));
+      getFilters().toString(2),
+      uniqueNewRelays.stream()
+        .map(s ->
+          String.format("  [%s]", s))
+        .collect(Collectors.joining(",\n")));
 
     log.debug("calling new RelayMeshProxy(eventKindPluginIF).activateRequestFlux(getFilters(), uniqueNewRelays) ...");
     log.debug("... using eventKindPluginIF type: [{}] ...", eventKindPluginIF.getClass().getSimpleName());
