@@ -3,6 +3,8 @@ package com.prosilion.afterimage.config;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.superconductor.autoconfigure.base.service.event.CacheBadgeSetsEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.CacheCurationSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFormulaEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
@@ -87,9 +89,14 @@ public class AfterimageEventKindPluginConfig {
      @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
      @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
-     @NonNull CacheFormulaEventService cacheFormulaEventService) {
+     @NonNull CacheBadgeSetsEventService cacheBadgeSetsEventService,
+     @NonNull CacheFormulaEventService cacheFormulaEventService,
+     @NonNull CacheCurationSetsEventService cacheCurationSetsEventService) {
     Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
-
+    kindFxnMap.put(
+       Kind.CURATION_SETS,
+       cacheCurationSetsEventService::materialize);
+    
     kindFxnMap.put(
        Kind.BADGE_AWARD_EVENT,
        cacheBadgeAwardGenericEventService::materialize);
@@ -101,6 +108,10 @@ public class AfterimageEventKindPluginConfig {
     kindFxnMap.put(
        Kind.FOLLOW_SETS,
        cacheFollowSetsEventService::materialize);
+
+    kindFxnMap.put(
+       Kind.BADGE_SETS_EVENT,
+       cacheBadgeSetsEventService::materialize);
 
     kindFxnMap.put(
        Kind.ARBITRARY_CUSTOM_APP_DATA,

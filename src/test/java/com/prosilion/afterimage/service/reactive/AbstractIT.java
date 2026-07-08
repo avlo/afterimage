@@ -80,23 +80,23 @@ public abstract class AbstractIT {
 
   public final static Identity submitter =
 //     Identity.generateRandomIdentity();
-     Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
+    Identity.create("aaa4585483196998204846989544737603523651520600328805626488477202");
 
   public final static Identity upvoteDefnCreator =
 //     Identity.generateRandomIdentity();
-     Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
+    Identity.create("bbb4585483196998204846989544737603523651520600328805626488477202");
 
   public final static Identity recipient =
 //     Identity.generateRandomIdentity();
-     Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
+    Identity.create("ccc4585483196998204846989544737603523651520600328805626488477202");
 
   public final static Identity formulaCreator =
 //     Identity.generateRandomIdentity();
-     Identity.create("ddd4585483196998204846989544737603523651520600328805626488477202");
+    Identity.create("ddd4585483196998204846989544737603523651520600328805626488477202");
 
   public final static Identity repDefnCreator =
 //     Identity.generateRandomIdentity();
-     Identity.create("eee4585483196998204846989544737603523651520600328805626488477202");
+    Identity.create("eee4585483196998204846989544737603523651520600328805626488477202");
 
   protected final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   protected final BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent;
@@ -108,18 +108,18 @@ public abstract class AbstractIT {
   protected final Relay superconductorRelay;
 
   protected Function<PublicKey, Filters> badgeAwardEventFilter = publicKey -> new Filters(
-     new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)), new KindFilter(Kind.BADGE_AWARD_EVENT));
+    new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)), new KindFilter(Kind.BADGE_AWARD_EVENT));
 
   protected Function<PublicKey, Filters> badgeDefinitionEventFilter = publicKey -> new Filters(
-     new AuthorFilter(publicKey), new KindFilter(Kind.BADGE_DEFINITION_EVENT));
+    new AuthorFilter(publicKey), new KindFilter(Kind.BADGE_DEFINITION_EVENT));
 
   protected BiFunction<PublicKey, IdentifierTag, Filters> formulaEventFilter = (publicKey, identifierTag) ->
-     new Filters(new AuthorFilter(publicKey), new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA), new IdentifierTagFilter(identifierTag));
+    new Filters(new AuthorFilter(publicKey), new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA), new IdentifierTagFilter(identifierTag));
 
   public AbstractIT(
-     @NonNull Identity afterimageInstanceIdentity,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+    @NonNull Identity afterimageInstanceIdentity,
+    @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+    @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
     log.debug("afterimageInstanceIdentity: [{}]", afterimageInstanceIdentity.getPublicKey());
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
@@ -129,23 +129,23 @@ public abstract class AbstractIT {
 //  SUPERCONDUCTOR section
     this.awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent();
     submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl,
-       badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
+      badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
     this.plusOneFormulaEvent = createFormulaUpvoteEvent();
     submitSCEvent(plusOneFormulaEvent, superconductorRelayUrl,
-       formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaUpvoteIdentifierTag));
+      formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaUpvoteIdentifierTag));
 
     this.awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent();
     submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl,
-       badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
+      badgeDefinitionEventFilter.apply(upvoteDefnCreator.getPublicKey()));
 
     this.minusOneFormulaEvent = createFormulaDownvoteEvent();
     submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl,
-       formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaDownvoteIdentifierTag));
+      formulaEventFilter.apply(formulaCreator.getPublicKey(), formulaDownvoteIdentifierTag));
 
 //  AIMG section
     submitAimgEvent(
-       createBadgeDefinitionReputationEvent());
+      createBadgeDefinitionReputationEvent());
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
@@ -154,7 +154,7 @@ public abstract class AbstractIT {
     submitRelayEvent(event, url);
 //  sanity check event submissions processed by superconductor
     List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
-       createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url);
+      createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url);
 
     // TimeUnit.MILLISECONDS.sleep(2500);
     log.debug("retrieved superconductor events:");
@@ -176,7 +176,7 @@ public abstract class AbstractIT {
     submitRelayEvent(event, url);
 //  sanity check event submissions processed by superconductor
     List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
-       createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url, Duration.ofMinutes(5));
+      createSuperconductorReqMessageEvent(generateRandomHex64String(), filters), url, Duration.ofMinutes(5));
 
     // TimeUnit.MILLISECONDS.sleep(2500);
     log.debug("retrieved superconductor events:");
@@ -212,11 +212,11 @@ public abstract class AbstractIT {
   protected List<EventIF> submitAfterImageReq(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url) {
     log.debug("query Aimg for badgeAwardUpvoteEvent:");
     List<BaseMessage> subscriber = new NostrSingleRequestService().send(
-       createAfterImageReqMessage(
-          generateRandomHex64String(),
-          defnCreator,
-          recipientPubKeyTag),
-       url);
+      createAfterImageReqMessage(
+        generateRandomHex64String(),
+        defnCreator,
+        recipientPubKeyTag),
+      url);
 
     log.debug("afterimage returned events:");
     return getGenericEvents(subscriber);
@@ -225,25 +225,25 @@ public abstract class AbstractIT {
   @SneakyThrows
   protected ReqMessage createAfterImageReqMessage(String subscriberId, PublicKey defnCreatorPublicKey, PubKeyTag recipientPubKeyTag) {
     ReqMessage reqMessage = new ReqMessage(
-       subscriberId,
-       new Filters(
-          new KindFilter(
+      subscriberId,
+      new Filters(
+        new KindFilter(
 
-             Kind.BADGE_AWARD_EVENT),
+          Kind.BADGE_AWARD_EVENT),
 
 //            new IdentifierTagFilter(reputationIdentifierTag),
 
-          new AddressTagFilter(
-             new AddressTag(
-                Kind.BADGE_DEFINITION_EVENT,
-                defnCreatorPublicKey,
-                reputationIdentifierTag)),
+        new AddressTagFilter(
+          new AddressTag(
+            Kind.BADGE_DEFINITION_EVENT,
+            defnCreatorPublicKey,
+            reputationIdentifierTag)),
 
-          new ReferencedPublicKeyFilter(
-             recipientPubKeyTag),
+        new ReferencedPublicKeyFilter(
+          recipientPubKeyTag),
 
-          new ExternalIdentityTagFilter(
-             BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)));
+        new ExternalIdentityTagFilter(
+          BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)));
 
     log.debug(Util.prettyFormatJson(reqMessage.encode(), 2));
     return reqMessage;
@@ -251,90 +251,98 @@ public abstract class AbstractIT {
 
   protected void submitAfterImageReqWithSubscriber(PublicKey defnCreator, PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
     new NostrSingleRequestService().send(
-       createAfterImageReqMessage(
-          generateRandomHex64String(),
-          defnCreator,
-          recipientPubKeyTag),
-       url, subscriber);
+      createAfterImageReqMessage(
+        generateRandomHex64String(),
+        defnCreator,
+        recipientPubKeyTag),
+      url, subscriber);
   }
 
   protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Relay relay) {
-    return new BadgeAwardGenericEvent<>(AbstractIT.submitter, AbstractIT.recipient.getPublicKey(), relay, awardUpvoteDefinitionEvent);
+    return new BadgeAwardGenericEvent<>(
+      submitter,
+      recipient.getPublicKey(),
+      awardUpvoteDefinitionEvent,
+      relay);
   }
 
   protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createDownvoteEvent(Relay relay) {
-    return new BadgeAwardGenericEvent<>(AbstractIT.submitter, AbstractIT.recipient.getPublicKey(), relay, awardDownvoteDefinitionEvent);
+    return new BadgeAwardGenericEvent<>(
+      submitter,
+      recipient.getPublicKey(),
+      awardDownvoteDefinitionEvent,
+      relay);
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent() {
     return new BadgeDefinitionGenericEvent(
-       upvoteDefnCreator,
-       upvoteIdentifierTag,
-       superconductorRelay,
-       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
+      upvoteDefnCreator,
+      upvoteIdentifierTag,
+      String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
+      superconductorRelay);
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
     return new BadgeDefinitionGenericEvent(
-       upvoteDefnCreator,
-       downvoteIdentifierTag,
-       superconductorRelay,
-       String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()));
+      upvoteDefnCreator,
+      downvoteIdentifierTag,
+      String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
+      superconductorRelay);
   }
 
   protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
     return new FormulaEvent(
-       formulaCreator,
-       formulaUpvoteIdentifierTag,
-       superconductorRelay,
-       awardUpvoteDefinitionEvent,
-       PLUS_ONE_FORMULA);
+      formulaCreator,
+      formulaUpvoteIdentifierTag,
+      superconductorRelay,
+      awardUpvoteDefinitionEvent,
+      PLUS_ONE_FORMULA);
   }
 
   protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
     return new FormulaEvent(
-       formulaCreator,
-       formulaDownvoteIdentifierTag,
-       superconductorRelay,
-       awardDownvoteDefinitionEvent,
-       MINUS_ONE_FORMULA);
+      formulaCreator,
+      formulaDownvoteIdentifierTag,
+      superconductorRelay,
+      awardDownvoteDefinitionEvent,
+      MINUS_ONE_FORMULA);
   }
 
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
     return new BadgeDefinitionReputationEvent(
-       repDefnCreator,
-       submitter.getPublicKey(),
-       reputationIdentifierTag,
-       new Relay(afterimageRelayUrl),
-       AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       plusOneFormulaEvent, minusOneFormulaEvent);
+      repDefnCreator,
+      submitter.getPublicKey(),
+      reputationIdentifierTag,
+      new Relay(afterimageRelayUrl),
+      AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+      plusOneFormulaEvent, minusOneFormulaEvent);
   }
 
   protected BaseEvent createSearchRelaysListEventMessage() {
     Util.debug(log, "createSearchRelaysListEventMessage to url:  {}", superconductorRelay.getUrl(), true, '1');
     return new SearchRelaysListEvent(
-       Identity.generateRandomIdentity(),
-       new RelaysTag(superconductorRelay),
-       "Search Relays List sent from aImg IT 5556");
+      Identity.generateRandomIdentity(),
+      new RelaysTag(superconductorRelay),
+      "Search Relays List sent from aImg IT 5556");
   }
 
   protected List<EventIF> validateGeneralAfterimageRequestResults(List<EventIF> returnedReputationEventIFs) {
     assertFalse(returnedReputationEventIFs.isEmpty());
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
-          .anyMatch(recipient.getPublicKey()::equals)));
+      eventIF.findFirstTag(PubKeyTag.class).map(PubKeyTag::getPublicKey).stream()
+        .anyMatch(recipient.getPublicKey()::equals)));
 
     assertFalse(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(AddressTag.class).stream()
-          .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
-          .filter(addressTag -> addressTag.getPublicKey().equals(repDefnCreator.getPublicKey()))
-          .filter(addressTag -> addressTag.requireIdentifierTag().equals(reputationIdentifierTag))
-          .toList().isEmpty()));
+      eventIF.findFirstTag(AddressTag.class).stream()
+        .filter(addressTag -> addressTag.getKind().equals(Kind.BADGE_DEFINITION_EVENT))
+        .filter(addressTag -> addressTag.getPublicKey().equals(repDefnCreator.getPublicKey()))
+        .filter(addressTag -> addressTag.requireIdentifierTag().equals(reputationIdentifierTag))
+        .toList().isEmpty()));
 
     assertTrue(returnedReputationEventIFs.stream().anyMatch(eventIF ->
-       eventIF.findFirstTag(ExternalIdentityTag.class).stream()
-          .anyMatch(this::isEquals)));
+      eventIF.findFirstTag(ExternalIdentityTag.class).stream()
+        .anyMatch(this::isEquals)));
 
     return returnedReputationEventIFs;
   }
@@ -344,15 +352,15 @@ public abstract class AbstractIT {
     log.debug("BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG:\n {}", BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
     boolean equals = externalIdentityTag.equals(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG);
     log.debug(String.format("  %s", equals ?
-       "+++ MATCH" :
-       "--- NO MATCH: " + StringUtils.difference(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG.toString(), externalIdentityTag.toString())));
+      "+++ MATCH" :
+      "--- NO MATCH: " + StringUtils.difference(BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG.toString(), externalIdentityTag.toString())));
     return equals;
   }
 
   protected List<EventIF> validateSpecificAfterimageRequestResults(RequestSubscriber<BaseMessage> subscriber, int count, String expectedScore) {
     List<EventIF> events =
-       validateGeneralAfterimageRequestResults(
-          getGenericEvents(subscriber.getItems()));
+      validateGeneralAfterimageRequestResults(
+        getGenericEvents(subscriber.getItems()));
     assertEquals(count, (long) events.size());
     assertEquals(expectedScore, events.getFirst().getContent());
     return events;
@@ -360,10 +368,10 @@ public abstract class AbstractIT {
 
   protected List<EventIF> getGenericEvents(List<BaseMessage> messages) {
     return messages.stream()
-       .filter(EventMessage.class::isInstance)
-       .map(EventMessage.class::cast)
-       .map(EventMessage::getEvent)
-       .toList();
+      .filter(EventMessage.class::isInstance)
+      .map(EventMessage.class::cast)
+      .map(EventMessage::getEvent)
+      .toList();
   }
 
   public static String generateRandomHex64String() {

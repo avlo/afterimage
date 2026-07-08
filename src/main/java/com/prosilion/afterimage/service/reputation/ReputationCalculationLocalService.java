@@ -6,7 +6,6 @@ import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.user.PublicKey;
 import java.util.List;
-import java.util.Optional;
 import lombok.NonNull;
 
 public class ReputationCalculationLocalService implements ReputationCalculationServiceIF {
@@ -17,9 +16,9 @@ public class ReputationCalculationLocalService implements ReputationCalculationS
   }
 
   @Override
-  public Optional<BadgeAwardReputationEvent> calculateReputationEvent(
+  public BadgeAwardReputationEvent calculateReputationEvent(
      @NonNull PublicKey voteReceiverPubkey,
-     @NonNull Optional<BadgeAwardReputationEvent> previousReputationEvent,
+     @NonNull BadgeAwardReputationEvent previousReputationEvent,
      @NonNull List<FormulaEvent> formulaEvents,
      @NonNull FollowSetsEvent incomingFollowSetsEvent) {
     return reputationCalculator.calculateUpdatedReputationEvent(voteReceiverPubkey, previousReputationEvent, formulaEvents, incomingFollowSetsEvent);

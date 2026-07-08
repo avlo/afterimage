@@ -3,22 +3,22 @@ package com.prosilion.afterimage;
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.calculator.DynamicReputationCalculator;
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
-import com.prosilion.nostr.event.BadgeAwardGenericEventAux;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEventAux;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BadgeSetsEvent;
+import com.prosilion.nostr.event.CurationSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
-import com.prosilion.nostr.tag.SetsPairedEvents;
+import com.prosilion.nostr.tag.SetsPairedEvent;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,6 +36,7 @@ import static com.prosilion.afterimage.service.reactive.AbstractIT.repDefnCreato
 import static com.prosilion.afterimage.service.reactive.AbstractIT.reputationIdentifierTag;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.submitter;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteDefnCreator;
+import static com.prosilion.nostr.tag.SetsPairedEvent.NULL_EVENT_TAG_RELAY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
@@ -63,92 +64,106 @@ public class DynamicReputationCalculatorTest {
     this.awardDownvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, formulaDownvoteIdentifierTag, relay);
 
     this.plusOneFormulaEvent = new FormulaEvent(
-      formulaCreator,
-      formulaUpvoteIdentifierTag,
-      relay,
-      awardUpvoteDefinitionEvent,
-      PLUS_ONE_FORMULA);
+       formulaCreator,
+       formulaUpvoteIdentifierTag,
+       relay,
+       awardUpvoteDefinitionEvent,
+       PLUS_ONE_FORMULA);
 
     this.minusOneFormulaEvent = new FormulaEvent(
-      formulaCreator,
-      formulaDownvoteIdentifierTag,
-      relay,
-      awardDownvoteDefinitionEvent,
-      MINUS_ONE_FORMULA);
+       formulaCreator,
+       formulaDownvoteIdentifierTag,
+       relay,
+       awardDownvoteDefinitionEvent,
+       MINUS_ONE_FORMULA);
 
     this.badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
-      repDefnCreator,
-      submitter.getPublicKey(),
-      reputationIdentifierTag,
-      relay,
-      AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-      plusOneFormulaEvent, minusOneFormulaEvent);
+       repDefnCreator,
+       submitter.getPublicKey(),
+       reputationIdentifierTag,
+       relay,
+       AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       plusOneFormulaEvent, minusOneFormulaEvent);
 
     this.emptyNoReputationYetBadgeAwardEvent = new BadgeAwardReputationEvent(
-      afterimageInstanceIdentity,
-      recipient.getPublicKey(),
-      BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
-      badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-      new BigDecimal("0"),
-      relay);
+       afterimageInstanceIdentity,
+       recipient.getPublicKey(),
+       BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       new BigDecimal("0"),
+       relay);
   }
 
-  private static BadgeDefinitionGenericEventAux createDefnEventAux(BadgeDefinitionGenericEvent event, Relay relay) {
-    return relay == null ? new BadgeDefinitionGenericEventAux(event, null) : new BadgeDefinitionGenericEventAux(event, relay);
+  public static SetsPairedEvent create(BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> event, Relay backupRelay) {
+    return new SetsPairedEvent(
+       event.getBadgeDefinitionEvent().asAddressableEventAddressTag(),
+       backupRelay,
+       new EventTag(
+          event.getId(),
+          event.getRelay().map(Relay::getUrl).orElseThrow(() ->
+             new NostrException(NULL_EVENT_TAG_RELAY))),
+       event.getAwardRecipientPublicKey());
   }
 
-  private static BadgeAwardGenericEventAux createAwardEventAux(BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> event, Relay relay) {
-    return relay == null ? new BadgeAwardGenericEventAux(event, null) : new BadgeAwardGenericEventAux(event, relay);
-  }
-
-  private BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createBadgeAwardEvent(BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent) {
+  private BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createBadgeAwardEvent(BadgeDefinitionGenericEvent awardDefinitionEvent) {
     return new BadgeAwardGenericEvent<>(
-      submitter,
-      recipient.getPublicKey(),
-      awardUpvoteDefinitionEvent,
-      String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
-      relay);
+       submitter,
+       recipient.getPublicKey(),
+       awardDefinitionEvent,
+       String.format("awardDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
+       relay);
   }
 
   @Test
   void testCalculatorOnePlusOne() {
+    SetsPairedEvent setsPairedEvent = create(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
+
+    CurationSetsEvent curationSetsEvent = new CurationSetsEvent(
+       afterimageInstanceIdentity,
+       awardUpvoteDefinitionEvent,
+       setsPairedEvent,
+       relay);
+
+    BadgeSetsEvent badgeSetsEvent = new BadgeSetsEvent(
+       afterimageInstanceIdentity,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       curationSetsEvent,
+       relay);
+
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
-      recipient.getPublicKey(),
-      Optional.of(emptyNoReputationYetBadgeAwardEvent),
-      List.of(
-        plusOneFormulaEvent
-      ),
-      new FollowSetsEvent(
-        afterimageInstanceIdentity,
-        new BadgeSetsEvent(
+       recipient.getPublicKey(),
+       emptyNoReputationYetBadgeAwardEvent,
+       List.of(plusOneFormulaEvent),
+       new FollowSetsEvent(
           afterimageInstanceIdentity,
-          badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-          new SetsPairedEvents(
-            createDefnEventAux(awardUpvoteDefinitionEvent, null),
-            createAwardEventAux(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay)), relay),
-        relay)).get();
+          badgeSetsEvent, relay));
 
     assertEquals("1", badgeAwardReputationEvent.getContent());
   }
 
   @Test
   void testCalculatorOneMinusOne() {
+    SetsPairedEvent setsPairedEvent = create(createBadgeAwardEvent(awardDownvoteDefinitionEvent), relay);
+
+    CurationSetsEvent curationSetsEvent = new CurationSetsEvent(
+       afterimageInstanceIdentity,
+       awardDownvoteDefinitionEvent,
+       setsPairedEvent,
+       relay);
+
+    BadgeSetsEvent badgeSetsEvent = new BadgeSetsEvent(
+       afterimageInstanceIdentity,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       curationSetsEvent,
+       relay);
+
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
-      recipient.getPublicKey(),
-      Optional.of(emptyNoReputationYetBadgeAwardEvent),
-      List.of(
-        plusOneFormulaEvent,
-        minusOneFormulaEvent
-      ),
-      new FollowSetsEvent(
-        afterimageInstanceIdentity,
-        new BadgeSetsEvent(
+       recipient.getPublicKey(),
+       emptyNoReputationYetBadgeAwardEvent,
+       List.of(plusOneFormulaEvent, minusOneFormulaEvent),
+       new FollowSetsEvent(
           afterimageInstanceIdentity,
-          badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-          new SetsPairedEvents(
-            createDefnEventAux(awardUpvoteDefinitionEvent, null),
-            createAwardEventAux(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay)), relay),
-        relay)).get();
+          badgeSetsEvent, relay));
 
     assertEquals("0", badgeAwardReputationEvent.getContent());
   }
@@ -160,52 +175,56 @@ public class DynamicReputationCalculatorTest {
     IdentifierTag badgeDefnIdentifierTagVariant = new IdentifierTag(AWARD_UNIT_UPVOTE + VARIANT);
 
     FormulaEvent secondFormulaShouldNotInterfereWithFirstFormula = new FormulaEvent(
-      formulaCreator,
-      formulaUpvoteIdentifierTagVariant,
-      relay,
-      new BadgeDefinitionGenericEvent(upvoteDefnCreator, badgeDefnIdentifierTagVariant, relay),
-      PLUS_ONE_FORMULA);
+       formulaCreator,
+       formulaUpvoteIdentifierTagVariant,
+       relay,
+       new BadgeDefinitionGenericEvent(upvoteDefnCreator, badgeDefnIdentifierTagVariant, relay),
+       PLUS_ONE_FORMULA);
 
-    BadgeDefinitionReputationEvent badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
-      repDefnCreator,
-      submitter.getPublicKey(),
-      reputationIdentifierTag,
-      relay,
-      AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-      plusOneFormulaEvent, minusOneFormulaEvent);
+    BadgeDefinitionReputationEvent localBadgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
+       repDefnCreator,
+       submitter.getPublicKey(),
+       reputationIdentifierTag,
+       relay,
+       AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       plusOneFormulaEvent, minusOneFormulaEvent);
 
-    BadgeDefinitionGenericEventAux defnEventAux_1 = createDefnEventAux(awardUpvoteDefinitionEvent, null);
-    BadgeAwardGenericEventAux awardEventAux_1 = createAwardEventAux(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
+    SetsPairedEvent setsPairedEventUpvote = create(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
+    CurationSetsEvent curationSetsEventUpvote = new CurationSetsEvent(
+       afterimageInstanceIdentity,
+       awardUpvoteDefinitionEvent,
+       setsPairedEventUpvote,
+       relay);
 
     BadgeSetsEvent badgeSetsEvent_1 = new BadgeSetsEvent(
-      afterimageInstanceIdentity,
-      badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-      new SetsPairedEvents(
-        defnEventAux_1,
-        awardEventAux_1), relay);
+       afterimageInstanceIdentity,
+       badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       curationSetsEventUpvote, relay);
 
-    BadgeDefinitionGenericEventAux defnEventAux_2 = createDefnEventAux(awardUpvoteDefinitionEvent, null);
-    BadgeAwardGenericEventAux awardEventAux_2 = createAwardEventAux(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
+    SetsPairedEvent setsPairedEventDownvote = create(createBadgeAwardEvent(awardDownvoteDefinitionEvent), relay);
+    CurationSetsEvent curationSetsEventDownvote = new CurationSetsEvent(
+       afterimageInstanceIdentity,
+       awardDownvoteDefinitionEvent,
+       setsPairedEventDownvote,
+       relay);
 
     BadgeSetsEvent badgeSetsEvent_2 = new BadgeSetsEvent(
-      afterimageInstanceIdentity,
-      badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
-      new SetsPairedEvents(
-        defnEventAux_2,
-        awardEventAux_2), relay);
+       afterimageInstanceIdentity,
+       localBadgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
+       curationSetsEventDownvote, relay);
 
-    BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
-      recipient.getPublicKey(),
-      Optional.of(emptyNoReputationYetBadgeAwardEvent),
-      List.of(
-        plusOneFormulaEvent,
-        secondFormulaShouldNotInterfereWithFirstFormula),
-      new FollowSetsEvent(
-        afterimageInstanceIdentity,
-        List.of(badgeSetsEvent_1, badgeSetsEvent_1),
-        relay)).get();
+    BadgeAwardReputationEvent badgeAwardReputationEvent_1 = dynamicReputationCalculator.calculateUpdatedReputationEvent(
+       recipient.getPublicKey(),
+       emptyNoReputationYetBadgeAwardEvent,
+       List.of(
+          plusOneFormulaEvent,
+          secondFormulaShouldNotInterfereWithFirstFormula),
+       new FollowSetsEvent(
+          afterimageInstanceIdentity,
+          List.of(badgeSetsEvent_1, badgeSetsEvent_1),
+          relay));
 
-    assertEquals("1", badgeAwardReputationEvent.getContent());
+    assertEquals("1", badgeAwardReputationEvent_1.getContent());
   }
 
 //  @Test

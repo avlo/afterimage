@@ -5,12 +5,11 @@ import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.user.PublicKey;
 import java.util.List;
-import java.util.Optional;
 
 public interface ReputationCalculatorIF {
-  Optional<BadgeAwardReputationEvent> calculateUpdatedReputationEvent(
+  BadgeAwardReputationEvent calculateUpdatedReputationEvent(
      PublicKey voteReceiverPubkey,
-     Optional<BadgeAwardReputationEvent> previousReputationEvent,
+     BadgeAwardReputationEvent previousReputationEvent,
      List<FormulaEvent> formulaEvents,
      FollowSetsEvent incomingFollowSetsEvent);
 

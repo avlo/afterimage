@@ -16,8 +16,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SuperconductorSearchRelaysListEventPlugin extends AbstractRelayAnnouncementEventPlugin {
-  public SuperconductorSearchRelaysListEventPlugin(
+public class SuperconductorSearchRelaysListEventKindPlugin extends AbstractRelayAnnouncementEventKindPlugin {
+  public SuperconductorSearchRelaysListEventKindPlugin(
      @NonNull Identity aImgIdentity,
      @NonNull CacheServiceIF cacheServiceIF,
      @NonNull EventPlugin eventPlugin,

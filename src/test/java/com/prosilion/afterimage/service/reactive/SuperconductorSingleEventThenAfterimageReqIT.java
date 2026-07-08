@@ -2,12 +2,16 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
-import com.prosilion.afterimage.service.event.plugin.AbstractVoteEventPlugin;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
+import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
+import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
@@ -38,10 +42,10 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
 
   @Test
   void aSuperconductorEventThenAfterimageReq() throws NostrException {
-    submitAimgEvent(
-       submitSCEvent(
-          createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+    EventIF event = submitSCEvent(
+       createUpvoteEvent(superconductorRelay),
+       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+    submitRelayEventWithDuration_backup(event, afterimageRelayUrl);
 
     assertEquals(
        "1",
@@ -51,16 +55,40 @@ public class SuperconductorSingleEventThenAfterimageReqIT extends AbstractIT {
   @Test
   void bSuperconductorEventEmptyAddressTagRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> event = new BadgeAwardGenericEvent<>(
-       submitter, recipient.getPublicKey(), superconductorRelay, awardUpvoteDefinitionEvent);
+       submitter,
+       recipient.getPublicKey(),
+       awardUpvoteDefinitionEvent,
+       superconductorRelay);
 
     submitAimgEvent(
        submitSCEvent(
-          AbstractVoteEventPlugin.emptyAddressTagRelayTriesSourceRelay(
+          emptyAddressTagRelayTriesSourceRelay(
              event, event.getAddressTag(), awardUpvoteDefinitionEvent),
           superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
 
     assertEquals(
        "2",
        submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
+  }
+
+  public static BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> emptyAddressTagRelayTriesSourceRelay(
+     EventIF event,
+     AddressTag addressTag,
+     BadgeDefinitionGenericEvent badgeDefinitionUpvoteEvent) {
+    return new BadgeAwardGenericEvent<>(
+       new GenericEventRecord(
+          event.getId(),
+          event.getPublicKey(),
+          event.getCreatedAt(),
+          event.getKind(),
+          List.of(new AddressTag(
+                addressTag.getKind(),
+                addressTag.getPublicKey(),
+                addressTag.requireIdentifierTag(),
+                addressTag.requireRelay()),
+             new RelayTag(addressTag.requireRelay()),
+             event.requireFirstTag(PubKeyTag.class)),
+          event.getContent(),
+          event.getSignature()), aTag -> badgeDefinitionUpvoteEvent);
   }
 }

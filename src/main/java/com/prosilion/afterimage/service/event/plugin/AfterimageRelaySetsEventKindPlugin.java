@@ -16,8 +16,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AfterimageRelaySetsEventPlugin extends AbstractRelayAnnouncementEventPlugin {
-  public AfterimageRelaySetsEventPlugin(
+public class AfterimageRelaySetsEventKindPlugin extends AbstractRelayAnnouncementEventKindPlugin {
+  public AfterimageRelaySetsEventKindPlugin(
      @NonNull Identity aImgIdentity,
      @NonNull CacheServiceIF cacheServiceIF,
      @NonNull EventPlugin eventPlugin,

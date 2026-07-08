@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.google.common.collect.Sets;
 import com.prosilion.afterimage.InvalidKindException;
-import com.prosilion.afterimage.service.RelayMeshProxy;
+import com.prosilion.afterimage.service.proxy.RelayMeshProxy;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -25,12 +25,12 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractRelayAnnouncementEventPlugin extends NonPublishingEventKindPlugin {
+public abstract class AbstractRelayAnnouncementEventKindPlugin extends NonPublishingEventKindPlugin {
   private final Identity aImgIdentity;
   private final CacheServiceIF cacheServiceIF;
   private final EventKindPluginIF eventKindPluginIF;
 
-  public AbstractRelayAnnouncementEventPlugin(
+  public AbstractRelayAnnouncementEventKindPlugin(
     @NonNull Identity aImgIdentity,
     @NonNull CacheServiceIF cacheServiceIF,
     @NonNull EventPlugin eventPlugin,

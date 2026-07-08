@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.service;
+package com.prosilion.afterimage.service.proxy;
 
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;

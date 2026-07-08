@@ -11,13 +11,13 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
@@ -35,9 +35,9 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
   @Autowired
   public SearchRelaysListDockerRelayIT(
-     @NonNull Identity afterimageInstanceIdentity,
-     @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
+    @NonNull Identity afterimageInstanceIdentity,
+    @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
+    @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
   }
 
@@ -46,18 +46,19 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
-       afterimageRelayUrlTwo,
-       aImg_2_EventSubscriber_A);
+      afterimageRelayUrlTwo,
+      aImg_2_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 =
-       new BadgeAwardGenericEvent<>(
-          submitter,
-          recipient.getPublicKey(),
-          new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-          awardUpvoteDefinitionEvent,
-          String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()));
+
+      new BadgeAwardGenericEvent<>(
+        submitter,
+        recipient.getPublicKey(),
+        awardUpvoteDefinitionEvent,
+        String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
+        new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
 
 //  submit upvote event to SC
     submitRelayEvent(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
