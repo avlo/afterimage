@@ -22,6 +22,7 @@ import com.prosilion.superconductor.base.service.event.plugin.kind.PublishingEve
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePluginIF;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -94,7 +95,7 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
        .map(BadgeSetsEvent::getEventTags).flatMap(Collection::stream).map(EventTag::eventId).toList();
 
 //  if all followSets' badgeSets' award events already contain incoming voteEvent, just return 
-    if (targetedFollowSets.stream().allMatch(followSetsEvent ->
+    if (!targetedFollowSets.isEmpty() && targetedFollowSets.stream().allMatch(followSetsEvent ->
        followSetsEvent.getBadgeSetsEventList().stream()
           .map(BadgeSetsEvent::getEventTags).flatMap(Collection::stream)
           .map(EventTag::getEventId)
@@ -102,31 +103,44 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
       return Optional.of(materializedFollowSetsEvent.asGenericEventRecord());
     }
 
-    Set<FollowSetsEvent> followSetsEventToSend =
-       materializedFollowSetsEvent.getBadgeSetsEventList().stream()
-          .map(BadgeSetsEvent::getEventTags)
-          .flatMap(Collection::stream)
-          .flatMap(eventTag ->
-             targetedFollowSets.stream().map(followSetsEvent ->
-                followSetsEvent.createNewFromExisting(aImgIdentity,
-                   followSetsEvent.getBadgeSetsEventList().stream().map(badgeSetsEvent ->
-                      badgeSetsEvent.createNewFromExisting(aImgIdentity,
-                         new CurationSetsEvent(
-                            aImgIdentity,
-                            badgeSetsEvent.getBadgeDefinitionReputationEvent(),
-                            new SetsPairedEvent(
-                               badgeSetsEvent.asAddressableEventAddressTag(),
-                               relay,
-                               eventTag,
-                               materializedFollowSetsEvent.getAwardRecipientPublicKey()),
-                            relay))).toList()))).collect(Collectors.toSet());
+    Set<FollowSetsEvent> followSetsEventToSend = Set.of(materializedFollowSetsEvent);
 
-    log.debug("(12of13V) ... calling followSetsEventToSend.stream().map(afterimageFollowSetsEventKindPlugin::processIncomingEvent) ...");
-    followSetsEventToSend.forEach(e -> processIncomingEvent(e, relay));
+    if (!targetedFollowSets.isEmpty()) {
+      Set<FollowSetsEvent> collectedSet = materializedFollowSetsEvent.getBadgeSetsEventList().stream()
+         .map(BadgeSetsEvent::getEventTags)
+         .flatMap(Collection::stream)
+         .flatMap(eventTag ->
+            targetedFollowSets.stream().map(followSetsEvent ->
+               followSetsEvent.createNewFromExisting(aImgIdentity,
+                  followSetsEvent.getBadgeSetsEventList().stream().map(badgeSetsEvent ->
+                  {
+                    SetsPairedEvent setsPairedEvent = new SetsPairedEvent(
+                       badgeSetsEvent.asAddressableEventAddressTag(),
+                       relay,
+                       eventTag,
+                       materializedFollowSetsEvent.getAwardRecipientPublicKey());
+                    CurationSetsEvent curationSetsEvent = new CurationSetsEvent(
+                       aImgIdentity,
+                       badgeSetsEvent.getBadgeDefinitionReputationEvent(),
+                       setsPairedEvent,
+                       relay);
+                    BadgeSetsEvent newFromExisting = badgeSetsEvent.createNewFromExisting(aImgIdentity,
+                       curationSetsEvent);
+                    return newFromExisting;
+                  }).toList()))).collect(Collectors.toSet());
+      followSetsEventToSend = collectedSet;
+    }
 
+    log.debug("(10of13V) ... deleting previous targetedFollowSets via forEach(this::deletePreviousFollowSetsEvent) ...");
     targetedFollowSets.forEach(this::deletePreviousFollowSetsEvent);
 
-    log.debug("(13of13V) ... done.  returning upvoteEventReconstructed.asGenericEventRecord():\n  {}",
+    log.debug("(11of13V) ... saving new/updated targetedFollowSets via targetedFollowSets.forEach(super.processIncomingEvent) ...");
+    followSetsEventToSend.forEach(e -> super.processIncomingEvent(e, relay));
+
+    log.debug("(12of13V) ... calling followSetsEventToSend.foreach(badgeAwardReputationEventKindTypePlugin::processIncomingEvent) ...");
+    followSetsEventToSend.forEach(e -> badgeAwardReputationEventKindTypePlugin.processIncomingEvent(e, relay));
+
+    log.debug("(13of13V) ... done.  returning materializedFollowSetsEvent.asGenericEventRecord():\n  {}",
        materializedFollowSetsEvent.createPrettyPrintJson());
     return Optional.of(materializedFollowSetsEvent.asGenericEventRecord());
 

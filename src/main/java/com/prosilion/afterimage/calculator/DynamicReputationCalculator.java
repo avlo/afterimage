@@ -3,20 +3,18 @@ package com.prosilion.afterimage.calculator;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BadgeSetsEvent;
+import com.prosilion.nostr.event.CurationSetsEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
-import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.NonNull;
 
 public class DynamicReputationCalculator implements ReputationCalculatorIF {
@@ -39,32 +37,23 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
        createReputationEvent(
           voteReceiverPubkey,
           calculateReputationEventScore(
-             incomingFollowSetsEvent.getBadgeSetsEventList().stream()
-                .map(BadgeSetsEvent::getBadgeDefinitionReputationEvent)
-                .map(BadgeDefinitionReputationEvent::getFormulaEvents)
-                .flatMap(Collection::stream)
-                .map(FormulaEvent::getIdentifierTag)
-                .filter(formulaEvents.stream()
-                   .map(FormulaEvent::getBadgeDefinitionGenericEvent)
-                   .map(BadgeDefinitionGenericEvent::getIdentifierTag)
-                   .collect(Collectors.toSet())::contains)
-                .toList(),
-             previousReputationEvent,
-             formulaEvents),
+             formulaEvents.stream()
+                .filter(formulaEvent ->
+                   incomingFollowSetsEvent.getBadgeSetsEventList().stream()
+                      .map(BadgeSetsEvent::getCurationSetsEventList)
+                      .flatMap(Collection::stream)
+                      .map(CurationSetsEvent::getAddressTag)
+                      .toList().contains(
+                         formulaEvent.getBadgeDefinitionGenericEvent().asAddressableEventAddressTag())),
+             previousReputationEvent),
           previousReputationEvent.getBadgeDefinitionEvent());
   }
 
   private String calculateReputationEventScore(
-     List<IdentifierTag> formulaUuids,
-     BadgeAwardReputationEvent previousReputationEvent,
-     List<FormulaEvent> formulaEvents) {
-    return formulaUuids.stream()
-       .map(formulaUuid -> formulaEvents.stream().collect(
-          Collectors.toMap(
-             event -> event.getBadgeDefinitionGenericEvent().getIdentifierTag().getUuid(),
-             FormulaEvent::getFormula,
-             (prev, next) -> next)).get(formulaUuid.getUuid()))
-       .filter(Objects::nonNull)
+     Stream<FormulaEvent> formulaEvents,
+     BadgeAwardReputationEvent previousReputationEvent) {
+    return formulaEvents
+       .map(FormulaEvent::getFormula)
        .reduce(previousReputationEvent.getScore(), ExpressionCalculator::calculate);
   }
 

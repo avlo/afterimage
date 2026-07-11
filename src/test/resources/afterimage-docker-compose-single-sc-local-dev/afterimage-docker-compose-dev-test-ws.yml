@@ -14,7 +14,7 @@ services:
 #      - docker-network
 #  SC App 5555
   superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.18.0
+    image: avlo/superconductor-app-redis:1.18.1
     ports:
       - "5555:5555"
 #    networks:
@@ -28,7 +28,7 @@ services:
 #
 #      SUPERCONDUCTOR_RELAY_URL: "ws://localhost:5555"
 #      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_CONTROLLER: debug
-#      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: info
+#      LOGGING_LEVEL_COM_PROSILION_SUPERCONDUCTOR_BASE_SERVICE_EVENT: debug
       SPRING_DATA_REDIS_HOST: superconductor-db
       SUPERCONDUCTOR_TIMEOUT_DURATION: 10
       SUPERCONDUCTOR_TIMEOUT_UNITS: SECONDS      

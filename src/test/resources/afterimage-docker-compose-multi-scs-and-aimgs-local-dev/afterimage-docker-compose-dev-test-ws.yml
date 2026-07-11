@@ -14,7 +14,7 @@ services:
       timeout: 2s
 #  SC App 5555
   superconductor-afterimage:
-    image: avlo/superconductor-app-redis:1.18.0
+    image: avlo/superconductor-app-redis:1.18.1
     ports:
       - "5555:5555"
     depends_on:

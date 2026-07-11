@@ -79,7 +79,7 @@ public class DynamicReputationCalculatorTest {
 
     this.badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
        repDefnCreator,
-       submitter.getPublicKey(),
+       afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
        relay,
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
@@ -133,7 +133,7 @@ public class DynamicReputationCalculatorTest {
     BadgeAwardReputationEvent badgeAwardReputationEvent = dynamicReputationCalculator.calculateUpdatedReputationEvent(
        recipient.getPublicKey(),
        emptyNoReputationYetBadgeAwardEvent,
-       List.of(plusOneFormulaEvent),
+       List.of(plusOneFormulaEvent, minusOneFormulaEvent),
        new FollowSetsEvent(
           afterimageInstanceIdentity,
           badgeSetsEvent, relay));
@@ -165,7 +165,7 @@ public class DynamicReputationCalculatorTest {
           afterimageInstanceIdentity,
           badgeSetsEvent, relay));
 
-    assertEquals("0", badgeAwardReputationEvent.getContent());
+    assertEquals("-1", badgeAwardReputationEvent.getContent());
   }
 
   @Test
@@ -183,7 +183,7 @@ public class DynamicReputationCalculatorTest {
 
     BadgeDefinitionReputationEvent localBadgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
        repDefnCreator,
-       submitter.getPublicKey(),
+       afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
        relay,
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,

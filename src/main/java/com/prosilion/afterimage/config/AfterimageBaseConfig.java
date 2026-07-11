@@ -23,6 +23,7 @@ import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollow
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
 import com.prosilion.superconductor.base.cache.CacheBadgeAwardReputationEventServiceIF;
+import com.prosilion.superconductor.base.cache.CacheCurationSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
 import com.prosilion.superconductor.base.cache.tag.CacheKindAddressTagServiceIF;
 import com.prosilion.superconductor.base.controller.EventApiUiIF;
@@ -135,6 +136,7 @@ public abstract class AfterimageBaseConfig {
      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
      @NonNull AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin,
      @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
+     @NonNull CacheCurationSetsEventServiceIF cacheCurationSetsEventServiceIF,
      @NonNull EventPlugin eventPlugin,
      @NonNull Identity afterimageInstanceIdentity) {
     return new UniversalVoteEventKindPlugin(
@@ -144,6 +146,7 @@ public abstract class AfterimageBaseConfig {
        cacheFollowSetsEventService,
        followSetsEventKindPlugin,
        cacheFormulaEventServiceIF,
+       cacheCurationSetsEventServiceIF,
        eventPlugin,
        afterimageInstanceIdentity);
   }
