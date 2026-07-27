@@ -5,7 +5,7 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BadgeSetsEvent;
-import com.prosilion.nostr.event.CurationSetsEvent;
+import com.prosilion.nostr.event.CuratedBadgeAwardGenericEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
@@ -40,9 +40,9 @@ public class DynamicReputationCalculator implements ReputationCalculatorIF {
              formulaEvents.stream()
                 .filter(formulaEvent ->
                    incomingFollowSetsEvent.getBadgeSetsEventList().stream()
-                      .map(BadgeSetsEvent::getCurationSetsEventList)
+                      .map(BadgeSetsEvent::getCuratedBadgeAwardGenericEventList)
                       .flatMap(Collection::stream)
-                      .map(CurationSetsEvent::getAddressTag)
+                      .map(CuratedBadgeAwardGenericEvent::getAddressTag)
                       .toList().contains(
                          formulaEvent.getBadgeDefinitionGenericEvent().asAddressableEventAddressTag())),
              previousReputationEvent),

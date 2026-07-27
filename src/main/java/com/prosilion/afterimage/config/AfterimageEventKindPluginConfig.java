@@ -4,12 +4,11 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheBadgeSetsEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.CacheCurationSetsEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFormulaEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheCuratedBadgeAwardGenericEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheCuratedBadgeDefinitionGenericEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheCuratedFormulaEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceAddressTagService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceEventTagService;
@@ -28,7 +27,7 @@ import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -86,36 +85,46 @@ public class AfterimageEventKindPluginConfig {
 
   @Bean("eventKindMaterializers")
   Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindMaterializers(
-     @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
-     @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+     @NonNull CacheCuratedBadgeDefinitionGenericEventService cacheCuratedBadgeDefinitionGenericEventService,
      @NonNull CacheBadgeSetsEventService cacheBadgeSetsEventService,
-     @NonNull CacheFormulaEventService cacheFormulaEventService,
-     @NonNull CacheCurationSetsEventService cacheCurationSetsEventService) {
+     @NonNull CacheCuratedFormulaEventService cacheCuratedFormulaEventService,
+     @NonNull CacheCuratedBadgeAwardGenericEventService cacheCuratedBadgeAwardGenericEventService) {
     Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
     kindFxnMap.put(
-       Kind.CURATION_SETS,
-       cacheCurationSetsEventService::materialize);
-    
+       Kind.CURATION_SETS_BADGE_AWARD_EVENT,
+       eventIF ->
+          cacheCuratedBadgeAwardGenericEventService.materialize(eventIF));
+
     kindFxnMap.put(
        Kind.BADGE_AWARD_EVENT,
-       cacheBadgeAwardGenericEventService::materialize);
+       eventIF ->
+          cacheCuratedBadgeAwardGenericEventService.materialize(eventIF));
+
+    kindFxnMap.put(
+       Kind.CURATION_SETS_BADGE_DEFINITION_EVENT,
+       eventIF ->
+          cacheCuratedBadgeDefinitionGenericEventService.materialize(eventIF));
 
     kindFxnMap.put(
        Kind.BADGE_DEFINITION_EVENT,
-       cacheBadgeDefinitionGenericEventService::materialize);
+       eventIF ->
+          cacheCuratedBadgeDefinitionGenericEventService.materialize(eventIF));
 
     kindFxnMap.put(
        Kind.FOLLOW_SETS,
-       cacheFollowSetsEventService::materialize);
+       eventIF ->
+          cacheFollowSetsEventService.materialize(eventIF));
 
     kindFxnMap.put(
        Kind.BADGE_SETS_EVENT,
-       cacheBadgeSetsEventService::materialize);
+       eventIF ->
+          cacheBadgeSetsEventService.materialize(eventIF));
 
     kindFxnMap.put(
        Kind.ARBITRARY_CUSTOM_APP_DATA,
-       cacheFormulaEventService::materialize);
+       eventIF ->
+          cacheCuratedFormulaEventService.materialize(eventIF));
 
     return kindFxnMap;
   }
@@ -128,11 +137,13 @@ public class AfterimageEventKindPluginConfig {
 
     kindFxnMap.put(
        Kind.BADGE_AWARD_EVENT,
-       cacheBadgeAwardReputationEventService::materialize);
+       eventIF ->
+          cacheBadgeAwardReputationEventService.materialize(eventIF));
 
     kindFxnMap.put(
        Kind.BADGE_DEFINITION_EVENT,
-       cacheBadgeDefinitionReputationEventService::materialize);
+       eventIF ->
+          cacheBadgeDefinitionReputationEventService.materialize(eventIF));
 
     return kindFxnMap;
   }

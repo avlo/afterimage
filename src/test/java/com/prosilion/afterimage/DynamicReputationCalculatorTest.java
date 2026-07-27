@@ -9,12 +9,13 @@ import com.prosilion.nostr.event.BadgeAwardReputationEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BadgeSetsEvent;
-import com.prosilion.nostr.event.CurationSetsEvent;
+import com.prosilion.nostr.event.CuratedBadgeAwardGenericEvent;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.IdentifierTag;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.tag.SetsPairedEvent;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
@@ -35,7 +36,7 @@ import static com.prosilion.afterimage.service.reactive.AbstractIT.recipient;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.repDefnCreator;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.reputationIdentifierTag;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.submitter;
-import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteDefnCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteAndOrDownvoteDefnCreator;
 import static com.prosilion.nostr.tag.SetsPairedEvent.NULL_EVENT_TAG_RELAY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -60,8 +61,8 @@ public class DynamicReputationCalculatorTest {
   public DynamicReputationCalculatorTest() throws ParseException {
     this.dynamicReputationCalculator = new DynamicReputationCalculator(relay.getUrl(), this.afterimageInstanceIdentity);
 
-    this.awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, formulaUpvoteIdentifierTag, relay);
-    this.awardDownvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, formulaDownvoteIdentifierTag, relay);
+    this.awardUpvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteAndOrDownvoteDefnCreator, formulaUpvoteIdentifierTag, relay);
+    this.awardDownvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteAndOrDownvoteDefnCreator, formulaDownvoteIdentifierTag, relay);
 
     this.plusOneFormulaEvent = new FormulaEvent(
        formulaCreator,
@@ -97,12 +98,10 @@ public class DynamicReputationCalculatorTest {
   public static SetsPairedEvent create(BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> event, Relay backupRelay) {
     return new SetsPairedEvent(
        event.getBadgeDefinitionEvent().asAddressableEventAddressTag(),
-       backupRelay,
        new EventTag(
           event.getId(),
           event.getRelay().map(Relay::getUrl).orElseThrow(() ->
-             new NostrException(NULL_EVENT_TAG_RELAY))),
-       event.getAwardRecipientPublicKey());
+             new NostrException(NULL_EVENT_TAG_RELAY))));
   }
 
   private BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createBadgeAwardEvent(BadgeDefinitionGenericEvent awardDefinitionEvent) {
@@ -110,18 +109,18 @@ public class DynamicReputationCalculatorTest {
        submitter,
        recipient.getPublicKey(),
        awardDefinitionEvent,
-       String.format("awardDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
+       String.format("awardDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
        relay);
   }
 
   @Test
   void testCalculatorOnePlusOne() {
-    SetsPairedEvent setsPairedEvent = create(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
-
-    CurationSetsEvent curationSetsEvent = new CurationSetsEvent(
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardEvent = createBadgeAwardEvent(awardUpvoteDefinitionEvent);
+    CuratedBadgeAwardGenericEvent curationSetsEvent = new CuratedBadgeAwardGenericEvent(
        afterimageInstanceIdentity,
-       awardUpvoteDefinitionEvent,
-       setsPairedEvent,
+       badgeAwardEvent,
+       new ReferenceTag(awardDownvoteDefinitionEvent.getRelay().orElseThrow().getUrl()),
+       new ReferenceTag(badgeAwardEvent.getRelay().orElseThrow().getUrl()),
        relay);
 
     BadgeSetsEvent badgeSetsEvent = new BadgeSetsEvent(
@@ -143,12 +142,12 @@ public class DynamicReputationCalculatorTest {
 
   @Test
   void testCalculatorOneMinusOne() {
-    SetsPairedEvent setsPairedEvent = create(createBadgeAwardEvent(awardDownvoteDefinitionEvent), relay);
-
-    CurationSetsEvent curationSetsEvent = new CurationSetsEvent(
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardEvent = createBadgeAwardEvent(awardDownvoteDefinitionEvent);
+    CuratedBadgeAwardGenericEvent curationSetsEvent = new CuratedBadgeAwardGenericEvent(
        afterimageInstanceIdentity,
-       awardDownvoteDefinitionEvent,
-       setsPairedEvent,
+       badgeAwardEvent,
+       new ReferenceTag(awardDownvoteDefinitionEvent.getRelay().orElseThrow().getUrl()),
+       new ReferenceTag(badgeAwardEvent.getRelay().orElseThrow().getUrl()),
        relay);
 
     BadgeSetsEvent badgeSetsEvent = new BadgeSetsEvent(
@@ -178,7 +177,7 @@ public class DynamicReputationCalculatorTest {
        formulaCreator,
        formulaUpvoteIdentifierTagVariant,
        relay,
-       new BadgeDefinitionGenericEvent(upvoteDefnCreator, badgeDefnIdentifierTagVariant, relay),
+       new BadgeDefinitionGenericEvent(upvoteAndOrDownvoteDefnCreator, badgeDefnIdentifierTagVariant, relay),
        PLUS_ONE_FORMULA);
 
     BadgeDefinitionReputationEvent localBadgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent = new BadgeDefinitionReputationEvent(
@@ -189,11 +188,12 @@ public class DynamicReputationCalculatorTest {
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
        plusOneFormulaEvent, minusOneFormulaEvent);
 
-    SetsPairedEvent setsPairedEventUpvote = create(createBadgeAwardEvent(awardUpvoteDefinitionEvent), relay);
-    CurationSetsEvent curationSetsEventUpvote = new CurationSetsEvent(
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent = createBadgeAwardEvent(awardUpvoteDefinitionEvent);
+    CuratedBadgeAwardGenericEvent curationSetsEventUpvote = new CuratedBadgeAwardGenericEvent(
        afterimageInstanceIdentity,
-       awardUpvoteDefinitionEvent,
-       setsPairedEventUpvote,
+       badgeAwardUpvoteEvent,
+       new ReferenceTag(awardDownvoteDefinitionEvent.getRelay().orElseThrow().getUrl()),
+       new ReferenceTag(badgeAwardUpvoteEvent.getRelay().orElseThrow().getUrl()),
        relay);
 
     BadgeSetsEvent badgeSetsEvent_1 = new BadgeSetsEvent(
@@ -201,11 +201,12 @@ public class DynamicReputationCalculatorTest {
        badgeDefinitionReputationContainingPlusOneFormulaEventAndMinusOneFormulaEvent,
        curationSetsEventUpvote, relay);
 
-    SetsPairedEvent setsPairedEventDownvote = create(createBadgeAwardEvent(awardDownvoteDefinitionEvent), relay);
-    CurationSetsEvent curationSetsEventDownvote = new CurationSetsEvent(
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardDownvoteEvent = createBadgeAwardEvent(awardDownvoteDefinitionEvent);
+    CuratedBadgeAwardGenericEvent curationSetsEventDownvote = new CuratedBadgeAwardGenericEvent(
        afterimageInstanceIdentity,
-       awardDownvoteDefinitionEvent,
-       setsPairedEventDownvote,
+       badgeAwardDownvoteEvent,
+       new ReferenceTag(awardDownvoteDefinitionEvent.getRelay().orElseThrow().getUrl()),
+       new ReferenceTag(badgeAwardUpvoteEvent.getRelay().orElseThrow().getUrl()),
        relay);
 
     BadgeSetsEvent badgeSetsEvent_2 = new BadgeSetsEvent(

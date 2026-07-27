@@ -7,6 +7,7 @@ import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import java.util.List;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,30 +36,30 @@ public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT 
   }
 
   @Test
-  void superconductorMultipleEventsThenAfterimageReq() throws NostrException {
+  void superconductorMultipleEventsThenAfterimageReq() throws NostrException, InterruptedException {
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
 
     assertEquals(
        "1",
-       submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
+       submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
 
 // second upvote    
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
 
 // third upvote    
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
 
     List<EventIF> returnedAfterImageEvents_B = validateGeneralAfterimageRequestResults(
-       submitAfterImageReq(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl));
+       submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl));
 
     assertTrue(returnedAfterImageEvents_B.stream().map(EventIF::getContent).anyMatch("3"::equals));
   }

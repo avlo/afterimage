@@ -25,7 +25,7 @@ import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaDownvo
 import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaUpvoteIdentifierTag;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.repDefnCreator;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.reputationIdentifierTag;
-import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteDefnCreator;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteAndOrDownvoteDefnCreator;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.upvoteIdentifierTag;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,12 +42,12 @@ public class ExpressionCalculatorTest {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
     BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
-       upvoteDefnCreator,
+       upvoteAndOrDownvoteDefnCreator,
        upvoteIdentifierTag,
-       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
+       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
        relay);
 
-    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteDefnCreator, downvoteIdentifierTag, relay);
+    BadgeDefinitionGenericEvent downvoteDefinitionEvent = new BadgeDefinitionGenericEvent(upvoteAndOrDownvoteDefnCreator, downvoteIdentifierTag, relay);
 
     this.badgeDefinitionReputationEventAddOneSubtractOne = new BadgeDefinitionReputationEvent(
        repDefnCreator,

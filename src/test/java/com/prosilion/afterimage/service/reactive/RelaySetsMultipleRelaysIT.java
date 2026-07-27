@@ -10,15 +10,14 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
@@ -43,7 +42,7 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
     this.afterimageRelayUrlThree = afterimageRelayUrlThree;
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
        aImg_2_EventSubscriber_A);
 
@@ -54,8 +53,11 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
        createRelaysSetsEventMessage(), afterimageRelayUrlThree);
     TimeUnit.MILLISECONDS.sleep(2000);
 
-    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofMinutes(5));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A
+       = new RequestSubscriber<>()
+//       = new RequestSubscriber<>(Duration.ofMinutes(5))
+       ;
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
   }
@@ -64,7 +66,7 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
   void testFollowSetsEvent() throws InterruptedException {
 // aImg_2 sanity check  
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
        aImg_2_EventSubscriber_A);
 
@@ -75,8 +77,11 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
        createRelaysSetsEventMessage(), afterimageRelayUrlThree);
     TimeUnit.MILLISECONDS.sleep(2000);
 
-    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofMinutes(5));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A
+       = new RequestSubscriber<>()
+//       = new RequestSubscriber<>(Duration.ofMinutes(5))
+       ;
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
   }

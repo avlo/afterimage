@@ -12,13 +12,13 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
@@ -44,7 +44,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
   void testFollowSetsEvent() throws InterruptedException {
 // aImg_2 sanity check  
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
        aImg_2_EventSubscriber_A);
 
@@ -56,20 +56,21 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     TimeUnit.MILLISECONDS.sleep(1500);
 
     RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
 
     submitSCEvent(
        createUpvoteEvent(superconductorRelay),
-       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       superconductorRelayUrl,
+       upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
     RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "2");
@@ -79,7 +80,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
     submitSCEvent(
        createUpvoteEvent(superconductorRelay),
-       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
@@ -87,11 +88,11 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
     submitSCEvent(
        createDownvoteEvent(superconductorRelay),
-       superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey()));
+       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000);
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "2");
   }
 

@@ -10,6 +10,7 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import lombok.NonNull;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,21 +40,21 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   @Test
   void afterimageReqThenMultipleSuperconductorEvents() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);

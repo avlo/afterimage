@@ -11,6 +11,7 @@ import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.nostr.util.Util;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,84 +24,86 @@ public class AbstractDockerRelayIT extends AbstractIT {
   protected final String afterimageRelayUrlTwo;
 
   public AbstractDockerRelayIT(
-    Identity afterimageInstanceIdentity,
-    String superconductorRelayUrl,
-    String afterimageRelayUrlTwo) throws ParseException, InterruptedException {
+     Identity afterimageInstanceIdentity,
+     String superconductorRelayUrl,
+     String afterimageRelayUrlTwo) throws ParseException, InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrlTwo = afterimageRelayUrlTwo;
 
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
-      new BadgeAwardGenericEvent<>(
-        submitter,
-        recipient.getPublicKey(),
-        awardUpvoteDefinitionEvent,
-        String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
-        new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+       new BadgeAwardGenericEvent<>(
+          submitter,
+          recipient.getPublicKey(),
+          awardUpvoteDefinitionEvent,
+          String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
+          new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
 
     submitRelayEvent(badgeAwardUpvoteEvent, superconductorRelayUrl);
     TimeUnit.MILLISECONDS.sleep(1000);
 
-//  AIMG section		
+//  AIMG section
+    Util.debug(log, "AbstractDockerRelayITs - watch SC for incoming request search relays within next", "5 seconds", true, 'A');
+    TimeUnit.MILLISECONDS.sleep(5_000);
     submitRelayEvent(
-      createSearchRelaysListEventMessage(),
-      afterimageRelayUrlTwo);
+       createSearchRelaysListEventMessage(),
+       afterimageRelayUrlTwo);
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
   @Override
   protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent() {
     return new BadgeDefinitionGenericEvent(
-      upvoteDefnCreator,
-      upvoteIdentifierTag,
-      String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
-      new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+       upvoteAndOrDownvoteDefnCreator,
+       upvoteIdentifierTag,
+       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
+       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
     return new BadgeDefinitionGenericEvent(
-      upvoteDefnCreator,
-      downvoteIdentifierTag,
-      String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteDefnCreator.getPublicKey()),
-      new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+       upvoteAndOrDownvoteDefnCreator,
+       downvoteIdentifierTag,
+       String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
+       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
   }
 
   @Override
   protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
     return new FormulaEvent(
-      formulaCreator,
-      formulaUpvoteIdentifierTag,
-      new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-      awardUpvoteDefinitionEvent,
-      PLUS_ONE_FORMULA);
+       formulaCreator,
+       formulaUpvoteIdentifierTag,
+       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
+       awardUpvoteDefinitionEvent,
+       PLUS_ONE_FORMULA);
   }
 
   @Override
   protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
     return new FormulaEvent(
-      formulaCreator,
-      formulaDownvoteIdentifierTag,
-      new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-      awardDownvoteDefinitionEvent,
-      MINUS_ONE_FORMULA);
+       formulaCreator,
+       formulaDownvoteIdentifierTag,
+       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
+       awardDownvoteDefinitionEvent,
+       MINUS_ONE_FORMULA);
   }
 
   @Override
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
     return new BadgeDefinitionReputationEvent(
-      repDefnCreator,
-      submitter.getPublicKey(),
-      reputationIdentifierTag,
-      new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
-      AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-      plusOneFormulaEvent, minusOneFormulaEvent);
+       repDefnCreator,
+       afterimageInstanceIdentity.getPublicKey(),
+       reputationIdentifierTag,
+       new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
+       AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       plusOneFormulaEvent, minusOneFormulaEvent);
   }
 
   @Override
   protected BaseEvent createSearchRelaysListEventMessage() {
     return new SearchRelaysListEvent(
-      Identity.generateRandomIdentity(),
-      new RelaysTag(new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555")),
-      "Search Relays List sent from aImg IT 5556");
+       Identity.generateRandomIdentity(),
+       new RelaysTag(new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555")),
+       "Search Relays List sent from aImg IT 5556");
   }
 }

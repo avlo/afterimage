@@ -35,38 +35,37 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
   @Autowired
   public SearchRelaysListDockerRelayIT(
-    @NonNull Identity afterimageInstanceIdentity,
-    @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-    @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
+     @NonNull Identity afterimageInstanceIdentity,
+     @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
   }
 
   @Test
   void testA_SuperconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
-// aImg_2 sanity check		
+// aImg_2 sanity check
+    TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
-      afterimageRelayUrlTwo,
-      aImg_2_EventSubscriber_A);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
+       afterimageRelayUrlTwo,
+       aImg_2_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 =
-
-      new BadgeAwardGenericEvent<>(
-        submitter,
-        recipient.getPublicKey(),
-        awardUpvoteDefinitionEvent,
-        String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
-        new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 = new BadgeAwardGenericEvent<>(
+       submitter,
+       recipient.getPublicKey(),
+       awardUpvoteDefinitionEvent,
+       String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
+       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
 
 //  submit upvote event to SC
-    submitRelayEvent(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(1500);
+    submitRelayEventWithDuration_backup(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
+    TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent
 
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
   }
