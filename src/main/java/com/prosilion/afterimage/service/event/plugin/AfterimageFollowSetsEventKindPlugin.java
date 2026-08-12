@@ -2,8 +2,8 @@ package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.AddressableEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BadgeSetsEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeSetsEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
@@ -12,6 +12,7 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheCuratedBadgeAwardGenericEventService;
 import com.prosilion.superconductor.base.cache.CacheFollowSetsEventServiceIF;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
@@ -98,7 +99,11 @@ public class AfterimageFollowSetsEventKindPlugin extends PublishingEventKindPlug
   }
 
   private Set<FollowSetsEvent> findAwardRecipientExistingFollowSets(FollowSetsEvent followSetsEvent, Set<BadgeDefinitionReputationEvent> defnReputationEvents) {
-    return new HashSet<>(cacheFollowSetsEventServiceIF.getBy(new PubKeyTag(followSetsEvent.getAwardRecipientPublicKey())));
+    PublicKey awardRecipientPublicKey = followSetsEvent.getAwardRecipientPublicKey();
+    PubKeyTag pubKeyTag = new PubKeyTag(awardRecipientPublicKey);
+    List<FollowSetsEvent> by = cacheFollowSetsEventServiceIF.getBy(pubKeyTag);
+    HashSet<FollowSetsEvent> followSetsEvents = new HashSet<>(by);
+    return followSetsEvents;
   }
 
   private Set<FollowSetsEvent> findMatchingFollowSets(Set<FollowSetsEvent> awardRecipientFollowSets, Set<BadgeDefinitionReputationEvent> badgeDefinitions) {

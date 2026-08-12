@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.config.util;
 
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import org.springframework.beans.factory.annotation.Qualifier;
 import lombok.NonNull;
@@ -27,7 +27,7 @@ public class DataLoaderRedis implements DataLoaderRedisIF {
   public void run(String... args) {
     afterimageCacheService.save(badgeDefinitionUpvote);
     afterimageCacheService.save(badgeDefinitionDownvote);
-    badgeDefinitionReputationEvent.getFormulaEvents().forEach(afterimageCacheService::save);
+    badgeDefinitionReputationEvent.getCuratedFormulaEvents().forEach(afterimageCacheService::save);
     afterimageCacheService.save(badgeDefinitionReputationEvent);
   }
 }

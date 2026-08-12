@@ -6,9 +6,11 @@ import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.calculator.ExpressionCalculator;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -21,6 +23,7 @@ import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_DEFINITION
 import static com.prosilion.afterimage.service.reactive.AbstractIT.MINUS_ONE_FORMULA;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.PLUS_ONE_FORMULA;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.downvoteIdentifierTag;
+import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaCreator;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaDownvoteIdentifierTag;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.formulaUpvoteIdentifierTag;
 import static com.prosilion.afterimage.service.reactive.AbstractIT.repDefnCreator;
@@ -38,7 +41,7 @@ public class ExpressionCalculatorTest {
   private final BadgeDefinitionReputationEvent badgeDefinitionReputationEventAddOneAddOne;
   private final Relay relay = new Relay("ws://localhost:5555");
 
-  public ExpressionCalculatorTest() throws ParseException {
+  public ExpressionCalculatorTest() {
     Identity afterimageInstanceIdentity = Identity.generateRandomIdentity();
 
     BadgeDefinitionGenericEvent upvoteDefinitionEvent = new BadgeDefinitionGenericEvent(
@@ -53,41 +56,57 @@ public class ExpressionCalculatorTest {
        repDefnCreator,
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
-       relay,
        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       relay,
        List.of(
-          new FormulaEvent(
+          new CuratedFormulaEvent(
              afterimageInstanceIdentity,
-             formulaUpvoteIdentifierTag,
-             relay,
-             upvoteDefinitionEvent,
-             PLUS_ONE_FORMULA),
-          new FormulaEvent(
+             new FormulaEvent(
+                formulaCreator,
+                formulaUpvoteIdentifierTag,
+                upvoteDefinitionEvent,
+                PLUS_ONE_FORMULA,
+                relay),
+             new ReferenceTag(relay.getUrl()),
+             relay),
+          new CuratedFormulaEvent(
              afterimageInstanceIdentity,
-             formulaDownvoteIdentifierTag,
-             relay,
-             downvoteDefinitionEvent,
-             MINUS_ONE_FORMULA)));
+             new FormulaEvent(
+                formulaCreator,
+                formulaDownvoteIdentifierTag,
+                downvoteDefinitionEvent,
+                MINUS_ONE_FORMULA,
+                relay),
+             new ReferenceTag(relay.getUrl()),
+             relay)));
 
     this.badgeDefinitionReputationEventAddOneAddOne = new BadgeDefinitionReputationEvent(
        repDefnCreator,
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
-       relay,
        BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
+       relay,
        List.of(
-          new FormulaEvent(
+          new CuratedFormulaEvent(
              afterimageInstanceIdentity,
-             formulaUpvoteIdentifierTag,
-             relay,
-             upvoteDefinitionEvent,
-             PLUS_ONE_FORMULA),
-          new FormulaEvent(
+             new FormulaEvent(
+                formulaCreator,
+                formulaUpvoteIdentifierTag,
+                upvoteDefinitionEvent,
+                PLUS_ONE_FORMULA,
+                relay),
+             new ReferenceTag(relay.getUrl()),
+             relay),
+          new CuratedFormulaEvent(
              afterimageInstanceIdentity,
-             formulaDownvoteIdentifierTag,
-             relay,
-             downvoteDefinitionEvent,
-             PLUS_ONE_FORMULA)));
+             new FormulaEvent(
+                formulaCreator,
+                formulaDownvoteIdentifierTag,
+                downvoteDefinitionEvent,
+                PLUS_ONE_FORMULA,
+                relay),
+             new ReferenceTag(relay.getUrl()),
+             relay)));
   }
 
   @Test
@@ -130,8 +149,8 @@ public class ExpressionCalculatorTest {
     log.info(badgeDefinitionReputationEventAddOneSubtractOne.getContent());
     assertEquals(
        "0",
-       badgeDefinitionReputationEventAddOneSubtractOne.getFormulaEvents().stream()
-          .map(FormulaEvent::getFormula)
+       badgeDefinitionReputationEventAddOneSubtractOne.getCuratedFormulaEvents().stream()
+          .map(CuratedFormulaEvent::getFormula)
           .reduce(ExpressionCalculator::calculate)
           .orElseThrow());
   }
@@ -141,8 +160,8 @@ public class ExpressionCalculatorTest {
     log.info(badgeDefinitionReputationEventAddOneAddOne.getContent());
     assertEquals(
        "2",
-       badgeDefinitionReputationEventAddOneAddOne.getFormulaEvents().stream()
-          .map(FormulaEvent::getFormula)
+       badgeDefinitionReputationEventAddOneAddOne.getCuratedFormulaEvents().stream()
+          .map(CuratedFormulaEvent::getFormula)
           .reduce(ExpressionCalculator::calculate)
           .orElseThrow());
   }

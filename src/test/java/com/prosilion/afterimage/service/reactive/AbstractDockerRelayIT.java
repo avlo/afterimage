@@ -1,14 +1,15 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.util.Util;
@@ -26,7 +27,7 @@ public class AbstractDockerRelayIT extends AbstractIT {
   public AbstractDockerRelayIT(
      Identity afterimageInstanceIdentity,
      String superconductorRelayUrl,
-     String afterimageRelayUrlTwo) throws ParseException, InterruptedException {
+     String afterimageRelayUrlTwo) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrlTwo = afterimageRelayUrlTwo;
@@ -69,23 +70,33 @@ public class AbstractDockerRelayIT extends AbstractIT {
   }
 
   @Override
-  protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
-    return new FormulaEvent(
-       formulaCreator,
-       formulaUpvoteIdentifierTag,
-       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-       awardUpvoteDefinitionEvent,
-       PLUS_ONE_FORMULA);
+  protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
+    Relay relay = new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555");
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       new FormulaEvent(
+          formulaCreator,
+          formulaUpvoteIdentifierTag,
+          awardUpvoteDefinitionEvent,
+          PLUS_ONE_FORMULA,
+          relay),
+       new ReferenceTag(relay.getUrl()),
+       superconductorRelay);
   }
 
   @Override
-  protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
-    return new FormulaEvent(
-       formulaCreator,
-       formulaDownvoteIdentifierTag,
-       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-       awardDownvoteDefinitionEvent,
-       MINUS_ONE_FORMULA);
+  protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
+    Relay relay = new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555");
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       new FormulaEvent(
+          formulaCreator,
+          formulaDownvoteIdentifierTag,
+          awardDownvoteDefinitionEvent,
+          MINUS_ONE_FORMULA,
+          relay),
+       new ReferenceTag(relay.getUrl()),
+       superconductorRelay);
   }
 
   @Override
@@ -94,9 +105,9 @@ public class AbstractDockerRelayIT extends AbstractIT {
        repDefnCreator,
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
-       new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       plusOneFormulaEvent, minusOneFormulaEvent);
+       new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
+       plusOneCuratedFormulaEvent, minusOneCuratedFormulaEvent);
   }
 
   @Override

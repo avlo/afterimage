@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
@@ -36,7 +35,7 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrlTwo,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree) throws ParseException, InterruptedException {
+     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
     this.superconductorRelayTwo = new Relay(superconductorRelayUrlTwo);
     this.afterimageRelayUrlThree = afterimageRelayUrlThree;

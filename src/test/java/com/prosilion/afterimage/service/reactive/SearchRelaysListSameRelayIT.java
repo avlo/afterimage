@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -42,7 +41,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull CacheServiceIF cacheServiceIF,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
     this.cacheServiceIF = cacheServiceIF;
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =

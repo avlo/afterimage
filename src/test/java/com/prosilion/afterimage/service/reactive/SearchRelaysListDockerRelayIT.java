@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
@@ -37,7 +36,7 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
   public SearchRelaysListDockerRelayIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
   }
 

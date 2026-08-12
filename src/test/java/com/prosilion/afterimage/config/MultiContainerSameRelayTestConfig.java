@@ -31,8 +31,10 @@ public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
 // original Wait.forHealthcheck() calls do not work due to wget unavailable in container
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
+       
        .withRemoveVolumes(true);
   }
 

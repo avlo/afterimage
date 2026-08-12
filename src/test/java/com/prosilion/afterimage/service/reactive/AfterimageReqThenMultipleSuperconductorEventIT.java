@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
@@ -33,7 +32,7 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
   public AfterimageReqThenMultipleSuperconductorEventIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
   }
 

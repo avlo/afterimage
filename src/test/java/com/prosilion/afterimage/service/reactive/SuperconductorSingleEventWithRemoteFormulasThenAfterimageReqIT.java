@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
@@ -44,7 +43,7 @@ public class SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT exte
   public SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
   }
 

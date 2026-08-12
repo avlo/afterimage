@@ -1,12 +1,12 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
@@ -18,6 +18,7 @@ import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
@@ -41,12 +42,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
 public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT extends AbstractIT {
-
   @Autowired
   public SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
   }
 
@@ -123,32 +123,40 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
   }
 
   @Override
-  protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
-    return new FormulaEvent(
-       formulaCreator,
-       formulaUpvoteIdentifierTag,
-       new Relay(afterimageRelayUrl),
-       awardUpvoteDefinitionEvent,
-       PLUS_ONE_FORMULA);
+  protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       new FormulaEvent(
+          formulaCreator,
+          formulaUpvoteIdentifierTag,
+          awardUpvoteDefinitionEvent,
+          PLUS_ONE_FORMULA,
+          new Relay(afterimageRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(afterimageRelayUrl));
   }
 
   @Override
-  protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
-    return new FormulaEvent(
-       formulaCreator,
-       formulaDownvoteIdentifierTag,
-       new Relay(afterimageRelayUrl),
-       awardDownvoteDefinitionEvent,
-       MINUS_ONE_FORMULA);
+  protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       new FormulaEvent(
+          formulaCreator,
+          formulaDownvoteIdentifierTag,
+          awardDownvoteDefinitionEvent,
+          MINUS_ONE_FORMULA,
+          new Relay(afterimageRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(afterimageRelayUrl));
   }
 
   @Override
-  protected void submitUpvoteFormulaEventToImplSpecificRelay() {
-    submitAimgEvent(plusOneFormulaEvent);
+  protected void submitPlusOneFormulaEventToImplSpecificRelay() {
+    submitAimgEvent(plusOneCuratedFormulaEvent);
   }
 
   @Override
   protected void submitDownvoteFormulaEventToImplSpecificRelay() {
-    submitAimgEvent(minusOneFormulaEvent);
+    submitAimgEvent(minusOneCuratedFormulaEvent);
   }
 }

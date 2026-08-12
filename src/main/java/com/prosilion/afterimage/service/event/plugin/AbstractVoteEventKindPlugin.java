@@ -4,14 +4,14 @@ import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BadgeSetsEvent;
-import com.prosilion.nostr.event.CuratedBadgeAwardGenericEvent;
-import com.prosilion.nostr.event.CuratedBadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
-import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeSetsEvent;
+import com.prosilion.nostr.event.curated.CuratedBadgeAwardGenericEvent;
+import com.prosilion.nostr.event.curated.CuratedBadgeDefinitionGenericEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
@@ -20,12 +20,13 @@ import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
+import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheBadgeDefinitionReputationEventService;
 import com.prosilion.superconductor.autoconfigure.base.service.event.curated.CacheCuratedBadgeDefinitionGenericEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
-import com.prosilion.superconductor.base.cache.CacheFormulaEventServiceIF;
+import com.prosilion.superconductor.base.cache.curated.CacheCuratedBadgeAwardEventServiceIF;
+import com.prosilion.superconductor.base.cache.curated.CacheCuratedFormulaEventServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
+import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -33,33 +34,36 @@ import org.jspecify.annotations.NonNull;
 @Slf4j
 // our SportsCar extends CarDecorator
 public abstract class AbstractVoteEventKindPlugin extends NonPublishingEventKindPlugin {
-  private final CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService;
+  private final CacheCuratedBadgeAwardEventServiceIF cacheCuratedBadgeAwardEventServiceIF;
   private final CacheCuratedBadgeDefinitionGenericEventService cacheCuratedBadgeDefinitionGenericEventService;
   private final CacheBadgeDefinitionReputationEventService badgeDefinitionReputationEventService;
   private final CacheFollowSetsEventService followSetsEventService;
   private final AfterimageFollowSetsEventKindPlugin followSetsEventKindPlugin;
-  private final CacheFormulaEventServiceIF formulaEventService;
+  private final CacheCuratedFormulaEventServiceIF cacheCuratedFormulaEventServiceIF;
   private final Identity aImgIdentity;
   private final Relay relay;
+  RedisCacheService redisCacheService;
 
   public AbstractVoteEventKindPlugin(
+     @NonNull RedisCacheService redisCacheService,
      @NonNull String afterimageRelayUrl,
-     @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
+     @NonNull CacheCuratedBadgeAwardEventServiceIF cacheCuratedBadgeAwardEventServiceIF,
      @NonNull CacheCuratedBadgeDefinitionGenericEventService cacheCuratedBadgeDefinitionGenericEventService,
      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService,
      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
      @NonNull AfterimageFollowSetsEventKindPlugin afterimageFollowSetsEventKindPlugin,
-     @NonNull CacheFormulaEventServiceIF cacheFormulaEventServiceIF,
+     @NonNull CacheCuratedFormulaEventServiceIF cacheCuratedFormulaEventServiceIF,
      @NonNull EventPlugin eventPlugin,
      @NonNull Identity aImgIdentity) {
     super(eventPlugin);
+    this.redisCacheService = redisCacheService;
     this.aImgIdentity = aImgIdentity;
-    this.cacheBadgeDefinitionGenericEventService = cacheBadgeDefinitionGenericEventService;
+    this.cacheCuratedBadgeAwardEventServiceIF = cacheCuratedBadgeAwardEventServiceIF;
     this.cacheCuratedBadgeDefinitionGenericEventService = cacheCuratedBadgeDefinitionGenericEventService;
     this.badgeDefinitionReputationEventService = cacheBadgeDefinitionReputationEventService;
     this.followSetsEventService = cacheFollowSetsEventService;
     this.followSetsEventKindPlugin = afterimageFollowSetsEventKindPlugin;
-    this.formulaEventService = cacheFormulaEventServiceIF;
+    this.cacheCuratedFormulaEventServiceIF = cacheCuratedFormulaEventServiceIF;
     this.relay = new Relay(afterimageRelayUrl);
     log.debug("using afterimageRelayUrl: [{}]", afterimageRelayUrl);
   }
@@ -73,20 +77,18 @@ public abstract class AbstractVoteEventKindPlugin extends NonPublishingEventKind
     Relay awardEventConsolidatedRelay = awardEventRelay.orElse(fromRelay);
     EventTag eventTag = new EventTag(voteEvent.getId(), awardEventConsolidatedRelay.getUrl());
 
-    Optional<CuratedBadgeDefinitionGenericEvent> existingCurationSetsEvent = cacheCuratedBadgeDefinitionGenericEventService.getByDirect(eventTag);
-    if (existingCurationSetsEvent.isPresent())
-      return existingCurationSetsEvent.map(CuratedBadgeDefinitionGenericEvent::getGenericEventRecord);
+    Optional<CuratedBadgeAwardGenericEvent> curatedBadgeAwardGenericEvent = cacheCuratedBadgeAwardEventServiceIF.getBy(recipientPublicKeyAsPubKeyTag, eventTag);
+    if (curatedBadgeAwardGenericEvent.isPresent())
+      return curatedBadgeAwardGenericEvent.map(EventIF::asGenericEventRecord);
 
-    CuratedBadgeDefinitionGenericEvent curatedBadgeDefinitionEvent = new CuratedBadgeDefinitionGenericEvent(
-       aImgIdentity,
-       cacheBadgeDefinitionGenericEventService.getByExpanded(voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class)).orElseThrow(),
-       new ReferenceTag(fromRelay.getUrl()),
-       relay);
+    AddressTag badgeDefinitionAsAddressTag = voteEvent.asGenericEventRecord().requireFirstTag(AddressTag.class);
+    CuratedBadgeDefinitionGenericEvent curatedBadgeDefinitionEvent =
+       cacheCuratedBadgeDefinitionGenericEventService.getByDirect(badgeDefinitionAsAddressTag).orElseThrow();
 
-    log.debug("(2of13V) saving incoming vote as CuratedBadgeDefinitionGenericEvent:\n  {}", curatedBadgeDefinitionEvent.createPrettyPrintJson());
+    log.debug("(2of13V) saving incoming vote's CuratedBadgeDefinitionGenericEvent:\n  {}", curatedBadgeDefinitionEvent.createPrettyPrintJson());
     super.processIncomingEvent(curatedBadgeDefinitionEvent, awardEventConsolidatedRelay);
 
-    FormulaEvent formulaEvent = formulaEventService.getByDirect(curatedBadgeDefinitionEvent.getAddressTag())
+    CuratedFormulaEvent formulaEvent = cacheCuratedFormulaEventServiceIF.getByDirect(curatedBadgeDefinitionEvent.getAddressTag())
        .orElseThrow(() -> new NostrException(
           String.format("no formulaEvent matches badgeDefinitionGenericEvent.asAddressableEventAddressTag():\n  %s",
              curatedBadgeDefinitionEvent.getAddressTag().toStringPrettyPrint())));

@@ -10,7 +10,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @EmbeddedRedisStandalone
-public class SingleContainerTestConfig {
+public class SingleContainerTestConfig extends ContainerTestConfig {
+
   @Bean
   @ServiceConnection
   public ComposeContainer composeSingleContainerLocalDev() {
@@ -25,7 +26,8 @@ public class SingleContainerTestConfig {
   public ComposeContainer composeSingleContainerSuperconductorDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-       .waitingFor("superconductor-afterimage", Wait.defaultWaitStrategy())
+//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
        .withRemoveVolumes(true);
   }
 }

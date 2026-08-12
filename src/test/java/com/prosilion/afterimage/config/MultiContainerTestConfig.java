@@ -31,12 +31,18 @@ public class MultiContainerTestConfig extends ContainerTestConfig {
        new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
 // original Wait.forHealthcheck() calls do not work due to wget unavailable in container
 //  TODO: above potentially reconcilable via 'busybox wget' 
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-       .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())
+       
+//       .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())
+       .waitingFor(AFTERIMAGE_APP_TWO, Wait.forLogMessage(".*Started AfterimageApplication.*\\n", 1))
        .withExposedService(AFTERIMAGE_APP_TWO, 5556)
-       .waitingFor(AFTERIMAGE_APP_THREE, Wait.defaultWaitStrategy())
+       
+//       .waitingFor(AFTERIMAGE_APP_THREE, Wait.defaultWaitStrategy())
+       .waitingFor(AFTERIMAGE_APP_THREE, Wait.forLogMessage(".*Started AfterimageApplication.*\\n", 1))
        .withExposedService(AFTERIMAGE_APP_THREE, 5556)
+       
        .withRemoveVolumes(true);
   }
 

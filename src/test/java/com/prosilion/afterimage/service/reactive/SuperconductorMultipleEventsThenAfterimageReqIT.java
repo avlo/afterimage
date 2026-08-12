@@ -1,11 +1,11 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -27,16 +27,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
 public class SuperconductorMultipleEventsThenAfterimageReqIT extends AbstractIT {
+  CacheServiceIF cacheServiceIF;
   @Autowired
   public SuperconductorMultipleEventsThenAfterimageReqIT(
+     @NonNull CacheServiceIF cacheServiceIF,
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
+    this.cacheServiceIF = cacheServiceIF;
   }
 
   @Test
-  void superconductorMultipleEventsThenAfterimageReq() throws NostrException, InterruptedException {
+  void superconductorMultipleEventsThenAfterimageReq() throws NostrException {
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEvent(superconductorRelay),

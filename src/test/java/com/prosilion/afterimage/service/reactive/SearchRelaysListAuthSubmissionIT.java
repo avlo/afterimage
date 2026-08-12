@@ -7,7 +7,7 @@
 //import com.prosilion.nostr.NostrException;
 //import com.prosilion.nostr.enums.Kind;
 //import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
-//import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+//import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 //import com.prosilion.nostr.event.BaseEvent;
 //import com.prosilion.nostr.event.CanonicalAuthenticationEvent;
 //import com.prosilion.nostr.event.EventIF;

@@ -1,23 +1,21 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
-import com.prosilion.nostr.filter.event.AuthorFilter;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
 import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
-import com.prosilion.nostr.filter.tag.IdentifierTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -26,6 +24,7 @@ import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -99,8 +98,12 @@ public abstract class AbstractIT {
 
   protected final BadgeDefinitionGenericEvent awardUpvoteDefinitionEvent;
   protected final BadgeDefinitionGenericEvent awardDownvoteDefinitionEvent;
+
   protected final FormulaEvent plusOneFormulaEvent;
   protected final FormulaEvent minusOneFormulaEvent;
+
+  protected final CuratedFormulaEvent plusOneCuratedFormulaEvent;
+  protected final CuratedFormulaEvent minusOneCuratedFormulaEvent;
 
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrl;
@@ -110,24 +113,24 @@ public abstract class AbstractIT {
      new Filters(
         new ReferencedPublicKeyFilter(
            new PubKeyTag(recipient.getPublicKey())),
-        new KindFilter(Kind.BADGE_AWARD_EVENT));
+        new KindFilter(Kind.CURATION_SETS_BADGE_AWARD_EVENT));
 
   protected Filters upvoteAndOrDownvoteDefinitionEventFilter =
      new Filters(
-        new AuthorFilter(
-           upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-        new KindFilter(Kind.BADGE_DEFINITION_EVENT));
+        new ReferencedPublicKeyFilter(
+           new PubKeyTag(upvoteAndOrDownvoteDefnCreator.getPublicKey())),
+        new KindFilter(Kind.CURATION_SETS_BADGE_DEFINITION_EVENT));
 
-  protected BiFunction<PublicKey, IdentifierTag, Filters> formulaEventFilter = (publicKey, identifierTag) ->
+  protected BiFunction<PublicKey, AddressTag, Filters> curatedFormulaEventFilter = (publicKey, addressTag) ->
      new Filters(
-        new AuthorFilter(publicKey),
-        new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA),
-        new IdentifierTagFilter(identifierTag));
+        new ReferencedPublicKeyFilter(new PubKeyTag(publicKey)),
+        new KindFilter(Kind.CURATION_SETS_FORMULA_EVENT),
+        new AddressTagFilter(addressTag));
 
   public AbstractIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     log.debug("afterimageInstanceIdentity: [{}]", afterimageInstanceIdentity.getPublicKey());
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
@@ -140,10 +143,12 @@ public abstract class AbstractIT {
     this.awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent();
     submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl, upvoteAndOrDownvoteDefinitionEventFilter);
 
-    this.plusOneFormulaEvent = createFormulaUpvoteEvent();
-    submitUpvoteFormulaEventToImplSpecificRelay();
+    this.plusOneFormulaEvent = createPlusOneFormulaEvent();
+    this.plusOneCuratedFormulaEvent = createCuratedFormulaPlusOneEvent();
+    submitPlusOneFormulaEventToImplSpecificRelay();
 
-    this.minusOneFormulaEvent = createFormulaDownvoteEvent();
+    this.minusOneFormulaEvent = createMinusOneFormulaEvent();
+    this.minusOneCuratedFormulaEvent = createCuratedFormulaMinusOneEvent();
     submitDownvoteFormulaEventToImplSpecificRelay();
 
 //  AIMG section
@@ -152,20 +157,22 @@ public abstract class AbstractIT {
     log.debug("ctor finished");
   }
 
-  protected void submitUpvoteFormulaEventToImplSpecificRelay() {
+  protected void submitPlusOneFormulaEventToImplSpecificRelay() {
     submitSCEvent(
        plusOneFormulaEvent,
        superconductorRelayUrl,
-       formulaEventFilter.apply(
+       curatedFormulaEventFilter.apply(
           formulaCreator.getPublicKey(),
-          formulaUpvoteIdentifierTag));
+          awardUpvoteDefinitionEvent.asAddressableEventAddressTag()));
   }
 
   protected void submitDownvoteFormulaEventToImplSpecificRelay() {
-    submitSCEvent(minusOneFormulaEvent, superconductorRelayUrl,
-       formulaEventFilter.apply(
+    submitSCEvent(
+       minusOneFormulaEvent,
+       superconductorRelayUrl,
+       curatedFormulaEventFilter.apply(
           formulaCreator.getPublicKey(),
-          formulaDownvoteIdentifierTag));
+          awardDownvoteDefinitionEvent.asAddressableEventAddressTag()));
   }
 
   protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {
@@ -318,22 +325,38 @@ public abstract class AbstractIT {
        superconductorRelay);
   }
 
-  protected FormulaEvent createFormulaUpvoteEvent() throws ParseException {
+  protected FormulaEvent createPlusOneFormulaEvent() {
     return new FormulaEvent(
        formulaCreator,
        formulaUpvoteIdentifierTag,
-       superconductorRelay,
        awardUpvoteDefinitionEvent,
-       PLUS_ONE_FORMULA);
+       PLUS_ONE_FORMULA,
+       superconductorRelay);
   }
 
-  protected FormulaEvent createFormulaDownvoteEvent() throws ParseException {
+  protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       plusOneFormulaEvent,
+       new ReferenceTag(superconductorRelay.getUrl()),
+       superconductorRelay);
+  }
+
+  protected FormulaEvent createMinusOneFormulaEvent() {
     return new FormulaEvent(
        formulaCreator,
        formulaDownvoteIdentifierTag,
-       superconductorRelay,
        awardDownvoteDefinitionEvent,
-       MINUS_ONE_FORMULA);
+       MINUS_ONE_FORMULA,
+       superconductorRelay);
+  }
+
+  protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
+    return new CuratedFormulaEvent(
+       afterimageInstanceIdentity,
+       minusOneFormulaEvent,
+       new ReferenceTag(superconductorRelay.getUrl()),
+       superconductorRelay);
   }
 
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
@@ -341,9 +364,9 @@ public abstract class AbstractIT {
        repDefnCreator,
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
-       new Relay(afterimageRelayUrl),
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       plusOneFormulaEvent, minusOneFormulaEvent);
+       new Relay(afterimageRelayUrl),
+       plusOneCuratedFormulaEvent, minusOneCuratedFormulaEvent);
   }
 
   protected BaseEvent createSearchRelaysListEventMessage() {

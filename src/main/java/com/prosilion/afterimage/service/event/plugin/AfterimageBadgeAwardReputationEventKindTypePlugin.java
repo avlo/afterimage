@@ -1,14 +1,16 @@
 package com.prosilion.afterimage.service.event.plugin;
 
 import com.prosilion.afterimage.service.reputation.ReputationCalculationServiceIF;
-import com.prosilion.nostr.event.BadgeAwardReputationEvent;
-import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
-import com.prosilion.nostr.event.BadgeSetsEvent;
+import com.prosilion.nostr.event.curated.BadgeAwardReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.BadgeSetsEvent;
 import com.prosilion.nostr.event.DeletionEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FollowSetsEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.event.UniqueAddressTagEvent;
 import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
@@ -22,9 +24,10 @@ import com.prosilion.superconductor.base.service.request.subscriber.NotifierServ
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,42 +72,36 @@ public class AfterimageBadgeAwardReputationEventKindTypePlugin extends BadgeAwar
     FollowSetsEvent materializedIncomingFollowSetsEvent = cacheFollowSetsEventServiceIF.materialize(incomingFollowSetsEventAsReputationEvent).orElseThrow();
     log.debug("(0ofY) ... materializedIncomingFollowSetsEvent:\n{}", materializedIncomingFollowSetsEvent.createPrettyPrintJson());
 
-    List<BadgeDefinitionReputationEvent> existingReputationDefinitionEvents =
-       materializedIncomingFollowSetsEvent.getBadgeSetsEventList().stream()
-          .map(BadgeSetsEvent::getBadgeDefinitionReputationEvent).toList();
-
     List<BadgeAwardReputationEvent> existingBadgeAwardReputationEvents =
-       Optional.of(cacheFollowSetsEventServiceIF.getBadgeAwardReputationEvents(materializedIncomingFollowSetsEvent))
-          .filter(Predicate.not(List::isEmpty))
-          .orElseGet(() ->
-             existingReputationDefinitionEvents.stream().map(existingReputationDefinitionEvent ->
-                createBadgeAwardReputationEvent(
-                   materializedIncomingFollowSetsEvent.getAwardRecipientPublicKey(),
-                   existingReputationDefinitionEvent,
-                   new BigDecimal("0"))).toList());
+       cacheFollowSetsEventServiceIF.getBadgeAwardReputationEvents(materializedIncomingFollowSetsEvent);
 
-    List<BadgeAwardReputationEvent> updatedBadgeAwardReputationEvents = existingReputationDefinitionEvents.stream()
-       .map(badgeDefinitionReputationEvent ->
-          existingBadgeAwardReputationEvents.stream()
-             .map(existingBadgeAwardReputationEvent ->
-                createBadgeAwardReputationEvent(
-                   materializedIncomingFollowSetsEvent.getAwardRecipientPublicKey(),
-                   badgeDefinitionReputationEvent,
-                   new BigDecimal(
-                      existingBadgeAwardReputationEvent.getContent().isBlank() ?
-                         "0" : existingBadgeAwardReputationEvent.getContent()))))
-       .flatMap(Stream::distinct).toList();
+    Map<AddressTag, BadgeAwardReputationEvent> existingBadgeAwardReputationEventsByDefinition =
+       existingBadgeAwardReputationEvents.stream()
+          .collect(Collectors.toMap(
+             UniqueAddressTagEvent::getAddressTag,
+             Function.identity(),
+             (first, second) ->
+                first.getCreatedAt() >= second.getCreatedAt() ? first : second));
 
-    List<BadgeAwardReputationEvent> newReputationEvents = updatedBadgeAwardReputationEvents.stream()
-       .map(updatedBadgeAwardReputationEvent ->
-          existingReputationDefinitionEvents.stream()
-             .map(existingReputationDefinitionEvent ->
-                reputationCalculationServiceIF.calculateReputationEvent(
-                   materializedIncomingFollowSetsEvent.getAwardRecipientPublicKey(),
-                   updatedBadgeAwardReputationEvent,
-                   existingReputationDefinitionEvent.getFormulaEvents(),
-                   (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent)))
-       .flatMap(Stream::distinct).toList();
+    List<BadgeAwardReputationEvent> newReputationEvents =
+       materializedIncomingFollowSetsEvent.getBadgeSetsEventList().stream()
+          .map(BadgeSetsEvent::getBadgeDefinitionReputationEvent).distinct()
+          .map(badgeDefinitionReputationEvent -> {
+            BadgeAwardReputationEvent previousReputationEvent =
+               Optional.ofNullable(existingBadgeAwardReputationEventsByDefinition.get(
+                     badgeDefinitionReputationEvent.asAddressableEventAddressTag()))
+                  .orElseGet(() -> createBadgeAwardReputationEvent(
+                     materializedIncomingFollowSetsEvent.getAwardRecipientPublicKey(),
+                     badgeDefinitionReputationEvent,
+                     BigDecimal.ZERO));
+
+            return reputationCalculationServiceIF.calculateReputationEvent(
+               materializedIncomingFollowSetsEvent.getAwardRecipientPublicKey(),
+               previousReputationEvent,
+               badgeDefinitionReputationEvent.getCuratedFormulaEvents(),
+               (FollowSetsEvent) incomingFollowSetsEventAsReputationEvent);
+          })
+          .toList();
 
     log.debug("(6ofY) ... newReputationEvent:\n  {}", newReputationEvents.stream().map(EventIF::createPrettyPrintJson));
 

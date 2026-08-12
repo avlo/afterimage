@@ -1,0 +1,29 @@
+services:
+  afterimage-db_redis-dev_ws_6380:
+    image: "redis:8.0.0"
+    hostname: afterimage-db_redis-dev_ws_6380
+    ports:
+      - "6380:6379"
+    networks:
+      - superconductor_net
+    volumes:
+      - afterimage-db_redis-dev_ws_6380:/data
+  afterimage-app-dev-ws-6380:
+    image: afterimage-nostr-reputation-relay:1.3.1
+    ports:
+      - "5556:5556"
+    depends_on:
+      - afterimage-db_redis-dev_ws_6380
+    networks:
+      - superconductor_net
+    environment:
+      SPRING_PROFILES_ACTIVE: dev_ws
+      SPRING_DATA_REDIS_HOST: afterimage-db_redis-dev_ws_6380
+      AFTERIMAGE_RELAY_URL: "ws://afterimage-app-dev-ws-6380:5556"
+volumes:
+  afterimage-db_redis-dev_ws_6380:
+    driver: local
+networks:
+  superconductor_net:
+    external: true
+    name: prosilion-net
