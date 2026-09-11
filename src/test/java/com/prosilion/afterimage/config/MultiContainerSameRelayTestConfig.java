@@ -13,28 +13,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EmbeddedRedisStandalone
 @Slf4j
 public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
+//  @Bean
+//  @ServiceConnection
+//  public ComposeContainer composeContainerLocalDev() {
+//    return new ComposeContainer(
+//       new File("src/test/resources/docker-compose-local_ws.yml"))
+//       .waitingFor("afterimage-db", Wait.forHealthcheck())
+//       .withRemoveVolumes(true);
+//  }
 
   @Bean
-//  @RestartScope
-  @ServiceConnection
-  public ComposeContainer composeContainerLocalDev() {
-    return new ComposeContainer(
-       new File("src/test/resources/docker-compose-local_ws.yml"))
-       .waitingFor("afterimage-db", Wait.forHealthcheck())
-       .withRemoveVolumes(true);
-  }
-
-  @Bean
-//  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-// original Wait.forHealthcheck() calls do not work due to wget unavailable in container
-//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
+       .waitingFor("superconductor-db", Wait.forHealthcheck())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + AFTERIMAGE_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-       
        .withRemoveVolumes(true);
   }
 

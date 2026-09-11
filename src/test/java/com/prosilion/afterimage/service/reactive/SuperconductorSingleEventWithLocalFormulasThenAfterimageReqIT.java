@@ -6,10 +6,10 @@ import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.AuthorFilter;
@@ -42,12 +42,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
 public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT extends AbstractIT {
+  private final Relay superconductorRelay;
+  private final Relay afterimageRelay;
+
   @Autowired
   public SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
+    this.superconductorRelay = new Relay(superconductorRelayUrl);
+    this.afterimageRelay = new Relay(afterimageRelayUrl);
   }
 
   @Test
@@ -67,7 +72,7 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
   }
 
   @Test
-  void bSuperconductorEventEmptyAddressTagRelayTriesSourceRelayThenAfterimageReq() throws NostrException, InterruptedException {
+  void bSuperconductorEventEmptyAddressTagRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
     BadgeDefinitionGenericEvent awardUpvoteDefinitionEventNullRelay =
        new BadgeDefinitionGenericEvent(upvoteAndOrDownvoteDefnCreator, upvoteIdentifierTag);
 
@@ -131,9 +136,9 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
           formulaUpvoteIdentifierTag,
           awardUpvoteDefinitionEvent,
           PLUS_ONE_FORMULA,
-          new Relay(afterimageRelayUrl)),
-       new ReferenceTag(afterimageRelayUrl),
-       new Relay(afterimageRelayUrl));
+          getAfterimageRelay()),
+       new ReferenceTag(getAfterimageRelay().getUrl()),
+       getAfterimageRelay());
   }
 
   @Override
@@ -145,9 +150,9 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
           formulaDownvoteIdentifierTag,
           awardDownvoteDefinitionEvent,
           MINUS_ONE_FORMULA,
-          new Relay(afterimageRelayUrl)),
-       new ReferenceTag(afterimageRelayUrl),
-       new Relay(afterimageRelayUrl));
+          getAfterimageRelay()),
+       new ReferenceTag(getAfterimageRelay().getUrl()),
+       getAfterimageRelay());
   }
 
   @Override
@@ -158,5 +163,15 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
   @Override
   protected void submitDownvoteFormulaEventToImplSpecificRelay() {
     submitAimgEvent(minusOneCuratedFormulaEvent);
+  }
+
+  @Override
+  protected Relay getAfterimageRelay() {
+    return afterimageRelay;
+  }
+
+  @Override
+  protected Relay getSuperconductorRelay() {
+    return superconductorRelay;
   }
 }

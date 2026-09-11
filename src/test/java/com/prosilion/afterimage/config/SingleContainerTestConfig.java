@@ -26,8 +26,9 @@ public class SingleContainerTestConfig extends ContainerTestConfig {
   public ComposeContainer composeSingleContainerSuperconductorDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
+//       .waitingFor("afterimage-db", Wait.forHealthcheck())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + AFTERIMAGE_APPLICATION + ".*\\n", 1))
+//       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5556)
        .withRemoveVolumes(true);
   }
 }

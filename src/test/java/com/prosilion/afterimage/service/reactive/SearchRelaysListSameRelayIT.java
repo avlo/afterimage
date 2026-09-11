@@ -1,26 +1,31 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
+import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
+import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.subdivisions.client.RequestSubscriber;
-import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
 
@@ -34,23 +39,25 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR
 @ActiveProfiles("test")
 @Import(MultiContainerSameRelayTestConfig.class)
 public class SearchRelaysListSameRelayIT extends AbstractIT {
-  CacheServiceIF cacheServiceIF;
+  private static final Relay badgeAwardEventRelay = new Relay("ws://localhost:5556");
+  private static final Relay badgeDefinitionEventRelay = new Relay("ws://localhost:5555");
+//  CacheServiceIF cacheServiceIF;
 
   @Autowired
   public SearchRelaysListSameRelayIT(
      @NonNull Identity afterimageInstanceIdentity,
-     @NonNull CacheServiceIF cacheServiceIF,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
+//     @NonNull CacheServiceIF cacheServiceIF,
+     @NonNull @Qualifier("afterimageRelayUrl") @Value("${afterimage.relay.url}") String afterimageRelayUrl,
+     @NonNull @Qualifier("superconductorRelayUrl") @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
-    this.cacheServiceIF = cacheServiceIF;
+//    this.cacheServiceIF = cacheServiceIF;
     BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
        new BadgeAwardGenericEvent<>(
           submitter,
           recipient.getPublicKey(),
           awardUpvoteDefinitionEvent,
           String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
-          new Relay("ws://localhost:5555"));
+          getSuperconductorRelay());
 
     submitRelayEvent(badgeAwardUpvoteEvent, superconductorRelayUrl);
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -58,8 +65,26 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     Util.debug(log, "SearchRelaysListSameRelayIT - watch SC for incoming request search relays within next", "5 seconds", true, 'A');
     TimeUnit.MILLISECONDS.sleep(5_000);
     submitRelayEvent(
-       createSearchRelaysListEventMessage(),
+       createSearchRelaysListEventMessageSameRelay(),
        afterimageRelayUrl);
+  }
+
+  @Override
+  protected Relay getAfterimageRelay() {
+    return badgeAwardEventRelay;
+  }
+
+  @Override
+  protected Relay getSuperconductorRelay() {
+    return badgeDefinitionEventRelay;
+  }
+
+  protected BaseEvent createSearchRelaysListEventMessageSameRelay() {
+    Util.debug(log, "createSearchRelaysListEventMessage to url:  {}", getSuperconductorRelay().getUrl(), true, '1');
+    return new SearchRelaysListEvent(
+       Identity.generateRandomIdentity(),
+       new RelaysTag(getSuperconductorRelay()),
+       "Search Relays List sent from aImg IT 5556");
   }
 
   @Test

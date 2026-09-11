@@ -4,13 +4,12 @@ import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.GenericEventRecord;
-import com.prosilion.nostr.event.SearchRelaysListEvent;
+import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
+import com.prosilion.nostr.event.curated.CuratedFormulaEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
@@ -25,7 +24,6 @@ import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.IdentifierTag;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.ReferenceTag;
-import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
@@ -41,7 +39,6 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,6 +105,7 @@ public abstract class AbstractIT {
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrl;
   protected final Relay superconductorRelay;
+  protected final Relay afterimageRelay;
 
   protected Filters upvoteAndOrDownvoteEventFilter =
      new Filters(
@@ -127,15 +125,20 @@ public abstract class AbstractIT {
         new KindFilter(Kind.CURATION_SETS_FORMULA_EVENT),
         new AddressTagFilter(addressTag));
 
+  abstract protected Relay getAfterimageRelay();
+  abstract protected Relay getSuperconductorRelay();
+
   public AbstractIT(
      @NonNull Identity afterimageInstanceIdentity,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
+     @NonNull String superconductorRelayUrl,
+     @NonNull String afterimageRelayUrl) {
+
     log.debug("afterimageInstanceIdentity: [{}]", afterimageInstanceIdentity.getPublicKey());
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrl = afterimageRelayUrl;
     this.superconductorRelay = new Relay(superconductorRelayUrl);
+    this.afterimageRelay = new Relay(afterimageRelayUrl);
 
 //  SUPERCONDUCTOR section
     this.awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent();
@@ -314,7 +317,7 @@ public abstract class AbstractIT {
        upvoteAndOrDownvoteDefnCreator,
        upvoteIdentifierTag,
        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       superconductorRelay);
+       getSuperconductorRelay());
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
@@ -322,7 +325,7 @@ public abstract class AbstractIT {
        upvoteAndOrDownvoteDefnCreator,
        downvoteIdentifierTag,
        String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       superconductorRelay);
+       getSuperconductorRelay());
   }
 
   protected FormulaEvent createPlusOneFormulaEvent() {
@@ -331,15 +334,15 @@ public abstract class AbstractIT {
        formulaUpvoteIdentifierTag,
        awardUpvoteDefinitionEvent,
        PLUS_ONE_FORMULA,
-       superconductorRelay);
+       getSuperconductorRelay());
   }
 
   protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
     return new CuratedFormulaEvent(
        afterimageInstanceIdentity,
        plusOneFormulaEvent,
-       new ReferenceTag(superconductorRelay.getUrl()),
-       superconductorRelay);
+       new ReferenceTag(getSuperconductorRelay().getUrl()),
+       getSuperconductorRelay());
   }
 
   protected FormulaEvent createMinusOneFormulaEvent() {
@@ -348,15 +351,15 @@ public abstract class AbstractIT {
        formulaDownvoteIdentifierTag,
        awardDownvoteDefinitionEvent,
        MINUS_ONE_FORMULA,
-       superconductorRelay);
+       getSuperconductorRelay());
   }
 
   protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
     return new CuratedFormulaEvent(
        afterimageInstanceIdentity,
        minusOneFormulaEvent,
-       new ReferenceTag(superconductorRelay.getUrl()),
-       superconductorRelay);
+       new ReferenceTag(getSuperconductorRelay().getUrl()),
+       getSuperconductorRelay());
   }
 
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
@@ -365,17 +368,17 @@ public abstract class AbstractIT {
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       new Relay(afterimageRelayUrl),
+       getAfterimageRelay(),
        plusOneCuratedFormulaEvent, minusOneCuratedFormulaEvent);
   }
 
-  protected BaseEvent createSearchRelaysListEventMessage() {
-    Util.debug(log, "createSearchRelaysListEventMessage to url:  {}", superconductorRelay.getUrl(), true, '1');
-    return new SearchRelaysListEvent(
-       Identity.generateRandomIdentity(),
-       new RelaysTag(superconductorRelay),
-       "Search Relays List sent from aImg IT 5556");
-  }
+//  protected BaseEvent createSearchRelaysListEventMessage() {
+//    Util.debug(log, "createSearchRelaysListEventMessage to url:  {}", superconductorRelay.getUrl(), true, '1');
+//    return new SearchRelaysListEvent(
+//       Identity.generateRandomIdentity(),
+//       new RelaysTag(superconductorRelay),
+//       "Search Relays List sent from aImg IT 5556");
+//  }
 
   protected List<EventIF> validateGeneralAfterimageRequestResults(List<EventIF> returnedReputationEventIFs) {
     assertFalse(returnedReputationEventIFs.isEmpty());

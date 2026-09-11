@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,15 +22,16 @@ public class AfterimageCommandLineArgs {
     Util.debug(log, "exiting AfterimageCommandLineArgs", "", true, '2');
   }
 
-  @Bean
+  @Bean(name = "afterimageRelayUrl")
+  @Primary
   public String afterimageRelayUrl(@Value("${afterimage.relay.url:}") String afterimageRelayUrl) {
     Util.debug(log, "entering afterimageRelayUrl [{}]", afterimageRelayUrl, true, '3');
     String url = Arrays.stream(args.getSourceArgs())
-        .filter(s -> s.contains("afterimage.relay.url"))
-        .findFirst()
-        .map(s -> Arrays.stream(s.split("="))
-            .toList().get(1))
-        .orElse(afterimageRelayUrl);
+       .filter(s -> s.contains("afterimage.relay.url"))
+       .findFirst()
+       .map(s -> Arrays.stream(s.split("="))
+          .toList().get(1))
+       .orElse(afterimageRelayUrl);
 
     Util.debug(log, "exiting afterimageRelayUrl: [{}]", url, true, '4');
     return url;

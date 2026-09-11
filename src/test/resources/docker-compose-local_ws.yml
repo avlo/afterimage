@@ -11,6 +11,8 @@ services:
       timeout: 10s
 #    networks:
 #      - docker-network
+    command:
+      --loglevel debug
 volumes:
   afterimage-db:
     driver: local
