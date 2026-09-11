@@ -88,7 +88,7 @@
 
     <dependency>
       <groupId>com.prosilion.superconductor</groupId>
-      <artifactId>superconductor-spring-boot-starter-redis</artifactId>
+      <artifactId>superconductor-spring-boot-starter-redis-curated</artifactId>
       <version>${superconductor.version}</version>
     </dependency>
     <dependency>
