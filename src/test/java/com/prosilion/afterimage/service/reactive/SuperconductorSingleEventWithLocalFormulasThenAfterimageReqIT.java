@@ -22,6 +22,7 @@ import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,18 +43,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
 public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT extends AbstractIT {
-  private final Relay superconductorRelay;
-  private final Relay afterimageRelay;
+  private final Relay superconductorRelay = new Relay("ws://localhost:5555");
+  private final Relay afterimageRelay = new Relay("ws://localhost:5556");
+  CacheServiceIF cacheServiceIF;
 
   @Autowired
   public SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) {
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
+     @NonNull CacheServiceIF cacheServiceIF) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
-    this.superconductorRelay = new Relay(superconductorRelayUrl);
-    this.afterimageRelay = new Relay(afterimageRelayUrl);
+    this.cacheServiceIF = cacheServiceIF;
   }
 
   @Test
@@ -66,9 +72,12 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
 
     submitRelayEventWithDuration_backup(simulateIncomingUpvoteEvent, afterimageRelayUrl);
 
+    List<EventIF> eventIFS = submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl);
+    EventIF first = eventIFS.getFirst();
+    String content = first.getContent();
     assertEquals(
        "1",
-       submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
+       content);
   }
 
   @Test
@@ -136,9 +145,9 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
           formulaUpvoteIdentifierTag,
           awardUpvoteDefinitionEvent,
           PLUS_ONE_FORMULA,
-          getAfterimageRelay()),
-       new ReferenceTag(getAfterimageRelay().getUrl()),
-       getAfterimageRelay());
+          new Relay(afterimageRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(afterimageRelayUrl));
   }
 
   @Override
@@ -150,9 +159,9 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
           formulaDownvoteIdentifierTag,
           awardDownvoteDefinitionEvent,
           MINUS_ONE_FORMULA,
-          getAfterimageRelay()),
-       new ReferenceTag(getAfterimageRelay().getUrl()),
-       getAfterimageRelay());
+          new Relay(afterimageRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(afterimageRelayUrl));
   }
 
   @Override
@@ -163,15 +172,5 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
   @Override
   protected void submitDownvoteFormulaEventToImplSpecificRelay() {
     submitAimgEvent(minusOneCuratedFormulaEvent);
-  }
-
-  @Override
-  protected Relay getAfterimageRelay() {
-    return afterimageRelay;
-  }
-
-  @Override
-  protected Relay getSuperconductorRelay() {
-    return superconductorRelay;
   }
 }

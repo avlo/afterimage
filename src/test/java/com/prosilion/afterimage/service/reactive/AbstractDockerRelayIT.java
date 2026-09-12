@@ -40,7 +40,7 @@ public class AbstractDockerRelayIT extends AbstractIT {
           recipient.getPublicKey(),
           awardUpvoteDefinitionEvent,
           String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
-          getSuperconductorRelay());
+          new Relay(superconductorRelayUrl));
 
     submitRelayEvent(badgeAwardUpvoteEvent, superconductorRelayUrl);
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -54,20 +54,10 @@ public class AbstractDockerRelayIT extends AbstractIT {
     TimeUnit.MILLISECONDS.sleep(1000);
   }
 
-  @Override
-  protected Relay getAfterimageRelay() {
-    return badgeAwardEventRelay;
-  }
-
-  @Override
-  protected Relay getSuperconductorRelay() {
-    return badgeDefinitionEventRelay;
-  }
-
   protected BaseEvent createSearchRelaysListEventMessageAbstractDockerRelay() {
     return new SearchRelaysListEvent(
        Identity.generateRandomIdentity(),
-       new RelaysTag(getSuperconductorRelay()),
+       new RelaysTag(new Relay(superconductorRelayUrl)),
        "Search Relays List sent from aImg IT 5556");
   }
 
@@ -77,7 +67,7 @@ public class AbstractDockerRelayIT extends AbstractIT {
        upvoteAndOrDownvoteDefnCreator,
        upvoteIdentifierTag,
        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
@@ -85,7 +75,7 @@ public class AbstractDockerRelayIT extends AbstractIT {
        upvoteAndOrDownvoteDefnCreator,
        downvoteIdentifierTag,
        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
   }
 
   @Override
@@ -97,9 +87,9 @@ public class AbstractDockerRelayIT extends AbstractIT {
           formulaUpvoteIdentifierTag,
           awardUpvoteDefinitionEvent,
           PLUS_ONE_FORMULA,
-          getSuperconductorRelay()),
-       new ReferenceTag(getAfterimageRelay().getUrl()),
-       superconductorRelay);
+          new Relay(superconductorRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(superconductorRelayUrl));
   }
 
   @Override
@@ -111,9 +101,9 @@ public class AbstractDockerRelayIT extends AbstractIT {
           formulaDownvoteIdentifierTag,
           awardDownvoteDefinitionEvent,
           MINUS_ONE_FORMULA,
-          getSuperconductorRelay()),
-       new ReferenceTag(getAfterimageRelay().getUrl()),
-       superconductorRelay);
+          new Relay(superconductorRelayUrl)),
+       new ReferenceTag(afterimageRelayUrl),
+       new Relay(superconductorRelayUrl));
   }
 
   @Override

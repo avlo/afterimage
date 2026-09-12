@@ -1,7 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
-import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
@@ -25,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
 
@@ -69,12 +67,10 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
        afterimageRelayUrl);
   }
 
-  @Override
   protected Relay getAfterimageRelay() {
     return badgeAwardEventRelay;
   }
 
-  @Override
   protected Relay getSuperconductorRelay() {
     return badgeDefinitionEventRelay;
   }

@@ -28,7 +28,7 @@ public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
        .waitingFor("superconductor-db", Wait.forHealthcheck())
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + AFTERIMAGE_APPLICATION + ".*\\n", 1))
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
        .withRemoveVolumes(true);
   }

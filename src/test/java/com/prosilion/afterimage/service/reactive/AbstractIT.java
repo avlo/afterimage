@@ -14,7 +14,6 @@ import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.filter.tag.AddressTagFilter;
-import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.filter.tag.ReferencedPublicKeyFilter;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
@@ -104,8 +103,6 @@ public abstract class AbstractIT {
 
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrl;
-  protected final Relay superconductorRelay;
-  protected final Relay afterimageRelay;
 
   protected Filters upvoteAndOrDownvoteEventFilter =
      new Filters(
@@ -125,9 +122,6 @@ public abstract class AbstractIT {
         new KindFilter(Kind.CURATION_SETS_FORMULA_EVENT),
         new AddressTagFilter(addressTag));
 
-  abstract protected Relay getAfterimageRelay();
-  abstract protected Relay getSuperconductorRelay();
-
   public AbstractIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull String superconductorRelayUrl,
@@ -137,14 +131,12 @@ public abstract class AbstractIT {
     this.afterimageInstanceIdentity = afterimageInstanceIdentity;
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrl = afterimageRelayUrl;
-    this.superconductorRelay = new Relay(superconductorRelayUrl);
-    this.afterimageRelay = new Relay(afterimageRelayUrl);
 
 //  SUPERCONDUCTOR section
     this.awardUpvoteDefinitionEvent = createBadgeAwardUpvoteDefinitionEvent();
     submitSCEvent(awardUpvoteDefinitionEvent, superconductorRelayUrl, upvoteAndOrDownvoteDefinitionEventFilter);
     this.awardDownvoteDefinitionEvent = createBadgeAwardDownvoteDefinitionEvent();
-    submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl, upvoteAndOrDownvoteDefinitionEventFilter);
+//    submitSCEvent(awardDownvoteDefinitionEvent, superconductorRelayUrl, upvoteAndOrDownvoteDefinitionEventFilter);
 
     this.plusOneFormulaEvent = createPlusOneFormulaEvent();
     this.plusOneCuratedFormulaEvent = createCuratedFormulaPlusOneEvent();
@@ -152,7 +144,7 @@ public abstract class AbstractIT {
 
     this.minusOneFormulaEvent = createMinusOneFormulaEvent();
     this.minusOneCuratedFormulaEvent = createCuratedFormulaMinusOneEvent();
-    submitDownvoteFormulaEventToImplSpecificRelay();
+//    submitDownvoteFormulaEventToImplSpecificRelay();
 
 //  AIMG section
     submitAimgEvent(
@@ -277,15 +269,17 @@ public abstract class AbstractIT {
           Kind.BADGE_AWARD_EVENT),
 //          new IdentifierTagFilter(
 //             new IdentifierTag(defnCreatorPublicKey.toHexString())),
-       new AddressTagFilter(
-          new AddressTag(
-             Kind.BADGE_DEFINITION_EVENT,
-             repDefnCreator.getPublicKey(),
-             reputationIdentifierTag)),
+//       new AddressTagFilter(
+//          new AddressTag(
+//             Kind.BADGE_DEFINITION_EVENT,
+//             repDefnCreator.getPublicKey(),
+//             reputationIdentifierTag)),
        new ReferencedPublicKeyFilter(
-          recipientPubKeyTag),
-       new ExternalIdentityTagFilter(
-          BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG));
+          recipientPubKeyTag)
+//       ,
+//       new ExternalIdentityTagFilter(
+//          BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG)
+    );
   }
 
   protected void submitAfterImageReqWithSubscriber(PubKeyTag recipientPubKeyTag, String url, RequestSubscriber<BaseMessage> subscriber) {
@@ -313,11 +307,12 @@ public abstract class AbstractIT {
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardUpvoteDefinitionEvent() {
-    return new BadgeDefinitionGenericEvent(
+    BadgeDefinitionGenericEvent badgeDefinitionGenericEvent = new BadgeDefinitionGenericEvent(
        upvoteAndOrDownvoteDefnCreator,
        upvoteIdentifierTag,
        String.format("awardUpvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
+    return badgeDefinitionGenericEvent;
   }
 
   protected BadgeDefinitionGenericEvent createBadgeAwardDownvoteDefinitionEvent() {
@@ -325,7 +320,7 @@ public abstract class AbstractIT {
        upvoteAndOrDownvoteDefnCreator,
        downvoteIdentifierTag,
        String.format("awardDownvoteDefinitionEvent, definition creator PublicKey: [%s]", upvoteAndOrDownvoteDefnCreator.getPublicKey()),
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
   }
 
   protected FormulaEvent createPlusOneFormulaEvent() {
@@ -334,15 +329,15 @@ public abstract class AbstractIT {
        formulaUpvoteIdentifierTag,
        awardUpvoteDefinitionEvent,
        PLUS_ONE_FORMULA,
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
   }
 
   protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
     return new CuratedFormulaEvent(
        afterimageInstanceIdentity,
        plusOneFormulaEvent,
-       new ReferenceTag(getSuperconductorRelay().getUrl()),
-       getSuperconductorRelay());
+       new ReferenceTag(superconductorRelayUrl),
+       new Relay(superconductorRelayUrl));
   }
 
   protected FormulaEvent createMinusOneFormulaEvent() {
@@ -351,15 +346,15 @@ public abstract class AbstractIT {
        formulaDownvoteIdentifierTag,
        awardDownvoteDefinitionEvent,
        MINUS_ONE_FORMULA,
-       getSuperconductorRelay());
+       new Relay(superconductorRelayUrl));
   }
 
   protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
     return new CuratedFormulaEvent(
        afterimageInstanceIdentity,
        minusOneFormulaEvent,
-       new ReferenceTag(getSuperconductorRelay().getUrl()),
-       getSuperconductorRelay());
+       new ReferenceTag(superconductorRelayUrl),
+       new Relay(superconductorRelayUrl));
   }
 
   protected BadgeDefinitionReputationEvent createBadgeDefinitionReputationEvent() {
@@ -368,8 +363,10 @@ public abstract class AbstractIT {
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       getAfterimageRelay(),
-       plusOneCuratedFormulaEvent, minusOneCuratedFormulaEvent);
+       new Relay(afterimageRelayUrl),
+       plusOneCuratedFormulaEvent
+//       , minusOneCuratedFormulaEvent
+    );
   }
 
 //  protected BaseEvent createSearchRelaysListEventMessage() {

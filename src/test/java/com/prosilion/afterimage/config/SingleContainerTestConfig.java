@@ -17,7 +17,7 @@ public class SingleContainerTestConfig extends ContainerTestConfig {
   public ComposeContainer composeSingleContainerLocalDev() {
     return new ComposeContainer(
        new File("src/test/resources/docker-compose-local_ws.yml"))
-       .waitingFor("afterimage-db", Wait.forHealthcheck())
+       .waitingFor(AFTERIMAGE_DB, Wait.forHealthcheck())
        .withRemoveVolumes(true);
   }
 
@@ -26,8 +26,8 @@ public class SingleContainerTestConfig extends ContainerTestConfig {
   public ComposeContainer composeSingleContainerSuperconductorDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-single-sc-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-//       .waitingFor("afterimage-db", Wait.forHealthcheck())
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + AFTERIMAGE_APPLICATION + ".*\\n", 1))
+       .waitingFor(SUPERCONDUCTOR_DB, Wait.forHealthcheck())
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
 //       .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5556)
        .withRemoveVolumes(true);
   }
