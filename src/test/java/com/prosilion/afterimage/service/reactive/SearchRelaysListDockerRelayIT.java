@@ -45,7 +45,7 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
   @Test
   void superconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
 // aImg_2 sanity check
-    TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent 
+    TimeUnit.MILLISECONDS.sleep(5_000); // wait aImg process ctor badgeAwardEvent 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
@@ -57,7 +57,7 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
 //  submit upvote event to SC
     submitRelayEvent_WithDuration(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent
+    TimeUnit.MILLISECONDS.sleep(5_000); // wait aImg process ctor badgeAwardEvent
 
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();

@@ -25,7 +25,7 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR
 @Slf4j
 public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
   protected static final Relay SUPERCONDUCTOR_DOCKER_RELAY = new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555");
-  private static final Relay AFTERIMAGE_TWO_RELAY = new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556");
+  protected static final Relay AFTERIMAGE_TWO_RELAY = new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556");
 
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrlTwo;

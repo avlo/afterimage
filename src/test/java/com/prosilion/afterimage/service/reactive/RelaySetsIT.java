@@ -4,7 +4,6 @@ import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
-import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
@@ -22,8 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-
-import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -67,7 +64,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
 
     submitSCEvent(
-       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
        superconductorRelayUrl,
        upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -85,7 +82,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "2");
 
     submitSCEvent(
-       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
        superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
 
@@ -93,7 +90,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
 
     submitSCEvent(
-       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
        superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000);
 
@@ -104,7 +101,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
   private BaseEvent createRelaysSetsEventMessage() {
     return new RelaySetsEvent(afterimageInstanceIdentity,
-       new RelaysTag(new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556")),
+       new RelaysTag(AFTERIMAGE_TWO_RELAY),
        "RELAY_SETS_EVENT -> notify 5557 of 5556's existence");
   }
 }
