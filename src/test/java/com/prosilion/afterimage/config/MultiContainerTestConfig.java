@@ -14,35 +14,28 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 public class MultiContainerTestConfig extends ContainerTestConfig {
   @Bean
-//  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerLocalDev() {
     return new ComposeContainer(
        new File("src/test/resources/docker-compose-local_ws.yml"))
-       .waitingFor("afterimage-db", Wait.forHealthcheck())
+       .waitingFor(AFTERIMAGE_DB, Wait.forHealthcheck())
        .withRemoveVolumes(true);
   }
 
   @Bean
-//  @RestartScope
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-// original Wait.forHealthcheck() calls do not work due to wget unavailable in container
-//  TODO: above potentially reconcilable via 'busybox wget' 
-//       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
-       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started SuperConductorRedisApplication.*\\n", 1))
+       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
-       
-//       .waitingFor(AFTERIMAGE_APP_TWO, Wait.defaultWaitStrategy())
-       .waitingFor(AFTERIMAGE_APP_TWO, Wait.forLogMessage(".*Started AfterimageApplication.*\\n", 1))
+
+       .waitingFor(AFTERIMAGE_APP_TWO, Wait.forLogMessage(".*Started " + AFTERIMAGE_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(AFTERIMAGE_APP_TWO, 5556)
-       
-//       .waitingFor(AFTERIMAGE_APP_THREE, Wait.defaultWaitStrategy())
-       .waitingFor(AFTERIMAGE_APP_THREE, Wait.forLogMessage(".*Started AfterimageApplication.*\\n", 1))
+
+       .waitingFor(AFTERIMAGE_APP_THREE, Wait.forLogMessage(".*Started " + AFTERIMAGE_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(AFTERIMAGE_APP_THREE, 5556)
-       
+
        .withRemoveVolumes(true);
   }
 

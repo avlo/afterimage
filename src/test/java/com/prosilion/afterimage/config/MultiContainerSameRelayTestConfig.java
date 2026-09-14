@@ -13,36 +13,37 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EmbeddedRedisStandalone
 @Slf4j
 public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
-//  @Bean
-//  @ServiceConnection
-//  public ComposeContainer composeContainerLocalDev() {
-//    return new ComposeContainer(
-//       new File("src/test/resources/docker-compose-local_ws.yml"))
-//       .waitingFor("afterimage-db", Wait.forHealthcheck())
-//       .withRemoveVolumes(true);
-//  }
+
+  @Bean
+  @ServiceConnection
+  public ComposeContainer composeContainerLocalDev() {
+    return new ComposeContainer(
+       new File("src/test/resources/docker-compose-local_ws.yml"))
+       .waitingFor(AFTERIMAGE_DB, Wait.forHealthcheck())
+       .withRemoveVolumes(true);
+  }
 
   @Bean
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
        new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-       .waitingFor("superconductor-db", Wait.forHealthcheck())
+       .waitingFor(SUPERCONDUCTOR_DB, Wait.forHealthcheck())
        .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
        .withRemoveVolumes(true);
   }
 
-  @Bean
-  public String superconductorDockerRelayUrl(ComposeContainer composeContainerDocker) {
-    String serviceHost = composeContainerDocker.getServiceHost(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-    log.debug("SUPERCONDUCTOR_AFTERIMAGE serviceHost: {}", serviceHost);
-
-    Integer servicePort = composeContainerDocker.getServicePort(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-    log.debug("SUPERCONDUCTOR_AFTERIMAGE servicePort: {}", serviceHost);
-
-    String url = "ws://" + serviceHost + ":" + servicePort;
-    log.debug("constructed superconductorRelayUrl: {}", url);
-    return url;
-  }
+//  @Bean
+//  public String superconductorDockerRelayUrl(ComposeContainer composeContainerDocker) {
+//    String serviceHost = composeContainerDocker.getServiceHost(SUPERCONDUCTOR_AFTERIMAGE, 5555);
+//    log.debug("SUPERCONDUCTOR_AFTERIMAGE serviceHost: {}", serviceHost);
+//
+//    Integer servicePort = composeContainerDocker.getServicePort(SUPERCONDUCTOR_AFTERIMAGE, 5555);
+//    log.debug("SUPERCONDUCTOR_AFTERIMAGE servicePort: {}", serviceHost);
+//
+//    String url = "ws://" + serviceHost + ":" + servicePort;
+//    log.debug("constructed superconductorRelayUrl: {}", url);
+//    return url;
+//  }
 }

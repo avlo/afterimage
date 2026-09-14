@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractWithRelaysTagIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.EventIF;

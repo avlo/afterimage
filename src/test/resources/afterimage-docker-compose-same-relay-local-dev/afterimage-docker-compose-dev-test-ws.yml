@@ -7,29 +7,26 @@ services:
     hostname: superconductor-db
     ports:
       - "6379:6379"
-    networks:
-      - afterimage_net
-#    volumes:
-#      - superconductor-db:/data
+#    networks:
+#      - afterimage_net
     healthcheck:
       test: [ "CMD", "redis-cli" ,"ping", "superconductor-db" ]
       retries: 3
       interval: 1s
       timeout: 2s
 #  SC App 5555
-  superconductor-app:
+  superconductor-afterimage:
     image: superconductor-app-redis:1.18.1
     ports:
       - "5555:5555"
     depends_on:
       superconductor-db:
         condition: service_healthy
-      networks:
-        - afterimage_net
+#      networks:
+#        - afterimage_net
     environment:
       SPRING_PROFILES_ACTIVE: dev_ws
-      SUPERCONDUCTOR_EVENT_CURATION_ACTIVE: true
-      SUPERCONDUCTOR_RELAY_URL: "ws://superconductor-app:5555"
+      SUPERCONDUCTOR_RELAY_URL: ws://superconductor-afterimage:5555
       SUPERCONDUCTOR_KEY_PRIVATE: fa11661b5f43c8f18f11861b4d553c47337dac9e351083b27320e311b7b324ac
       SUPERCONDUCTOR_KEY_PUBLIC: e04e1c1c30df6058433f61681644fd24914f2e02e420496086c61f53eb504c04
       SERVER_PORT: 5555
@@ -43,9 +40,9 @@ services:
 volumes:
   superconductor-db:
     driver: local
-networks:
-  afterimage_net:
-    external: true
-    name: prosilion-net
-    driver_opts:
-      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"
+#networks:
+#  afterimage_net:
+#    external: true
+#    name: prosilion-net
+#    driver_opts:
+#      com.docker.network.bridge.host_binding_ipv4: "0.0.0.0"

@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
@@ -9,6 +10,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +37,9 @@ public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${superconductor.relay.url.two}") String superconductorRelayUrlTwo,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree) throws InterruptedException {
-    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
+     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree,
+     CacheServiceIF cacheServiceIF) throws InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo, cacheServiceIF);
     this.superconductorRelayTwo = new Relay(superconductorRelayUrlTwo);
     this.afterimageRelayUrlThree = afterimageRelayUrlThree;
 

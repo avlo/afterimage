@@ -1,14 +1,15 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
 
@@ -30,18 +32,22 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(MultiContainerTestConfig.class)
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
 public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
   @Autowired
   public SearchRelaysListDockerRelayIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
-    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+     CacheServiceIF cacheServiceIF) throws InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo, cacheServiceIF);
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
+  void superconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
 // aImg_2 sanity check
     TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
@@ -51,15 +57,10 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
-    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = new BadgeAwardCanonicalEvent(
-       submitter,
-       recipient.getPublicKey(),
-       awardUpvoteDefinitionEvent,
-       String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()),
-       new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = createUpvoteEventForCanonicalRecipient(new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
 
 //  submit upvote event to SC
-    submitRelayEventWithDuration_backup(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
+    submitRelayEvent_WithDuration(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
     TimeUnit.MILLISECONDS.sleep(12_000); // wait aImg process ctor badgeAwardEvent
 
 // aImg_2 sanity check		

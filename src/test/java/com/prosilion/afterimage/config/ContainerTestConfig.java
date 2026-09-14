@@ -2,6 +2,8 @@ package com.prosilion.afterimage.config;
 
 public class ContainerTestConfig {
   public static final String SUPERCONDUCTOR_REDIS_APPLICATION = "SuperConductorRedisApplication";
+  public static final String AFTERIMAGE_REDIS_APPLICATION = "AfterimageApplication";
+  
   public static final String SUPERCONDUCTOR_AFTERIMAGE = "superconductor-afterimage";
   public static final String SUPERCONDUCTOR_AFTERIMAGE_TWO = "superconductor-afterimage-two";
   public static final String SUPERCONDUCTOR_DB = "superconductor-db";

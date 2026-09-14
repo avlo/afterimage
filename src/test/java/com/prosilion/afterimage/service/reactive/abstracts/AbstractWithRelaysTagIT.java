@@ -1,4 +1,4 @@
-package com.prosilion.afterimage.service.reactive;
+package com.prosilion.afterimage.service.reactive.abstracts;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.BaseTestFixtures;

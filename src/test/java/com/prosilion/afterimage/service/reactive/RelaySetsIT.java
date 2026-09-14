@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
 import com.prosilion.nostr.event.internal.Relay;
@@ -9,6 +10,7 @@ import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
 
@@ -26,6 +29,9 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(MultiContainerTestConfig.class)
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
 public class RelaySetsIT extends AbstractDockerRelayIT {
   private final String afterimageRelayUrlThree;
 
@@ -34,8 +40,9 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree) throws InterruptedException {
-    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
+     @NonNull @Value("${afterimage.relay.url.three}") String afterimageRelayUrlThree,
+     CacheServiceIF cacheServiceIF) throws InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo, cacheServiceIF);
     this.afterimageRelayUrlThree = afterimageRelayUrlThree;
   }
 
@@ -60,7 +67,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
 
     submitSCEvent(
-       createUpvoteEvent(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
        superconductorRelayUrl,
        upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
@@ -78,7 +85,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "2");
 
     submitSCEvent(
-       createUpvoteEvent(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
        superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
 
@@ -86,7 +93,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
 
     submitSCEvent(
-       createDownvoteEvent(new Relay(superconductorRelayUrl)),
+       createUpvoteEventForCanonicalRecipient(new Relay(superconductorRelayUrl)),
        superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000);
 

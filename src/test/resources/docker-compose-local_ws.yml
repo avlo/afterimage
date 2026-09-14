@@ -16,6 +16,6 @@ services:
 volumes:
   afterimage-db:
     driver: local
-#networks:
-#  docker-network:
-#    driver: bridge
+networks:
+  docker-network:
+    driver: bridge

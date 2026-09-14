@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractWithRelaysTagIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.EventIF;
@@ -32,7 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT extends AbstractWithRelaysTagIT {
 
   @Autowired
-  public SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT(@NonNull Identity afterimageInstanceIdentity, @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl, @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl, CacheServiceIF cacheServiceIF) {
+  public SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT(
+     @NonNull Identity afterimageInstanceIdentity,
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
+     CacheServiceIF cacheServiceIF) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl, cacheServiceIF);
   }
 

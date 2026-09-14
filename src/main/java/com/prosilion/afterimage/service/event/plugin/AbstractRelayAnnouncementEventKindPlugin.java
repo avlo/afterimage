@@ -61,8 +61,8 @@ public abstract class AbstractRelayAnnouncementEventKindPlugin extends NonPublis
        .map(RelayTag::getRelay)
        .collect(Collectors.toSet());
 
-    Set<Relay> uniqueNewRelays = relaysTagRelays.stream()
-       .filter(existingKnownRelays::contains).collect(Collectors.toSet());
+    Set<Relay> uniqueNewRelays = relaysTagRelays.stream().filter(incomingEventRelayTagRelay ->
+       !existingKnownRelays.contains(incomingEventRelayTagRelay)).collect(Collectors.toSet());
 
     if (uniqueNewRelays.isEmpty()) {
       log.debug("did not discover any new unique relays, not saving incoming SearchRelaysList/RelaySets event, just return");
