@@ -26,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
-@TestPropertySource(properties = {"superconductor.event.curation.active=true"})
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
 public class SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT extends AbstractWithRelaysTagIT {
 
   @Autowired

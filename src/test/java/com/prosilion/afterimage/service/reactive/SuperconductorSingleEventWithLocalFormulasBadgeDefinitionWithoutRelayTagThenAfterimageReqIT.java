@@ -52,7 +52,7 @@ public class SuperconductorSingleEventWithLocalFormulasBadgeDefinitionWithoutRel
   }
 
   @Test
-  void bSuperconductorEventAddressTagWithoutRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
+  void superconductorEventAddressTagWithoutRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
     BadgeAwardCanonicalEvent upvoteEvent = createUpvoteEventForCanonicalRecipient(superconductorRelay);
 
     EventIF simulateIncomingUpvoteEvent = submitSCEvent(
