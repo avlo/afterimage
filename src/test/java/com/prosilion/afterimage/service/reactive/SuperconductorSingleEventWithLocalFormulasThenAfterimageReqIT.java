@@ -45,7 +45,7 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
   }
 
   @Test
-  void superconductorEventThenAfterimageReq() throws NostrException {
+  void superconductorSingleEventThenAfterimageReq() throws NostrException {
     BadgeAwardCanonicalEvent upvoteEvent = createUpvoteEventForCanonicalRecipient(superconductorRelay);
 
     EventIF simulateIncomingUpvoteEvent = submitSCEvent(
