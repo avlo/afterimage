@@ -1,10 +1,13 @@
 package com.prosilion.afterimage.service.reactive.abstracts;
 
+import com.prosilion.afterimage.config.ContainerTestConfig;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.EventAttributesMap;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
+import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 import com.prosilion.nostr.event.internal.Relay;
@@ -12,13 +15,18 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.util.Util;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
+import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
 
 @Slf4j
 public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
+  protected static final Relay SUPERCONDUCTOR_DOCKER_RELAY = new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555");
+  private static final Relay AFTERIMAGE_TWO_RELAY = new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556");
+
   protected final String superconductorRelayUrl;
   protected final String afterimageRelayUrlTwo;
 
@@ -31,7 +39,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrlTwo = afterimageRelayUrlTwo;
 
-    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent = createUpvoteEventForCanonicalRecipient(superconductorRelay);
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent = createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY);
 
     EventIF simulateIncomingUpvoteEvent = submitSCEvent(
        badgeAwardUpvoteEvent,
@@ -51,7 +59,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
   protected BaseEvent createSearchRelaysListEventMessageAbstractDockerRelay() {
     return new SearchRelaysListEvent(
        Identity.generateRandomIdentity(),
-       new RelaysTag(new Relay(superconductorRelayUrl)),
+       new RelaysTag(SUPERCONDUCTOR_DOCKER_RELAY),
        "Search Relays List sent from aImg IT 5556");
   }
 
@@ -62,7 +70,36 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
        afterimageInstanceIdentity.getPublicKey(),
        reputationIdentifierTag,
        AfterimageKindType.BADGE_DEFINITION_REPUTATION_EXTERNAL_IDENTITY_TAG,
-       new Relay("ws://" + AFTERIMAGE_APP_TWO + ":5556"),
+       AFTERIMAGE_TWO_RELAY,
        EventAttributesMap.asEventList(this.dbCuratedFormulaEventList));
+  }
+
+  protected List<EventAttributesMap<BadgeDefinitionGenericEvent>> createBadgeDefinitionGenericEventList() {
+    return
+       EventAttributesMap.asEventAttributesMap(List.of(
+          createBadgeAwardUpvoteDefinitionEvent(SUPERCONDUCTOR_DOCKER_RELAY)
+          ,
+          createBadgeAwardDownvoteDefinitionEvent(SUPERCONDUCTOR_DOCKER_RELAY)
+       ));
+  }
+  
+  protected FormulaEvent createPlusOneFormulaEvent() {
+    return new FormulaEvent(
+       formulaCreator,
+       formulaUpvoteIdentifierTag,
+       EventAttributesMap.getFirstByIdentifierTag(
+          this.badgeDefinitionGenericEventList, upvoteIdentifierTag),
+       PLUS_ONE_FORMULA,
+       SUPERCONDUCTOR_DOCKER_RELAY);
+  }
+
+  protected FormulaEvent createMinusOneFormulaEvent() {
+    return new FormulaEvent(
+       formulaCreator,
+       formulaDownvoteIdentifierTag,
+       EventAttributesMap.getFirstByIdentifierTag(
+          this.badgeDefinitionGenericEventList, downvoteIdentifierTag),
+       MINUS_ONE_FORMULA,
+       SUPERCONDUCTOR_DOCKER_RELAY);
   }
 }

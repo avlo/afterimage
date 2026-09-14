@@ -4,7 +4,6 @@ import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
-import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
@@ -21,8 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
-
 /**
  * test name "SearchRelaysListRelaySets" means:
  * BadgeDefinitionReputationEvent and SearchRelaysListEvent for docker (5557) aImg relay
@@ -36,7 +33,6 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR
    "superconductor.event.curation.active=true"
 })
 public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
-
   @Autowired
   public SearchRelaysListDockerRelayIT(
      @NonNull Identity afterimageInstanceIdentity,
@@ -57,7 +53,7 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
-    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = createUpvoteEventForCanonicalRecipient(new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"));
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY);
 
 //  submit upvote event to SC
     submitRelayEvent_WithDuration(badgeAwardUpvoteEvent_2, superconductorRelayUrl);

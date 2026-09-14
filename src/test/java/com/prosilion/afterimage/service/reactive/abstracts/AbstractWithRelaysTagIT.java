@@ -24,7 +24,6 @@ import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.PubKeyTag;
-import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
@@ -382,24 +381,6 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
        EventAttributesMap.getFirstByIdentifierTag(
           this.badgeDefinitionGenericEventList, downvoteIdentifierTag),
        MINUS_ONE_FORMULA,
-       superconductorRelay);
-  }
-
-  protected CuratedFormulaEvent createCuratedFormulaPlusOneEvent() {
-    return new CuratedFormulaEvent(
-       afterimageInstanceIdentity,
-       EventAttributesMap.getFirstByIdentifierTag(
-          this.formulaEventList, formulaUpvoteIdentifierTag),
-       new ReferenceTag(superconductorRelay.getUrl()),
-       superconductorRelay);
-  }
-
-  protected CuratedFormulaEvent createCuratedFormulaMinusOneEvent() {
-    return new CuratedFormulaEvent(
-       afterimageInstanceIdentity,
-       EventAttributesMap.getFirstByIdentifierTag(
-          this.formulaEventList, formulaDownvoteIdentifierTag),
-       new ReferenceTag(superconductorRelay.getUrl()),
        superconductorRelay);
   }
 
