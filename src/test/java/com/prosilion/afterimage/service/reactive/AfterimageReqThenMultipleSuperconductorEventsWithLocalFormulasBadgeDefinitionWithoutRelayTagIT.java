@@ -3,6 +3,7 @@ package com.prosilion.afterimage.service.reactive;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
+import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
@@ -32,22 +33,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource(properties = {
    "superconductor.event.curation.active=true"
 })
-public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractWithRelaysTagIT {
+public class AfterimageReqThenMultipleSuperconductorEventsWithLocalFormulasBadgeDefinitionWithoutRelayTagIT extends AbstractWithoutRelayTagIT {
+  private final Relay superconductorRelay = new Relay("ws://localhost:5555");
+  private final Relay afterimageRelay = new Relay("ws://localhost:5556");
+
   @Autowired
-  public AfterimageReqThenMultipleSuperconductorEventIT(
+  public AfterimageReqThenMultipleSuperconductorEventsWithLocalFormulasBadgeDefinitionWithoutRelayTagIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
-     CacheServiceIF cacheServiceIF) {
+     @NonNull CacheServiceIF cacheServiceIF) {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl, cacheServiceIF);
   }
 
   @Test
-  void afterimageReqThenMultipleSuperconductorEvents() throws NostrException, InterruptedException {
+  void superconductorEventAddressTagWithoutRelayTriesSourceRelayThenAfterimageReq() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 
-// # --------------------- SC EVENT 1 of 2-------------------
+    // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(

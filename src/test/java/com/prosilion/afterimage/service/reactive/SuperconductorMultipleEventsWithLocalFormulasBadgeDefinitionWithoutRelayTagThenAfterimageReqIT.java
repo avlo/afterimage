@@ -3,19 +3,11 @@ package com.prosilion.afterimage.service.reactive;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
-import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.EventIF;
-import com.prosilion.nostr.event.GenericEventRecord;
 import com.prosilion.nostr.event.internal.Relay;
-import com.prosilion.nostr.filter.Filters;
-import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
-import com.prosilion.nostr.user.PublicKey;
-import com.prosilion.nostr.util.Util;
-import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
@@ -38,12 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource(properties = {
    "superconductor.event.curation.active=true"
 })
-public class SuperconductorSingleEventWithLocalFormulasBadgeDefinitionWithoutRelayTagThenAfterimageReqIT extends AbstractWithoutRelayTagIT {
+public class SuperconductorMultipleEventsWithLocalFormulasBadgeDefinitionWithoutRelayTagThenAfterimageReqIT extends AbstractWithoutRelayTagIT {
   private final Relay superconductorRelay = new Relay("ws://localhost:5555");
   private final Relay afterimageRelay = new Relay("ws://localhost:5556");
 
   @Autowired
-  public SuperconductorSingleEventWithLocalFormulasBadgeDefinitionWithoutRelayTagThenAfterimageReqIT(
+  public SuperconductorMultipleEventsWithLocalFormulasBadgeDefinitionWithoutRelayTagThenAfterimageReqIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
      @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
@@ -53,37 +45,30 @@ public class SuperconductorSingleEventWithLocalFormulasBadgeDefinitionWithoutRel
 
   @Test
   void superconductorEventAddressTagWithoutRelayTriesSourceRelayThenAfterimageReq() throws NostrException {
-    BadgeAwardCanonicalEvent upvoteEvent = createUpvoteEventForCanonicalRecipient(superconductorRelay);
+    BadgeAwardCanonicalEvent upvoteEvent_1 = createUpvoteEventForCanonicalRecipient(superconductorRelay);
 
-    EventIF simulateIncomingUpvoteEvent = submitSCEvent(
-       upvoteEvent,
+    EventIF simulateIncomingUpvoteEvent_1 = submitSCEvent(
+       upvoteEvent_1,
        superconductorRelayUrl,
        upvoteAndOrDownvoteEventFilter);
 
-    submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent, afterimageRelayUrl);
+    submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent_1, afterimageRelayUrl);
 
     assertEquals(
        "1",
        submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
-  }
 
-  protected EventIF submitSCEventCheckEventTagEventId(BaseEvent event, String url, Filters filters, PublicKey publicKey) {
-//  submit first Event to superconductor
-    submitRelayEvent(event, url);
-//  sanity check event submissions processed by superconductor
-    List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
-       createSuperconductorReqMessageEvent(Util.generateRandomHex64String(), filters), url);
+    BadgeAwardCanonicalEvent upvoteEvent_2 = createUpvoteEventForCanonicalRecipient(superconductorRelay);
 
-    log.debug("retrieved superconductor events:");
-    List<EventIF> receivedBadgeDefinitionEventIFs = getEventIFs(baseMessages);
-    receivedBadgeDefinitionEventIFs.stream().map(EventIF::asGenericEventRecord).map(GenericEventRecord::createPrettyPrintJson).forEach(log::debug);
+    EventIF simulateIncomingUpvoteEvent_2 = submitSCEvent(
+       upvoteEvent_2,
+       superconductorRelayUrl,
+       upvoteAndOrDownvoteEventFilter);
 
-    EventIF upvoteBadgeDefinitionEventIF = receivedBadgeDefinitionEventIFs.getFirst();
+    submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent_2, afterimageRelayUrl);
 
-    assertEquals(publicKey, upvoteBadgeDefinitionEventIF.getPublicKey());
-    assertEquals(upvoteBadgeDefinitionEventIF.getContent(), event.getContent());
-    assertEquals(upvoteBadgeDefinitionEventIF.getKind(), event.getKind());
-
-    return upvoteBadgeDefinitionEventIF;
+    assertEquals(
+       "2",
+       submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
   }
 }
