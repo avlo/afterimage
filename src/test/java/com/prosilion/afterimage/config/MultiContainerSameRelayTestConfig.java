@@ -33,17 +33,4 @@ public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
        .withRemoveVolumes(true);
   }
-
-//  @Bean
-//  public String superconductorDockerRelayUrl(ComposeContainer composeContainerDocker) {
-//    String serviceHost = composeContainerDocker.getServiceHost(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-//    log.debug("SUPERCONDUCTOR_AFTERIMAGE serviceHost: {}", serviceHost);
-//
-//    Integer servicePort = composeContainerDocker.getServicePort(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-//    log.debug("SUPERCONDUCTOR_AFTERIMAGE servicePort: {}", serviceHost);
-//
-//    String url = "ws://" + serviceHost + ":" + servicePort;
-//    log.debug("constructed superconductorRelayUrl: {}", url);
-//    return url;
-//  }
 }

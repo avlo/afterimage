@@ -38,43 +38,4 @@ public class MultiContainerTestConfig extends ContainerTestConfig {
 
        .withRemoveVolumes(true);
   }
-
-  @Bean
-  public String superconductorDockerRelayUrl(ComposeContainer composeContainerDocker) {
-    String serviceHost = composeContainerDocker.getServiceHost(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-    log.debug("SUPERCONDUCTOR_AFTERIMAGE serviceHost: {}", serviceHost);
-
-    Integer servicePort = composeContainerDocker.getServicePort(SUPERCONDUCTOR_AFTERIMAGE, 5555);
-    log.debug("SUPERCONDUCTOR_AFTERIMAGE servicePort: {}", serviceHost);
-
-    String url = "ws://" + serviceHost + ":" + servicePort;
-    log.debug("constructed superconductorRelayUrl: {}", url);
-    return url;
-  }
-
-  @Bean
-  public String afterimageDockerRelayUrlTwo(ComposeContainer composeContainerDocker) {
-    String serviceHost = composeContainerDocker.getServiceHost(AFTERIMAGE_APP_TWO, 5556);
-    log.debug("AFTERIMAGE_APP_TWO serviceHost: {}", serviceHost);
-
-    Integer servicePort = composeContainerDocker.getServicePort(AFTERIMAGE_APP_TWO, 5556);
-    log.debug("AFTERIMAGE_APP_TWO servicePort: {}", serviceHost);
-
-    String url = "ws://" + serviceHost + ":" + servicePort;
-    log.debug("constructed afterimageRelayUrlTwo: {}", url);
-    return url;
-  }
-
-  @Bean
-  public String afterimageDockerRelayUrlThree(ComposeContainer composeContainerDocker) {
-    String serviceHost = composeContainerDocker.getServiceHost(AFTERIMAGE_APP_THREE, 5556);
-    log.debug("AFTERIMAGE_APP_THREE serviceHost: {}", serviceHost);
-
-    Integer servicePort = composeContainerDocker.getServicePort(AFTERIMAGE_APP_THREE, 5556);
-    log.debug("AFTERIMAGE_APP_THREE servicePort: {}", serviceHost);
-
-    String url = "ws://" + serviceHost + ":" + servicePort;
-    log.debug("constructed afterimageRelayUrlThree: {}", url);
-    return url;
-  }
 }
