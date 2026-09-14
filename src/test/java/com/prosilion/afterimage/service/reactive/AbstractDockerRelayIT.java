@@ -1,7 +1,7 @@
 package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.FormulaEvent;
@@ -34,8 +34,8 @@ public class AbstractDockerRelayIT extends AbstractIT {
     this.superconductorRelayUrl = superconductorRelayUrl;
     this.afterimageRelayUrlTwo = afterimageRelayUrlTwo;
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
-       new BadgeAwardGenericEvent<>(
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent =
+       new BadgeAwardCanonicalEvent(
           submitter,
           recipient.getPublicKey(),
           awardUpvoteDefinitionEvent,

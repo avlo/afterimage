@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.message.BaseMessage;
@@ -51,7 +51,7 @@ public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 = new BadgeAwardGenericEvent<>(
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = new BadgeAwardCanonicalEvent(
        submitter,
        recipient.getPublicKey(),
        awardUpvoteDefinitionEvent,

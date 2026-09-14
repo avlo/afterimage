@@ -2,7 +2,7 @@ package com.prosilion.afterimage.service.reactive;
 
 import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
+import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
@@ -49,8 +49,8 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
      @NonNull @Qualifier("superconductorRelayUrl") @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws InterruptedException {
     super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
 //    this.cacheServiceIF = cacheServiceIF;
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent =
-       new BadgeAwardGenericEvent<>(
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent =
+       new BadgeAwardCanonicalEvent(
           submitter,
           recipient.getPublicKey(),
           awardUpvoteDefinitionEvent,
@@ -93,7 +93,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     validateSpecificAfterimageRequestResults(subscriber_1, 1, "1");
 
 //    submit 2nd SC upvote event
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent = new BadgeAwardGenericEvent<>(
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent = new BadgeAwardCanonicalEvent(
        submitter,
        recipient.getPublicKey(),
        awardUpvoteDefinitionEvent,
@@ -112,7 +112,7 @@ public class SearchRelaysListSameRelayIT extends AbstractIT {
     submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, subscriber_2);
     validateSpecificAfterimageRequestResults(subscriber_2, 1, "2");
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardDownvoteEvent = new BadgeAwardGenericEvent<>(
+    BadgeAwardCanonicalEvent badgeAwardDownvoteEvent = new BadgeAwardCanonicalEvent(
        submitter,
        recipient.getPublicKey(),
        awardDownvoteDefinitionEvent,
