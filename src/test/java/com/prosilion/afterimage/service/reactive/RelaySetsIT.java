@@ -96,7 +96,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
     submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
-    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "2");
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "4");
   }
 
   private BaseEvent createRelaysSetsEventMessage() {
