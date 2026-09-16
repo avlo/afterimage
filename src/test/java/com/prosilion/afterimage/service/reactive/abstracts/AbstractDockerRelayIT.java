@@ -1,6 +1,5 @@
 package com.prosilion.afterimage.service.reactive.abstracts;
 
-import com.prosilion.afterimage.config.ContainerTestConfig;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.util.EventAttributesMap;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
@@ -41,7 +40,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
 
     BadgeAwardCanonicalEvent badgeAwardUpvoteEvent = createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY);
 
-    EventIF simulateIncomingUpvoteEvent = submitSCEvent(
+    submitSCEvent(
        badgeAwardUpvoteEvent,
        superconductorRelayUrl,
        upvoteAndOrDownvoteEventFilter);
@@ -49,7 +48,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
 
 //  AIMG section
     Util.debug(log, "AbstractDockerRelayITs - watch SC for incoming request search relays within next", "5 seconds", true, 'A');
-    TimeUnit.MILLISECONDS.sleep(5_000);
+    TimeUnit.MILLISECONDS.sleep(1000);
     submitRelayEvent(
        createSearchRelaysListEventMessageAbstractDockerRelay(),
        afterimageRelayUrlTwo);
@@ -82,7 +81,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
           createBadgeAwardDownvoteDefinitionEvent(SUPERCONDUCTOR_DOCKER_RELAY)
        ));
   }
-  
+
   protected FormulaEvent createPlusOneFormulaEvent() {
     return new FormulaEvent(
        formulaCreator,
