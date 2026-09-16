@@ -255,7 +255,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
   }
 
   protected void submitRelayEvent_WithDuration(EventIF event, String url) {
-    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), Duration.ofMinutes(30)).getFlag());
+    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), Duration.ofSeconds(15)).getFlag());
 //    TimeUnit.MILLISECONDS.sleep(Duration.ofSeconds(10).toMillis());
   }
 
@@ -279,7 +279,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
           Util.generateRandomHex64String(),
           recipientPubKeyTag),
        url
-       , Duration.ofMinutes(30)
+       , Duration.ofSeconds(15)
     );
 
     log.debug("afterimage returned events:");

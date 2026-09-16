@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class AfterimageFollowSetsRequestPlugin extends AbstractBadgeAwardEventRequestPlugin {
+public class CuratedBadgeAwardEventRequestPlugin extends AbstractBadgeAwardEventRequestPlugin {
   @Override
   public Kind getKind() {
-    return Kind.FOLLOW_SETS; // kind 30_000
+    return Kind.CURATION_SETS_BADGE_AWARD_EVENT; // kind 30_004
   }
 }
