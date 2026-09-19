@@ -1,16 +1,36 @@
 package com.prosilion.afterimage.config;
 
+import com.prosilion.afterimage.service.request.ReqKindService;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPluginIF;
 import com.prosilion.nostr.enums.Kind;
 import com.prosilion.superconductor.base.service.event.plugin.kind.StandardEventKindPlugin;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AfterimageEventKindPluginConfig {
+
+  @Bean
+  List<ReqKindPluginIF> reqKindPluginList(@Value("${afterimage.req.kinds:}") String reqKinds) {
+    return (reqKinds.isBlank()
+       ? Arrays.stream(Kind.values())
+       : Arrays.stream(reqKinds.split(","))
+       .map(String::trim)
+       .map(Kind::valueOf)
+    ).map(ReqKindPlugin::new).collect(Collectors.toUnmodifiableList());
+  }
+
+  @Bean
+  ReqKindService reqKindService(List<ReqKindPluginIF> reqKindPluginList) {
+    return new ReqKindService(reqKindPluginList);
+  }
 //  @Bean
 //  CacheReferenceAddressTagService cacheReferenceAddressTagService(
 //     @NonNull RedisCacheService redisCacheService,

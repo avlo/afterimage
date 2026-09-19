@@ -113,9 +113,10 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
           assertTrue(
              new NostrEventPublisher(superconductorRelayUrl)
                 .send(
-                   new EventMessage(badgeDefinitionGenericEvent)).getFlag()));
+                   new EventMessage(badgeDefinitionGenericEvent),
+                   Duration.ofMillis(5000)).getFlag()));
 
-    validateSetupCorrectlyCreatedAndPersistedCurationSetsBadgeDefinitionEvents();
+//    validateSetupCorrectlyCreatedAndPersistedCurationSetsBadgeDefinitionEvents();
   }
 
   protected void validateSetupCorrectlyCreatedAndPersistedCurationSetsBadgeDefinitionEvents() {

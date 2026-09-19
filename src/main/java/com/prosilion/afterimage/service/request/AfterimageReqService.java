@@ -8,10 +8,9 @@ import com.prosilion.nostr.filter.event.KindFilter;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AfterimageReqService implements ReqServiceIF {
@@ -21,9 +20,9 @@ public class AfterimageReqService implements ReqServiceIF {
   private final ReqKindTypeServiceIF reqKindTypeService;
 
   public AfterimageReqService(
-      @NonNull ReqServiceIF reqService,
-      @NonNull ReqKindServiceIF reqKindService,
-      @NonNull ReqKindTypeServiceIF reqKindTypeService) {
+     @NonNull ReqServiceIF reqService,
+     @NonNull ReqKindServiceIF reqKindService,
+     @NonNull ReqKindTypeServiceIF reqKindTypeService) {
     this.reqService = reqService;
     this.reqKindService = reqKindService;
     this.reqKindTypeService = reqKindTypeService;
@@ -32,27 +31,27 @@ public class AfterimageReqService implements ReqServiceIF {
   @Override
   public void processIncoming(@NonNull ReqMessage reqMessage, @NonNull String sessionId) throws NostrException {
     log.debug("processIncoming(reqMessage, sessionId):\n  sessionId:  [{}]\n  reqMesage.subscriptionId:  [{}]\n  with List<Filters>:\n  {}",
-        sessionId,
-        reqMessage.getSubscriptionId(),
-        reqMessage.getFiltersList().stream()
-            .map(filters -> filters.toString(2))
-            .collect(Collectors.joining("],\n  [")));
+       sessionId,
+       reqMessage.getSubscriptionId(),
+       reqMessage.getFiltersList().stream()
+          .map(filters -> filters.toString(2))
+          .collect(Collectors.joining("],\n  [")));
 
     ReqMessage reqMessageAdaptedFilters = new ReqMessage(
-        reqMessage.getSubscriptionId(),
-        reqKindService.getKinds().stream()
-            .anyMatch(kind ->
-                kind.equals(
-                    validateFiltersExist(reqMessage.getFiltersList()).stream()
-                        .map(filters ->
-                            filters.getFilterByType(KindFilter.FILTER_KEY))
-                        .flatMap(Collection::stream)
-                        .map(KindFilter.class::cast)
-                        .map(AbstractFilterable::getFilterable)
-                        .findAny().orElseThrow(() ->
-                            new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
-            processReqKindService(reqMessage) :
-            processReqKindTypeService(reqMessage));
+       reqMessage.getSubscriptionId(),
+       reqKindService.getKinds().stream()
+          .anyMatch(kind ->
+             kind.equals(
+                reqMessage.getFiltersList().stream()
+                   .map(filters ->
+                      filters.getFilterByType(KindFilter.FILTER_KEY))
+                   .flatMap(Collection::stream)
+                   .map(KindFilter.class::cast)
+                   .map(AbstractFilterable::getFilterable)
+                   .findAny().orElseThrow(() ->
+                      new InvalidReputationReqJsonException(reqMessage.getFiltersList(), KindFilter.FILTER_KEY)))) ?
+          processReqKindService(reqMessage) :
+          processReqKindTypeService(reqMessage));
 
     reqService.processIncoming(reqMessageAdaptedFilters, sessionId);
   }
@@ -67,12 +66,12 @@ public class AfterimageReqService implements ReqServiceIF {
     return reqKindService.processIncoming(reqMessage.getFiltersList());
   }
 
-  private List<Filters> validateFiltersExist(List<Filters> filtersList) {
+  private Filters validateFiltersExist(Filters filters) {
     log.debug("validateFiltersExist(List<Filters> filtersList) called with List<filters>:\n  [{}]",
-        filtersList.stream()
-            .map(filters -> filters.toString(2))
-            .collect(Collectors.joining("],\n  [")));
-    filtersList.stream().findAny().orElseThrow(() -> new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY));
-    return filtersList;
+       filters.toString(2));
+    if (filters.filtersMap().isEmpty()) {
+      throw new NostrException(Filters.FILTERS_CANNOT_BE_EMPTY);
+    }
+    return filters;
   }
 }

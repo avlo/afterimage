@@ -44,10 +44,10 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
 
   @Override
   public void activateRequestFlux(@NonNull Filters filters, @NonNull Relay relay) {
-    log.debug("activateRequestFlux() called with filters:\n  [{}]\nrelay: [{}]", filters.toString(2), relay);
+    log.info("activateRequestFlux() called with filters:\n  [{}]\nrelay: [{}]", filters.toString(2), relay);
 
     String subscriptionId = Util.generateRandomHex64String();
-    log.debug("calling new MultiRelaySubscriptionsManager().send(...) with subscriptionId: [{}]", subscriptionId);
+    log.info("calling new MultiRelaySubscriptionsManager().send(...) with subscriptionId: [{}]", subscriptionId);
     try {
       RequestSubscriberDelegate<BaseMessage> subscriberDelegate = new RequestSubscriberDelegate<>(this);
       new MultiRelaySubscriptionsManager()
@@ -74,7 +74,7 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
     log.debug("doDelegate(...) returned baseMessage:\n  {}", Util.prettyFormatJson(encode));
     Optional<EventIF> eventIF = filterEventMessageEvent(baseMessage);
     log.debug("filterEventMessageEvent(baseMessage) returned: \n{}",
-       eventIF.map(EventIF::createPrettyPrintJson).orElse("  EMPTY Optional<EventIF>.  will not call processIncoming()"));
+       eventIF.map(EventIF::createPrettyPrintJson).orElse("[EMPTY OPTIONAL].  will not call processIncoming()"));
 
     Relay relay = subscriptionRelayMap.get(subscription);
     log.debug("subscriptionRelayMap.get(subscription):\n  [{}]\nreturned relay:\n  [{}]", subscription, relay);
@@ -86,7 +86,7 @@ public class RelayMeshProxy implements RelayMeshProxyIF {
   }
 
   private void processIncoming(EventIF eventIF, Relay relay) {
-    log.debug("**** RelayMeshProxy **** callback retrieved incoming...:\n  Kind[{}]: {}\ncontent:\n{}",
+    log.info("**** RelayMeshProxy **** callback retrieved incoming...:\n  Kind[{}]: {}\ncontent:\n{}",
        eventIF.getKind().getValue(),
        eventIF.getKind().getName().toUpperCase(),
        eventIF.createPrettyPrintJson());
