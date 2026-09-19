@@ -46,57 +46,57 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
   @Test
   void testFollowSetsEvent() throws InterruptedException {
 // aImg_2 sanity check  
-//    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
-//    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
-//       afterimageRelayUrlTwo,
-//       aImg_2_EventSubscriber_A);
-//
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
+       afterimageRelayUrlTwo,
+       aImg_2_EventSubscriber_A);
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
 //  now notify 5557 (via RELAY SETS EVENT) of 5556's existence
     submitRelayEvent(
        createRelaysSetsEventMessage(), afterimageRelayUrlThree);
     TimeUnit.MILLISECONDS.sleep(5000);  // longer delay
 
-//    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
-//    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
-//
-//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_A = new RequestSubscriber<>(Duration.ofSeconds(30));
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_A);
 
-//    submitSCEvent(
-//       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
-//       superconductorRelayUrl,
-//       upvoteAndOrDownvoteEventFilter);
-//    TimeUnit.MILLISECONDS.sleep(12000);  // longer delay
-//
-//    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
-//    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
-//
-//    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
-//    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
-//
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
-//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "2");
-//
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "2");
-//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "2");
-//
-//    submitSCEvent(
-//       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
-//       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
-//    TimeUnit.MILLISECONDS.sleep(12000);  // longer delay
-//
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
-//    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
-//
-//    submitSCEvent(
-//       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
-//       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
-//    TimeUnit.MILLISECONDS.sleep(12000); // longer delay
-//
-//    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
-//    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
-//    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "4");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "1");
+
+    submitSCEvent(
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
+       superconductorRelayUrl,
+       upvoteAndOrDownvoteEventFilter);
+    TimeUnit.MILLISECONDS.sleep(5000);  // longer delay
+
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+
+    RequestSubscriber<BaseMessage> aImg_3_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlThree, aImg_3_EventSubscriber_B);
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "2");
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "2");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_A, 1, "2");
+
+    submitSCEvent(
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
+       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
+    TimeUnit.MILLISECONDS.sleep(5000);  // longer delay
+
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
+    validateSpecificAfterimageRequestResults(aImg_3_EventSubscriber_B, 1, "3");
+
+    submitSCEvent(
+       createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
+       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
+    TimeUnit.MILLISECONDS.sleep(5000); // longer delay
+
+    RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_C);
+    validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_C, 1, "4");
   }
 
   private BaseEvent createRelaysSetsEventMessage() {
