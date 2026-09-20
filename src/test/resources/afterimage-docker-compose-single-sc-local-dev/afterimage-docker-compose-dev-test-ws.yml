@@ -14,7 +14,7 @@ services:
 #      - docker-network
 #  SC App 5555
   superconductor-afterimage:
-    image: superconductor-app-redis:1.18.1
+    image: superconductor-app-redis:1.19.0
     ports:
       - "5555:5555"
 #    networks:
