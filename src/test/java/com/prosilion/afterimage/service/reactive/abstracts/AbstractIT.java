@@ -2,6 +2,7 @@ package com.prosilion.afterimage.service.reactive.abstracts;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.BadgeAwardGenericEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
@@ -290,16 +291,16 @@ public abstract class AbstractIT {
        url, subscriber);
   }
 
-  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createUpvoteEvent(Relay relay) {
-    return new BadgeAwardGenericEvent<>(
+  protected BadgeAwardCanonicalEvent createUpvoteEvent(Relay relay) {
+    return new BadgeAwardCanonicalEvent(
        submitter,
        recipient.getPublicKey(),
        awardUpvoteDefinitionEvent,
        relay);
   }
 
-  protected BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> createDownvoteEvent(Relay relay) {
-    return new BadgeAwardGenericEvent<>(
+  protected BadgeAwardCanonicalEvent createDownvoteEvent(Relay relay) {
+    return new BadgeAwardCanonicalEvent(
        submitter,
        recipient.getPublicKey(),
        awardDownvoteDefinitionEvent,

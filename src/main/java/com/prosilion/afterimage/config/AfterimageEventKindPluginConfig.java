@@ -10,21 +10,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class AfterimageEventKindPluginConfig {
 
   @Bean
   List<ReqKindPluginIF> reqKindPluginList(@Value("${afterimage.req.kinds:}") String reqKinds) {
-    return (reqKinds.isBlank()
+    List<String> stringStream = Arrays.stream(reqKinds.split(",")).map(String::trim).toList();
+    log.debug("strings- afterimage.req.kinds:\n  {}", String.join(",\n  ", stringStream));
+
+    List<Kind> kindStream = stringStream.stream().map(Kind::valueOf).toList();
+    log.debug("kinds- afterimage.req.kinds:\n  {}", kindStream.stream()
+       .map(Kind::getValue)
+       .map(String::valueOf)
+       .collect(Collectors.joining(",\n  ")));
+
+    List<ReqKindPluginIF> reqKindPluginIFList = (reqKinds.isBlank()
        ? Arrays.stream(Kind.values())
-       : Arrays.stream(reqKinds.split(","))
-       .map(String::trim)
-       .map(Kind::valueOf)
+       : kindStream.stream()
     ).map(ReqKindPlugin::new).collect(Collectors.toUnmodifiableList());
+
+    log.debug("List<ReqKindPluginIF>:\n  {}", reqKindPluginIFList.stream().map(ReqKindPluginIF::getKind)
+       .map(Kind::getValue)
+       .map(String::valueOf)
+       .collect(Collectors.joining(",\n  ")));
+    return reqKindPluginIFList;
   }
 
   @Bean
