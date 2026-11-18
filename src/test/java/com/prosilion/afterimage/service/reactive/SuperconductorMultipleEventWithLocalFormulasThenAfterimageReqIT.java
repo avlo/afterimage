@@ -47,7 +47,7 @@ public class SuperconductorMultipleEventWithLocalFormulasThenAfterimageReqIT ext
     EventIF simulateIncomingUpvoteEvent_1 = submitSCEvent(
        upvoteEvent_1,
        superconductorRelayUrl,
-       upvoteAndOrDownvoteEventFilter);
+       scUpvoteAndOrDownvoteEventFilter);
 
     submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent_1, afterimageRelayUrl);
 
@@ -60,7 +60,7 @@ public class SuperconductorMultipleEventWithLocalFormulasThenAfterimageReqIT ext
     EventIF simulateIncomingUpvoteEvent_2 = submitSCEvent(
        upvoteEvent_2,
        superconductorRelayUrl,
-       upvoteAndOrDownvoteEventFilter);
+       scUpvoteAndOrDownvoteEventFilter);
 
     submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent_2, afterimageRelayUrl);
 

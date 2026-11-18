@@ -58,7 +58,13 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
   protected final String afterimageRelayUrl;
   protected final Relay superconductorRelay;
 
-  protected Filters upvoteAndOrDownvoteEventFilter =
+  protected Filters scUpvoteAndOrDownvoteEventFilter =
+     new Filters(
+        new ReferencedPublicKeyFilter(
+           new PubKeyTag(recipient.getPublicKey())),
+        new KindFilter(Kind.BADGE_AWARD_EVENT));
+  
+  protected Filters aImgUpvoteAndOrDownvoteCurationSetsEventFilter =
      new Filters(
         new ReferencedPublicKeyFilter(
            new PubKeyTag(recipient.getPublicKey())),
@@ -101,7 +107,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
     this.dbCuratedFormulaEventList = setupFormulaEvents(formulaEventList);
 
 //  AIMG section
-    submitAimgEvent(
+    submitAimgEvent_WithDuration(
        createBadgeDefinitionReputationEvent());
     log.debug("ctor finished");
   }
@@ -114,7 +120,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
              new NostrEventPublisher(superconductorRelayUrl)
                 .send(
                    new EventMessage(badgeDefinitionGenericEvent),
-                   Duration.ofMillis(5000)).getFlag()));
+                   Duration.ofSeconds(5)).getFlag()));
 
 //    validateSetupCorrectlyCreatedAndPersistedCurationSetsBadgeDefinitionEvents();
   }

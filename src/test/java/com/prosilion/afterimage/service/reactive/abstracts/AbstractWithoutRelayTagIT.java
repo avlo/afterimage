@@ -21,9 +21,9 @@ import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.message.EventMessage;
 import com.prosilion.nostr.message.ReqMessage;
 import com.prosilion.nostr.tag.AddressTag;
-import com.prosilion.nostr.tag.EventTag;
 import com.prosilion.nostr.tag.ExternalIdentityTag;
 import com.prosilion.nostr.tag.PubKeyTag;
+import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.nostr.user.PublicKey;
 import com.prosilion.nostr.util.Util;
@@ -31,17 +31,17 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import lombok.NonNull;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -159,7 +159,7 @@ public abstract class AbstractWithoutRelayTagIT extends BaseTestFixtures {
 
   private List<EventAttributesMap<CuratedFormulaEvent>> setupFormulaEvents(List<EventAttributesMap<FormulaEvent>> formulaEvents) {
     formulaEvents.forEach(formulaEvent -> assertTrue(
-       new NostrEventPublisher(afterimageRelayUrl)
+       new NostrEventPublisher(superconductorRelayUrl)
           .send(
              new EventMessage(formulaEvent.getEvent())
              ,
@@ -182,16 +182,14 @@ public abstract class AbstractWithoutRelayTagIT extends BaseTestFixtures {
           new ReqMessage(
              Util.generateRandomHex64String(),
              new Filters(
-                new KindFilter(Kind.CURATION_SETS_FORMULA_EVENT))),
-          afterimageRelayUrl));
+                new KindFilter(Kind.ARBITRARY_CUSTOM_APP_DATA))),
+          superconductorRelayUrl));
 
     log.debug("returned events:");
     log.debug("  {}", sanityCheckReturnedCuratedFormulaEventIFs.stream().map(EventIF::createPrettyPrintJson).collect(Collectors.joining(",\n")));
 
     Set<String> sanityCheckFormulaEventIds = sanityCheckReturnedCuratedFormulaEventIFs.stream()
-       .map(eventIF -> eventIF.getTypeSpecificTags(EventTag.class))
-       .flatMap(Collection::stream)
-       .map(EventTag::getEventId)
+       .map(EventIF::getId)
        .collect(Collectors.toSet());
 
     assertTrue(sanityCheckFormulaEventIds.stream().anyMatch(
@@ -199,7 +197,11 @@ public abstract class AbstractWithoutRelayTagIT extends BaseTestFixtures {
           .toList()::contains));
 
     return sanityCheckReturnedCuratedFormulaEventIFs.stream().map(eventIF ->
-       new CuratedFormulaEvent(eventIF.asGenericEventRecord())).toList();
+       new CuratedFormulaEvent(
+          aImgIdentity,
+          eventIF.asGenericEventRecord(),
+          new ReferenceTag(superconductorRelayUrl),
+          new Relay(superconductorRelayUrl))).toList();
   }
 
   protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {

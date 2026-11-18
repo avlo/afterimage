@@ -5,7 +5,6 @@ import com.prosilion.afterimage.util.EventAttributesMap;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.event.FormulaEvent;
 import com.prosilion.nostr.event.SearchRelaysListEvent;
 import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
@@ -43,7 +42,7 @@ public class AbstractDockerRelayIT extends AbstractWithRelaysTagIT {
     submitSCEvent(
        badgeAwardUpvoteEvent,
        superconductorRelayUrl,
-       upvoteAndOrDownvoteEventFilter);
+       scUpvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(1000);
 
 //  AIMG section

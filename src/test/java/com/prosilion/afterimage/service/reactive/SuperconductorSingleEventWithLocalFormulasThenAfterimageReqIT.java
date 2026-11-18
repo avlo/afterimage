@@ -51,7 +51,7 @@ public class SuperconductorSingleEventWithLocalFormulasThenAfterimageReqIT exten
     EventIF simulateIncomingUpvoteEvent = submitSCEvent(
        upvoteEvent,
        superconductorRelayUrl,
-       upvoteAndOrDownvoteEventFilter);
+       scUpvoteAndOrDownvoteEventFilter);
 
     submitRelayEvent_WithDuration(simulateIncomingUpvoteEvent, afterimageRelayUrl);
 

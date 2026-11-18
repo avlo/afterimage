@@ -44,7 +44,7 @@ public class SuperconductorSingleEventWithRemoteFormulasThenAfterimageReqIT exte
   @Test
   void superconductorEventWithRemoteFormulasThenAfterimageReq() throws NostrException {
     BadgeAwardCanonicalEvent upvoteEvent = createUpvoteEventForCanonicalRecipient(superconductorRelay);
-    EventIF event = submitSCEvent(upvoteEvent, superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
+    EventIF event = submitSCEvent(upvoteEvent, superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter);
     submitRelayEvent_WithDuration(event, afterimageRelayUrl);
     assertEquals("1", submitAfterImageReq(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl).getFirst().getContent());
   }

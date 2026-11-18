@@ -53,14 +53,14 @@ public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractWith
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEventForCanonicalRecipient(superconductorRelay),
-          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
+          superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(
           createUpvoteEventForCanonicalRecipient(superconductorRelay),
-          superconductorRelayUrl, upvoteAndOrDownvoteEventFilter));
+          superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);

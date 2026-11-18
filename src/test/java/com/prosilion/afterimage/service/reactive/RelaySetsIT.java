@@ -66,7 +66,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
     submitSCEvent(
        createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
        superconductorRelayUrl,
-       upvoteAndOrDownvoteEventFilter);
+       scUpvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000);  // longer delay
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>(Duration.ofSeconds(20));
@@ -83,7 +83,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
     submitSCEvent(
        createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
-       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
+       superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000);  // longer delay
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "3");
@@ -91,7 +91,7 @@ public class RelaySetsIT extends AbstractDockerRelayIT {
 
     submitSCEvent(
        createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY),
-       superconductorRelayUrl, upvoteAndOrDownvoteEventFilter);
+       superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter);
     TimeUnit.MILLISECONDS.sleep(5000); // longer delay
 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_C = new RequestSubscriber<>();
