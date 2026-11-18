@@ -1,82 +1,161 @@
 package com.prosilion.afterimage.config;
 
+import com.prosilion.afterimage.service.request.ReqKindService;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPlugin;
+import com.prosilion.afterimage.service.request.plugin.ReqKindPluginIF;
 import com.prosilion.nostr.enums.Kind;
-import com.prosilion.nostr.event.BaseEvent;
-import com.prosilion.nostr.event.EventIF;
-import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFollowSetsEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.CacheFormulaEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardGenericEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.award.CacheBadgeAwardReputationEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionGenericEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.definition.CacheBadgeDefinitionReputationEventService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceAddressTagService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.tag.CacheReferenceEventTagService;
-import com.prosilion.superconductor.autoconfigure.base.service.event.tag.RemoteAbstractTagService;
-import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
-import java.util.HashMap;
+import com.prosilion.superconductor.base.service.event.plugin.kind.StandardEventKindPlugin;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
 
 @Configuration
+@Slf4j
 public class AfterimageEventKindPluginConfig {
-  @Bean
-  CacheReferenceAddressTagService cacheReferenceAddressTagService(
-      @NonNull RedisCacheService redisCacheService,
-      @NonNull RemoteAbstractTagService remoteAbstractTagService) {
-    return new CacheReferenceAddressTagService(redisCacheService, remoteAbstractTagService);
-  }
 
   @Bean
-  CacheReferenceEventTagService cacheReferenceEventTagService(
-      @NonNull RedisCacheService redisCacheService,
-      @NonNull RemoteAbstractTagService remoteAbstractTagService) {
-    return new CacheReferenceEventTagService(redisCacheService, remoteAbstractTagService);
+  List<ReqKindPluginIF> reqKindPluginList(@Value("${afterimage.req.kinds:}") String reqKinds) {
+    List<String> stringStream = Arrays.stream(reqKinds.split(",")).map(String::trim).toList();
+    log.debug("strings- afterimage.req.kinds:\n  {}", String.join(",\n  ", stringStream));
+
+    List<Kind> kindStream = stringStream.stream().map(Kind::valueOf).toList();
+    log.debug("kinds- afterimage.req.kinds:\n  {}", kindStream.stream()
+       .map(Kind::getValue)
+       .map(String::valueOf)
+       .collect(Collectors.joining(",\n  ")));
+
+    List<ReqKindPluginIF> reqKindPluginIFList = (reqKinds.isBlank()
+       ? Arrays.stream(Kind.values())
+       : kindStream.stream()
+    ).map(ReqKindPlugin::new).collect(Collectors.toUnmodifiableList());
+
+    log.debug("List<ReqKindPluginIF>:\n  {}", reqKindPluginIFList.stream().map(ReqKindPluginIF::getKind)
+       .map(Kind::getValue)
+       .map(String::valueOf)
+       .collect(Collectors.joining(",\n  ")));
+    return reqKindPluginIFList;
   }
 
-  @Bean("eventKindMaterializers")
-  Map<Kind, Function<EventIF, BaseEvent>> eventKindMaterializers(
-      @NonNull CacheBadgeAwardGenericEventService cacheBadgeAwardGenericEventService,
-      @NonNull CacheBadgeDefinitionGenericEventService cacheBadgeDefinitionGenericEventService,
-      @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
-      @NonNull CacheFormulaEventService cacheFormulaEventService) {
-    Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
+  @Bean
+  ReqKindService reqKindService(List<ReqKindPluginIF> reqKindPluginList) {
+    return new ReqKindService(reqKindPluginList);
+  }
+//  @Bean
+//  CacheReferenceAddressTagService cacheReferenceAddressTagService(
+//     @NonNull RedisCacheService redisCacheService,
+//     @NonNull RemoteAbstractTagService remoteAbstractTagService) {
+//    return new CacheReferenceAddressTagService(redisCacheService, remoteAbstractTagService);
+//  }
+//
+//  @Bean
+//  CacheReferenceEventTagService cacheReferenceEventTagService(
+//     @NonNull RedisCacheService redisCacheService,
+//     @NonNull RemoteAbstractTagService remoteAbstractTagService) {
+//    return new CacheReferenceEventTagService(redisCacheService, remoteAbstractTagService);
+//  }
 
-    kindFxnMap.put(
-        Kind.BADGE_AWARD_EVENT,
-        cacheBadgeAwardGenericEventService::materialize);
-
-    kindFxnMap.put(
-        Kind.BADGE_DEFINITION_EVENT,
-        cacheBadgeDefinitionGenericEventService::materialize);
-
-    kindFxnMap.put(
-        Kind.FOLLOW_SETS,
-        cacheFollowSetsEventService::materialize);
-
-    kindFxnMap.put(
-        Kind.ARBITRARY_CUSTOM_APP_DATA,
-        cacheFormulaEventService::materialize);
-
-    return kindFxnMap;
+  @Bean("kindClassStringMap")
+  public Map<Kind, String> kindClassStringMap() {
+    ResourceBundle relaysBundle = ResourceBundle.getBundle("kind-class-map");
+    return relaysBundle.keySet().stream()
+       .collect(Collectors.toMap(Kind::valueOf, relaysBundle::getString));
   }
 
-  @Bean("eventKindTypeMaterializers")
-  Map<Kind, Function<EventIF, BaseEvent>> eventKindTypeMaterializers(
-      @NonNull CacheBadgeAwardReputationEventService cacheBadgeAwardReputationEventService,
-      @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService) {
-    Map<Kind, Function<EventIF, BaseEvent>> kindFxnMap = new HashMap<>();
-
-    kindFxnMap.put(
-        Kind.BADGE_AWARD_EVENT,
-        cacheBadgeAwardReputationEventService::materialize);
-
-    kindFxnMap.put(
-        Kind.BADGE_DEFINITION_EVENT,
-        cacheBadgeDefinitionReputationEventService::materialize);
-
-    return kindFxnMap;
+  @Bean("standardEventKindPlugins")
+  List<StandardEventKindPlugin> standardEventKindPlugins() {
+    return List.of();
   }
+
+//  @Bean(name = "eventKindService")
+//  EventKindService eventKindService(
+//     @NonNull List<EventKindPluginIF> eventKindPlugins,
+//     @NonNull @Qualifier("standardEventKindPlugins") List<StandardEventKindPlugin> standardEventKindPlugins) {
+//    return new EventKindService(
+//       Stream.concat(
+//          eventKindPlugins.stream(),
+//          standardEventKindPlugins.stream()).toList());
+//  }
+
+//  @Bean
+//  EventPlugin eventPlugin(
+//     @NonNull CacheServiceIF cacheServiceIF,
+//     @NonNull @Qualifier("eventKindMaterializers") Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindMaterializers,
+//     @NonNull @Qualifier("eventKindTypeMaterializers") Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindTypeMaterializers,
+//     @NonNull @Qualifier("kindClassStringMap") Map<Kind, String> kindClassStringMap) {
+//    return new EventPlugin(
+//       cacheServiceIF,
+//       eventKindMaterializers,
+//       eventKindTypeMaterializers,
+//       kindClassStringMap);
+//  }
+
+//  @Bean("eventKindMaterializers")
+//  Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindMaterializers(
+//     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+//     @NonNull CacheCuratedBadgeDefinitionGenericEventService cacheCuratedBadgeDefinitionGenericEventService,
+//     @NonNull CacheBadgeSetsEventService cacheBadgeSetsEventService,
+//     @NonNull CacheCuratedFormulaEventService cacheCuratedFormulaEventService,
+//     @NonNull CacheCuratedBadgeAwardGenericEventService cacheCuratedBadgeAwardGenericEventService) {
+//    Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
+//    kindFxnMap.put(
+//       Kind.CURATION_SETS_BADGE_AWARD_EVENT,
+//       eventIF ->
+//          cacheCuratedBadgeAwardGenericEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.CURATION_SETS_BADGE_DEFINITION_EVENT,
+//       eventIF ->
+//          cacheCuratedBadgeDefinitionGenericEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.CURATION_SETS_FORMULA_EVENT,
+//       eventIF ->
+//          cacheCuratedFormulaEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.BADGE_AWARD_EVENT,
+//       eventIF ->
+//          cacheCuratedBadgeAwardGenericEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.BADGE_DEFINITION_EVENT,
+//       eventIF ->
+//          cacheCuratedBadgeDefinitionGenericEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.FOLLOW_SETS,
+//       eventIF ->
+//          cacheFollowSetsEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.BADGE_SETS_EVENT,
+//       eventIF ->
+//          cacheBadgeSetsEventService.materialize(eventIF));
+//    return kindFxnMap;
+//  }
+
+//  @Bean("eventKindTypeMaterializers")
+//  Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> eventKindTypeMaterializers(
+//     @NonNull CacheBadgeAwardReputationEventService cacheBadgeAwardReputationEventService,
+//     @NonNull CacheBadgeDefinitionReputationEventService cacheBadgeDefinitionReputationEventService) {
+//    Map<Kind, Function<EventIF, Optional<? extends BaseEvent>>> kindFxnMap = new HashMap<>();
+//
+//    kindFxnMap.put(
+//       Kind.BADGE_AWARD_EVENT,
+//       eventIF ->
+//          cacheBadgeAwardReputationEventService.materialize(eventIF));
+//
+//    kindFxnMap.put(
+//       Kind.BADGE_DEFINITION_EVENT,
+//       eventIF ->
+//          cacheBadgeDefinitionReputationEventService.materialize(eventIF));
+//
+//    return kindFxnMap;
+//  }
 }

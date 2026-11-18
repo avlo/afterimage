@@ -1,15 +1,17 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractWithRelaysTagIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.EventIF;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -18,8 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,33 +30,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(SingleContainerTestConfig.class)
-public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractIT {
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
+public class AfterimageReqThenMultipleSuperconductorEventIT extends AbstractWithRelaysTagIT {
   @Autowired
   public AfterimageReqThenMultipleSuperconductorEventIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
-     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl) throws ParseException, InterruptedException {
-    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl);
+     @NonNull @Value("${afterimage.relay.url}") String afterimageRelayUrl,
+     CacheServiceIF cacheServiceIF) {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrl, cacheServiceIF);
   }
 
   @Test
   void afterimageReqThenMultipleSuperconductorEvents() throws NostrException, InterruptedException {
     RequestSubscriber<BaseMessage> reputationRequestSubscriber = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrl, reputationRequestSubscriber);
 
 // # --------------------- SC EVENT 1 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          createUpvoteEventForCanonicalRecipient(superconductorRelay),
+          superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter));
 
 // # --------------------- SC EVENT 2 of 2-------------------
 //    begin event creation for submission to SC
     submitAimgEvent(
        submitSCEvent(
-          createUpvoteEvent(submitter, recipient, superconductorRelay),
-          superconductorRelayUrl, badgeAwardEventFilter.apply(recipient.getPublicKey())));
+          createUpvoteEventForCanonicalRecipient(superconductorRelay),
+          superconductorRelayUrl, scUpvoteAndOrDownvoteEventFilter));
 
 // # --------------------- Aimg EVENTS returned -------------------
     TimeUnit.MILLISECONDS.sleep(1000);

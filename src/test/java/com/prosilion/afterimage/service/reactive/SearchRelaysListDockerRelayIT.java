@@ -1,26 +1,24 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.ezylang.evalex.parser.ParseException;
 import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.NostrException;
-import com.prosilion.nostr.event.BadgeAwardGenericEvent;
-import com.prosilion.nostr.event.BadgeDefinitionGenericEvent;
-import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
 import com.prosilion.nostr.message.BaseMessage;
 import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.lang.NonNull;
 import org.springframework.test.context.ActiveProfiles;
-
-import static com.prosilion.afterimage.config.MultiContainerTestConfig.SUPERCONDUCTOR_AFTERIMAGE;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * test name "SearchRelaysListRelaySets" means:
@@ -31,41 +29,39 @@ import static com.prosilion.afterimage.config.MultiContainerTestConfig.SUPERCOND
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 @Import(MultiContainerTestConfig.class)
+@TestPropertySource(properties = {
+   "superconductor.event.curation.active=true"
+})
 public class SearchRelaysListDockerRelayIT extends AbstractDockerRelayIT {
-
   @Autowired
   public SearchRelaysListDockerRelayIT(
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull @Value("${afterimage.relay.url.two}") String afterimageRelayUrlTwo,
-     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl) throws ParseException, InterruptedException {
-    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo);
+     @NonNull @Value("${superconductor.relay.url}") String superconductorRelayUrl,
+     CacheServiceIF cacheServiceIF) throws InterruptedException {
+    super(afterimageInstanceIdentity, superconductorRelayUrl, afterimageRelayUrlTwo, cacheServiceIF);
   }
 
   @Test
-  void testA_SuperconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
-// aImg_2 sanity check		
+  void superconductorEventThenAfterimageReq() throws NostrException, InterruptedException {
+// aImg_2 sanity check
+    TimeUnit.MILLISECONDS.sleep(5_000); // wait aImg process ctor badgeAwardEvent 
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_A = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()),
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()),
        afterimageRelayUrlTwo,
        aImg_2_EventSubscriber_A);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_A, 1, "1");
 
-    BadgeAwardGenericEvent<BadgeDefinitionGenericEvent> badgeAwardUpvoteEvent_2 =
-       new BadgeAwardGenericEvent<>(
-          submitter,
-          recipient.getPublicKey(),
-          new Relay("ws://" + SUPERCONDUCTOR_AFTERIMAGE + ":5555"),
-          awardUpvoteDefinitionEvent,
-          String.format("badgeAwardUpvoteEvent, vote recipient PublicKey: [%s]", recipient.getPublicKey()));
+    BadgeAwardCanonicalEvent badgeAwardUpvoteEvent_2 = createUpvoteEventForCanonicalRecipient(SUPERCONDUCTOR_DOCKER_RELAY);
 
 //  submit upvote event to SC
-    submitRelayEvent(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
-    TimeUnit.MILLISECONDS.sleep(1500);
+    submitRelayEvent_WithDuration(badgeAwardUpvoteEvent_2, superconductorRelayUrl);
+    TimeUnit.MILLISECONDS.sleep(5_000); // wait aImg process ctor badgeAwardEvent
 
 // aImg_2 sanity check		
     RequestSubscriber<BaseMessage> aImg_2_EventSubscriber_B = new RequestSubscriber<>();
-    submitAfterImageReqWithSubscriber(upvoteDefnCreator.getPublicKey(), new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
+    submitAfterImageReqWithSubscriber(new PubKeyTag(recipient.getPublicKey()), afterimageRelayUrlTwo, aImg_2_EventSubscriber_B);
 
     validateSpecificAfterimageRequestResults(aImg_2_EventSubscriber_B, 1, "2");
   }

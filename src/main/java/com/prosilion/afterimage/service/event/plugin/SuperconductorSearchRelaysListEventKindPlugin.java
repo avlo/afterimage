@@ -1,0 +1,53 @@
+package com.prosilion.afterimage.service.event.plugin;
+
+import com.prosilion.nostr.enums.Kind;
+import com.prosilion.nostr.event.BaseEvent;
+import com.prosilion.nostr.event.SearchRelaysListEvent;
+import com.prosilion.nostr.event.internal.Relay;
+import com.prosilion.nostr.filter.Filters;
+import com.prosilion.nostr.filter.event.KindFilter;
+import com.prosilion.nostr.tag.RelaysTag;
+import com.prosilion.nostr.user.Identity;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
+import com.prosilion.superconductor.base.service.event.plugin.kind.EventKindPluginIF;
+import java.util.Set;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class SuperconductorSearchRelaysListEventKindPlugin extends AbstractRelayAnnouncementEventKindPlugin {
+  public SuperconductorSearchRelaysListEventKindPlugin(
+     @NonNull Identity aImgIdentity,
+     @NonNull CacheServiceIF cacheServiceIF,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull EventKindPluginIF eventKindPluginIF) {
+    super(aImgIdentity, cacheServiceIF, eventPlugin, eventKindPluginIF);
+  }
+
+  @Override
+  protected Filters getFilters() {
+    log.debug("getFilters() of kind [{}]: {}",
+       Kind.BADGE_AWARD_EVENT.getValue(),
+       Kind.BADGE_AWARD_EVENT.getName().toUpperCase());
+    return new Filters(new KindFilter(Kind.BADGE_AWARD_EVENT));
+  }
+
+  @Override
+  public Kind getKind() {
+    log.debug("getKind Kind[{}]: {}",
+       Kind.SEARCH_RELAYS_LIST.getValue(),
+       Kind.SEARCH_RELAYS_LIST.getName().toUpperCase());
+    return Kind.SEARCH_RELAYS_LIST;
+  }
+
+  @Override
+  protected BaseEvent createEvent(@NonNull Identity identity, @NonNull Set<Relay> uniqueNewRelays) {
+    SearchRelaysListEvent event = new SearchRelaysListEvent(
+       identity,
+       new RelaysTag(uniqueNewRelays),
+       "SuperconductorSearchRelaysListEventPlugin created SearchRelaysListEvent");
+    log.debug("createEvent(..., @NonNull Set<String> uniqueNewRelays):\n {}", event.createPrettyPrintJson());
+    return event;
+  }
+}

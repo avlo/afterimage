@@ -2,10 +2,10 @@ package com.prosilion.afterimage.service.request.plugin;
 
 import com.prosilion.afterimage.InvalidReputationReqJsonException;
 import com.prosilion.nostr.NostrException;
+import com.prosilion.nostr.filter.AbstractFilterable;
 import com.prosilion.nostr.filter.Filterable;
 import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
-import com.prosilion.nostr.filter.tag.ExternalIdentityTagFilter;
 import com.prosilion.nostr.user.Identity;
 import java.util.Collection;
 import java.util.List;
@@ -28,12 +28,19 @@ public abstract class ReqKindTypePlugin implements ReqKindTypePluginIF {
 
   @Override
   final public Filters processIncomingRequest(@NonNull List<Filters> filtersList) throws NostrException {
-    return new Filters(Stream.concat(
-       Stream.of(
-          new KindFilter(getKind()),
-          new ExternalIdentityTagFilter(getExternalIdentityTag())),
-       includeReputationVariantFilters().stream()
-          .map(key -> matchFilterableKey(filtersList, key))).distinct().toList());
+    return new Filters(
+       Stream.concat(
+          explicitRequiredFilters(),
+          includeReputationVariantFilters().stream()
+             .map(key -> matchFilterableKey(filtersList, key))).distinct().toList());
+  }
+
+  private Stream<AbstractFilterable<?>> explicitRequiredFilters() {
+    return Stream.of(
+       new KindFilter(getKind())
+//       ,
+//       new ExternalIdentityTagFilter(getExternalIdentityTag()) // TODO: re-add once request spec is solid
+    );
   }
 
   protected Filterable matchFilterableKey(List<Filters> filtersList, String key) {

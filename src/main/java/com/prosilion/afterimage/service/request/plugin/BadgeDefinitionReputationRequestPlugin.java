@@ -12,7 +12,7 @@ import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindType
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 import org.springframework.stereotype.Component;
 
 @Slf4j

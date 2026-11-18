@@ -7,7 +7,7 @@ import com.prosilion.nostr.filter.Filters;
 import com.prosilion.nostr.filter.event.KindFilter;
 import java.util.List;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.lang.NonNull;
+import lombok.NonNull;
 
 public interface ReqKindServiceIF {
   Filters processIncoming(@NonNull List<Filters> filters) throws NostrException;

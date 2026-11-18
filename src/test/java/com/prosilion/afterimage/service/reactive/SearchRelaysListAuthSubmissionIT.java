@@ -7,7 +7,7 @@
 //import com.prosilion.nostr.NostrException;
 //import com.prosilion.nostr.enums.Kind;
 //import com.prosilion.nostr.event.BadgeDefinitionAwardEvent;
-//import com.prosilion.nostr.event.BadgeDefinitionReputationEvent;
+//import com.prosilion.nostr.event.curated.BadgeDefinitionReputationEvent;
 //import com.prosilion.nostr.event.BaseEvent;
 //import com.prosilion.nostr.event.CanonicalAuthenticationEvent;
 //import com.prosilion.nostr.event.EventIF;
@@ -37,7 +37,7 @@
 //import org.springframework.beans.factory.annotation.Qualifier;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.lang.NonNull;
+//import lombok.NonNull;
 //import org.springframework.test.context.ActiveProfiles;
 //import org.springframework.test.context.TestPropertySource;
 //
