@@ -31,6 +31,11 @@ import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.subdivisions.client.reactive.NostrEventPublisher;
 import com.prosilion.subdivisions.client.reactive.NostrSingleRequestService;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
+import lombok.NonNull;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -38,10 +43,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,6 +51,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
+  private static final Duration DURATION_MINUTES_15 = Duration.ofMinutes(15);
+    private static final Duration DURATION_SECONDS_10 = Duration.ofSeconds(10);
+  private static final Duration DURATION_SECONDS_5 = Duration.ofSeconds(5);
+
+  private static final Duration DURATION_MINUTES_DEBUG = DURATION_MINUTES_15;
+  private static final Duration DURATION_SECONDS_NORMAL = DURATION_SECONDS_10;
+
   protected final List<EventAttributesMap<FormulaEvent>> formulaEventList;
   protected List<EventAttributesMap<BadgeDefinitionGenericEvent>> badgeDefinitionGenericEventList;
   protected final List<EventAttributesMap<CuratedFormulaEvent>> dbCuratedFormulaEventList;
@@ -63,7 +71,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
         new ReferencedPublicKeyFilter(
            new PubKeyTag(recipient.getPublicKey())),
         new KindFilter(Kind.BADGE_AWARD_EVENT));
-  
+
   protected Filters aImgUpvoteAndOrDownvoteCurationSetsEventFilter =
      new Filters(
         new ReferencedPublicKeyFilter(
@@ -120,7 +128,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
              new NostrEventPublisher(superconductorRelayUrl)
                 .send(
                    new EventMessage(badgeDefinitionGenericEvent),
-                   Duration.ofSeconds(5)).getFlag()));
+                   DURATION_SECONDS_NORMAL).getFlag()));
 
 //    validateSetupCorrectlyCreatedAndPersistedCurationSetsBadgeDefinitionEvents();
   }
@@ -170,7 +178,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
           .send(
              new EventMessage(formulaEvent.getEvent())
              ,
-             Duration.ofSeconds(10)
+             DURATION_SECONDS_NORMAL
           ).getFlag()));
 
     List<EventAttributesMap<CuratedFormulaEvent>> list = getDbCuratedFormulaEventList().stream()
@@ -238,8 +246,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
 //  sanity check event submissions processed by superconductor
     List<BaseMessage> baseMessages = new NostrSingleRequestService().send(
        createSuperconductorReqMessageEvent(Util.generateRandomHex64String(), filters), url
-//       , Duration.ofMinutes(5)
-       , Duration.ofSeconds(10)
+       , DURATION_SECONDS_NORMAL
     );
 
     // TimeUnit.MILLISECONDS.sleep(2500);
@@ -262,8 +269,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
   }
 
   protected void submitRelayEvent_WithDuration(EventIF event, String url) {
-    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), Duration.ofSeconds(15)).getFlag());
-//    TimeUnit.MILLISECONDS.sleep(Duration.ofSeconds(10).toMillis());
+    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), DURATION_MINUTES_DEBUG).getFlag());
   }
 
   protected void submitAimgEvent(EventIF eventIF) {
@@ -286,7 +292,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
           Util.generateRandomHex64String(),
           recipientPubKeyTag),
        url
-       , Duration.ofSeconds(15)
+       , DURATION_SECONDS_NORMAL
     );
 
     log.debug("afterimage returned events:");
