@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.config.ScOneAimgTwoTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
@@ -28,7 +28,7 @@ import org.springframework.test.context.TestPropertySource;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(MultiContainerTestConfig.class)
+@Import(ScOneAimgTwoTestConfig.class)
 @TestPropertySource(properties = {
    "superconductor.event.curation.active=true"
 })

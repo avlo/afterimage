@@ -12,8 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @EmbeddedRedisStandalone
 @Slf4j
-public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
-
+public class ScOneAimgTwoTestConfig extends ContainerTestConfig {
   @Bean
   @ServiceConnection
   public ComposeContainer composeContainerLocalDev() {
@@ -27,10 +26,16 @@ public class MultiContainerSameRelayTestConfig extends ContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
-       new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
-       .waitingFor(SUPERCONDUCTOR_DB, Wait.forHealthcheck())
+       new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
        .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)
+
+       .waitingFor(AFTERIMAGE_APP_TWO, Wait.forLogMessage(".*Started " + AFTERIMAGE_REDIS_APPLICATION + ".*\\n", 1))
+       .withExposedService(AFTERIMAGE_APP_TWO, 5556)
+
+       .waitingFor(AFTERIMAGE_APP_THREE, Wait.forLogMessage(".*Started " + AFTERIMAGE_REDIS_APPLICATION + ".*\\n", 1))
+       .withExposedService(AFTERIMAGE_APP_THREE, 5556)
+
        .withRemoveVolumes(true);
   }
 }

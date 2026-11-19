@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.config.MultiContainerSameRelayTestConfig;
+import com.prosilion.afterimage.config.ScOneAimgSameRelayTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractWithRelaysTagIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
@@ -36,7 +36,7 @@ import static com.prosilion.afterimage.config.ContainerTestConfig.SUPERCONDUCTOR
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(MultiContainerSameRelayTestConfig.class)
+@Import(ScOneAimgSameRelayTestConfig.class)
 @TestPropertySource(properties = {
    "superconductor.event.curation.active=true"
 })

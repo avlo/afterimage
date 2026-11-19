@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @EmbeddedRedisStandalone
 @Slf4j
-public class MultiContainerTwoScTestConfig extends ContainerTestConfig {
+public class ScTwoAimgTwoTestConfig extends ContainerTestConfig {
   @Bean
 //  @RestartScope
   @ServiceConnection
