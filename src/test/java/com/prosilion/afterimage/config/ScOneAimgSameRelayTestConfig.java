@@ -27,7 +27,7 @@ public class ScOneAimgSameRelayTestConfig extends ContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
-       new File("src/test/resources/afterimage-docker-compose-same-relay-local-dev/afterimage-docker-compose-dev-test-ws.yml"))
+       new File("src/test/resources/afterimage-docker-compose-sc-1-aimg-same-relay/afterimage-docker-compose-dev-test-ws.yml"))
        .waitingFor(SUPERCONDUCTOR_DB, Wait.forHealthcheck())
        .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.forLogMessage(".*Started " + SUPERCONDUCTOR_REDIS_APPLICATION + ".*\\n", 1))
        .withExposedService(SUPERCONDUCTOR_AFTERIMAGE, 5555)

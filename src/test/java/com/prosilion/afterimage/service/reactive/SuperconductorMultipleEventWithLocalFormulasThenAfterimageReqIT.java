@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.config.SingleContainerTestConfig;
+import com.prosilion.afterimage.config.ScOneTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractWithRelaysTagIT;
 import com.prosilion.nostr.NostrException;
 import com.prosilion.nostr.event.BadgeAwardCanonicalEvent;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(SingleContainerTestConfig.class)
+@Import(ScOneTestConfig.class)
 @TestPropertySource(properties = {
    "superconductor.event.curation.active=true"
 })

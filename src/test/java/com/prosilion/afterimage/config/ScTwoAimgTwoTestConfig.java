@@ -28,7 +28,7 @@ public class ScTwoAimgTwoTestConfig extends ContainerTestConfig {
   @ServiceConnection
   public ComposeContainer composeContainerDocker() {
     return new ComposeContainer(
-       new File("src/test/resources/afterimage-docker-compose-multi-scs-and-aimgs-local-dev/afterimage-docker-compose-dev-test-two-sc-ws.yml"))
+       new File("src/test/resources/afterimage-docker-compose-sc-2-aimg-2/afterimage-docker-compose-dev-test-two-sc-ws.yml"))
 // original Wait.forHealthcheck() calls do not work due to wget unavailable in container
 //  TODO: above potentially reconcilable via 'busybox wget' 
 //       .waitingFor(SUPERCONDUCTOR_AFTERIMAGE, Wait.defaultWaitStrategy())
