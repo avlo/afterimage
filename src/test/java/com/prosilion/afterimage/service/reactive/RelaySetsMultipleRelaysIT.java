@@ -1,6 +1,6 @@
 package com.prosilion.afterimage.service.reactive;
 
-import com.prosilion.afterimage.config.MultiContainerTestConfig;
+import com.prosilion.afterimage.config.ScOneAimgTwoTestConfig;
 import com.prosilion.afterimage.service.reactive.abstracts.AbstractDockerRelayIT;
 import com.prosilion.nostr.event.BaseEvent;
 import com.prosilion.nostr.event.RelaySetsEvent;
@@ -11,7 +11,6 @@ import com.prosilion.nostr.tag.RelaysTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.subdivisions.client.RequestSubscriber;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
-import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -21,12 +20,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.prosilion.afterimage.config.ContainerTestConfig.AFTERIMAGE_APP_TWO;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
-@Import(MultiContainerTestConfig.class)
+@Import(ScOneAimgTwoTestConfig.class)
 public class RelaySetsMultipleRelaysIT extends AbstractDockerRelayIT {
   private final String afterimageRelayUrlThree;
   private final Relay superconductorRelayTwo;
