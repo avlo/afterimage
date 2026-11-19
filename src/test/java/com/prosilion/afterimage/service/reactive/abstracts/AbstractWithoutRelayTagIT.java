@@ -201,7 +201,7 @@ public abstract class AbstractWithoutRelayTagIT extends BaseTestFixtures {
           aImgIdentity,
           eventIF.asGenericEventRecord(),
           new ReferenceTag(superconductorRelayUrl),
-          new Relay(superconductorRelayUrl))).toList();
+          new Relay(afterimageRelayUrl))).toList();
   }
 
   protected EventIF submitSCEvent(BaseEvent event, String url, Filters filters) {
