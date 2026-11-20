@@ -7,6 +7,10 @@ import com.prosilion.afterimage.config.web.ReqApiNoAuthUi;
 import com.prosilion.afterimage.enums.AfterimageKindType;
 import com.prosilion.afterimage.service.event.plugin.AfterimageRelaySetsEventKindPlugin;
 import com.prosilion.afterimage.service.event.plugin.SuperconductorSearchRelaysListEventKindPlugin;
+import com.prosilion.afterimage.service.event.plugin.sc.BadgeAwardReputationEventKindTypePlugin;
+import com.prosilion.afterimage.service.event.plugin.sc.BadgeSetsEventKindPlugin;
+import com.prosilion.afterimage.service.event.plugin.sc.FollowSetsEventKindPlugin;
+import com.prosilion.afterimage.service.event.plugin.sc.UniversalVoteEventKindPlugin;
 import com.prosilion.afterimage.service.request.AfterimageReqService;
 import com.prosilion.afterimage.service.request.ReqKindServiceIF;
 import com.prosilion.afterimage.service.request.ReqKindTypeServiceIF;
@@ -15,21 +19,34 @@ import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuth;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsAuthCondition;
 import com.prosilion.superconductor.autoconfigure.base.EventKindsNoAuthCondition;
-import com.prosilion.superconductor.autoconfigure.curation.plugin.kind.FollowSetsEventKindPlugin;
-import com.prosilion.superconductor.autoconfigure.curation.plugin.kind.UniversalVoteEventKindPlugin;
+import com.prosilion.superconductor.autoconfigure.curation.plugin.kind.CuratedBadgeAwardCanonicalEventKindPlugin;
+import com.prosilion.superconductor.autoconfigure.curation.service.CacheBadgeDefinitionReputationEventServiceIF;
+import com.prosilion.superconductor.autoconfigure.curation.service.CacheBadgeSetsEventServiceIF;
+import com.prosilion.superconductor.autoconfigure.curation.service.ReputationCalculationServiceIF;
+import com.prosilion.superconductor.autoconfigure.curation.service.event.award.CacheCuratedBadgeAwardCanonicalEventService;
+import com.prosilion.superconductor.autoconfigure.curation.service.event.definition.CacheCuratedBadgeDefinitionGenericEventService;
+import com.prosilion.superconductor.autoconfigure.curation.service.event.sets.CacheBadgeSetsEventService;
+import com.prosilion.superconductor.autoconfigure.curation.service.event.sets.CacheFollowSetsEventService;
+import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.controller.EventApiUiIF;
 import com.prosilion.superconductor.base.controller.ReqApiUiIF;
+import com.prosilion.superconductor.base.service.event.DeleteEventServiceIF;
 import com.prosilion.superconductor.base.service.event.auth.EventKindsAuthIF;
 import com.prosilion.superconductor.base.service.event.auth.ReqAuthCondition;
 import com.prosilion.superconductor.base.service.event.auth.ReqNoAuthCondition;
 import com.prosilion.superconductor.base.service.event.plugin.EventPlugin;
+import com.prosilion.superconductor.base.service.event.plugin.kind.type.EventKindTypePlugin;
 import com.prosilion.superconductor.base.service.event.plugin.kind.type.KindTypeIF;
+import static com.prosilion.superconductor.base.service.event.plugin.kind.type.SuperconductorKindType.BADGE_AWARD_REPUTATION_KIND_TYPE;
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
+import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
@@ -57,6 +74,90 @@ public abstract class AfterimageBaseConfig {
     return values;
   }
 
+  @Bean("badgeAwardReputationEventKindTypePlugin")
+  BadgeAwardReputationEventKindTypePlugin badgeAwardReputationEventKindTypePlugin(
+     @NonNull Identity superconductorInstanceIdentity,
+     @NonNull String superconductorRelayUrl,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull NotifierService notifierService,
+     @NonNull ReputationCalculationServiceIF reputationCalculationServiceIF,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+     @NonNull DeleteEventServiceIF deleteEventServiceIF,
+     @NonNull CacheServiceIF cacheServiceIF) {
+    return new BadgeAwardReputationEventKindTypePlugin(
+       superconductorRelayUrl,
+       superconductorInstanceIdentity,
+       notifierService,
+       new EventKindTypePlugin(
+          BADGE_AWARD_REPUTATION_KIND_TYPE,
+          eventPlugin),
+       reputationCalculationServiceIF,
+       cacheFollowSetsEventService,
+       deleteEventServiceIF,
+       cacheServiceIF);
+  }
+
+  @Bean("badgeSetsEventKindPlugin")
+  BadgeSetsEventKindPlugin badgeSetsEventKindPlugin(
+     @NonNull Identity superconductorInstanceIdentity,
+     @NonNull String superconductorRelayUrl,
+     @NonNull CacheBadgeSetsEventService cacheBadgeSetsEventService,
+     @NonNull CacheCuratedBadgeAwardCanonicalEventService cacheCuratedBadgeAwardCanonicalEventService,
+     @NonNull DeleteEventServiceIF deleteEventServiceIF,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull CacheServiceIF cacheServiceIF) {
+    return new BadgeSetsEventKindPlugin(
+       superconductorInstanceIdentity,
+       superconductorRelayUrl,
+       cacheBadgeSetsEventService,
+       cacheCuratedBadgeAwardCanonicalEventService,
+       deleteEventServiceIF,
+       eventPlugin,
+       cacheServiceIF);
+  }
+
+  @Bean("followSetsEventKindPlugin")
+  FollowSetsEventKindPlugin followSetsEventKindPlugin(
+     @NonNull Identity superconductorInstanceIdentity,
+     @NonNull String superconductorRelayUrl,
+     @NonNull EventPlugin eventPlugin,
+     @NonNull NotifierService notifierService,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
+     @NonNull CacheBadgeSetsEventServiceIF cacheBadgeSetsEventServiceIF,
+     @NonNull CacheBadgeDefinitionReputationEventServiceIF cacheBadgeDefinitionReputationEventServiceIF,
+     @NonNull BadgeSetsEventKindPlugin badgeSetsEventKindPlugin,
+     @NonNull BadgeAwardReputationEventKindTypePlugin badgeAwardReputationEventKindTypePlugin,
+     @NonNull CacheServiceIF cacheServiceIF) {
+    return new FollowSetsEventKindPlugin(
+       superconductorInstanceIdentity,
+       superconductorRelayUrl,
+       notifierService,
+       eventPlugin,
+       cacheFollowSetsEventService,
+       cacheBadgeSetsEventServiceIF,
+       cacheBadgeDefinitionReputationEventServiceIF,
+       badgeSetsEventKindPlugin,
+       badgeAwardReputationEventKindTypePlugin,
+       cacheServiceIF);
+  }
+
+  @Bean("badgeAwardCanonicalEventKindPlugin")
+  UniversalVoteEventKindPlugin badgeAwardCanonicalEventKindPlugin(
+     @NonNull String superconductorRelayUrl,
+     @NonNull CacheCuratedBadgeDefinitionGenericEventService cacheCuratedBadgeDefinitionGenericEventService,
+     @NonNull @Qualifier("followSetsEventKindPlugin") FollowSetsEventKindPlugin followSetsEventKindPlugin,
+     @NonNull CuratedBadgeAwardCanonicalEventKindPlugin curatedBadgeAwardCanonicalEventKindPlugin,
+     @NonNull Identity afterimageInstanceIdentity,
+     @NonNull CacheServiceIF cacheServiceIF) {
+    return new UniversalVoteEventKindPlugin(
+       superconductorRelayUrl,
+       cacheCuratedBadgeDefinitionGenericEventService,
+       followSetsEventKindPlugin,
+       curatedBadgeAwardCanonicalEventKindPlugin,
+       afterimageInstanceIdentity,
+       cacheServiceIF);
+  }
+  
   @Bean
   SuperconductorSearchRelaysListEventKindPlugin superconductorSearchRelaysListEventKindPlugin(
      @NonNull Identity afterimageInstanceIdentity,
