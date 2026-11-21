@@ -1,0 +1,76 @@
+superconductor.auth.req.active=false
+superconductor.auth.challenge-relay.url=ws://localhost:5556
+#superconductor.auth.event.kinds=SEARCH_RELAYS_LIST
+
+# allow all REQ kinds
+#afterimage.req.kinds=CURATION_SETS_BADGE_AWARD_EVENT,BADGE_SETS_EVENT,CURATION_SETS_FORMULA_EVENT,FOLLOW_SETS
+
+superconductor.event.curation.active=true
+
+spring.docker.compose.start.log-level=debug
+spring.output.ansi.enabled=always
+
+superconductor.noop.event=false
+superconductor.noop.event.description=application-test.properties afterimage is a nostr-reputation authority relay.  it does not accept events, only requests
+superconductor.key.public=e04e1c1c30df6058433f61681644fd24914f2e02e420496086c61f53eb504c04
+
+# private key needed for creating and signing events TODO: relocate to secure vault
+afterimage.key.private=2684585483196998204846989544737603523651520600328805626488477202
+# public key needed for NIP-02 Kind 3: "follow list" as per https://github.com/nostr-protocol/nips/blob/master/02.md 
+afterimage.key.public=8052388490ed26dba821e76c256ca6afb6a73e87b630a284a45fc2b935e9210e
+
+################################ begin WebSocket autoconfigure
+# ws variant
+server.ssl.enabled=false
+afterimage.relay.url=ws://localhost:5557
+afterimage.relay.url.two=ws://localhost:5556
+#afterimage.relay.url.three=ws://localhost:5558
+#afterimage.relay.url.three=ws://172.17.0.1:5556
+
+superconductor.relay.url=ws://localhost:5555
+#superconductor.relay.url.two=ws://localhost:5554
+
+server.port=5557
+superconductor.timeout.duration=10
+superconductor.timeout.units=MINUTES
+
+# -----------
+# wss variant
+#afterimage.relay.url=wss://localhost:5556
+#server.ssl.enabled=true
+#server.ssl.bundle=server
+#spring.ssl.bundle.jks.server.key.alias=localhost
+#spring.ssl.bundle.jks.server.keystore.location=classpath:localhost.p12
+#spring.ssl.bundle.jks.server.keystore.password=changeit
+#spring.ssl.bundle.jks.server.keystore.type=PKCS12
+################################ end WebSocket autoconfigure
+
+spring.threads.virtual.enabled=true
+#testcontainers.reuse.enable=true // in .testcontainers.properties file
+#spring.devtools.restart.enabled=true
+#spring.devtools.livereload.enabled=true
+
+### double pound indicates commonly debugged flags
+# logging.level.com.prosilion=debug
+logging.level.com.prosilion.afterimage=debug
+logging.level.com.prosilion.superconductor=debug
+#logging.level.com.prosilion.superconductor.base.controller=debug
+# logging.level.com.prosilion.superconductor.base.service.event=debug
+## logging.level.com.prosilion.superconductor.autoconfigure.base.service.event=debug
+## logging.level.com.prosilion.superconductor.base.service.event.plugin=debug
+## logging.level.com.prosilion.superconductor.autoconfigure.base.service.event.tag=debug
+## logging.level.com.prosilion.superconductor.base.util=debug
+#logging.level.com.prosilion.superconductor.base.service.event.kind=debug
+#logging.level.com.prosilion.subdivisions=info
+#logging.level.com.prosilion.subdivisions=debug
+logging.pattern.console=%msg%n
+
+# redis
+#spring.cache.type=redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6381
+spring.cache.redis.time-to-live=3600
+#spring.data.redis.jedis.pool.enabled=false
+#spring.data.redis.lettuce.pool.enabled=true
+#spring.data.redis.lettuce.pool.max-active=20
+votesCount=5

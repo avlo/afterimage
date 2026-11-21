@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,6 +88,10 @@ public class BadgeSetsEventKindPlugin extends NonPublishingEventKindPlugin {
     ArrayList<CuratedBadgeAwardCanonicalEvent> updatedCuratedBadgeAwardCanonicalEventList = new ArrayList<>();
     updatedCuratedBadgeAwardCanonicalEventList.addAll(existingCuratedBadgeAwardCanonicalEvents);
     updatedCuratedBadgeAwardCanonicalEventList.addAll(newCuratedBadgeAwardCanonicalEventList);
+
+    if (new HashSet<>(incomingBadgeSetsEventCuratedUpvoteEventIds).containsAll(updatedCuratedBadgeAwardCanonicalEventList.stream().map(EventIF::getId).toList())) {
+      return super.processIncomingEvent(materializedIncomingBadgeSetsEvent, fromRelay);
+    }
 
     BadgeSetsEvent newBadgeSetsEvent = materializedIncomingBadgeSetsEvent.createNewFromExisting(superconductorInstanceIdentity, updatedCuratedBadgeAwardCanonicalEventList);
 

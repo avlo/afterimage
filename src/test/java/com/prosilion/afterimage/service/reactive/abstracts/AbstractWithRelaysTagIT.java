@@ -1,6 +1,7 @@
 package com.prosilion.afterimage.service.reactive.abstracts;
 
 import com.prosilion.afterimage.enums.AfterimageKindType;
+import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
 import com.prosilion.afterimage.service.BaseTestFixtures;
 import com.prosilion.afterimage.util.EventAttributesMap;
 import com.prosilion.nostr.enums.Kind;
@@ -35,6 +36,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -44,19 +48,15 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.prosilion.afterimage.enums.AfterimageKindType.BADGE_AWARD_REPUTATION_EXTERNAL_IDENTITY_TAG;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Slf4j
 public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
   private static final Duration DURATION_MINUTES_15 = Duration.ofMinutes(15);
-    private static final Duration DURATION_SECONDS_10 = Duration.ofSeconds(10);
+  private static final Duration DURATION_SECONDS_10 = Duration.ofSeconds(10);
   private static final Duration DURATION_SECONDS_5 = Duration.ofSeconds(5);
+  private static final Duration DURATION_SECONDS_3 = Duration.ofSeconds(3);
 
-  private static final Duration DURATION_MINUTES_DEBUG = DURATION_MINUTES_15;
-  private static final Duration DURATION_SECONDS_NORMAL = DURATION_SECONDS_10;
+  public static final Duration DURATION_MINUTES_DEBUG = DURATION_MINUTES_15;
+  public static final Duration DURATION_SECONDS_NORMAL = DURATION_SECONDS_3;
 
   protected final List<EventAttributesMap<FormulaEvent>> formulaEventList;
   protected List<EventAttributesMap<BadgeDefinitionGenericEvent>> badgeDefinitionGenericEventList;
@@ -269,7 +269,7 @@ public abstract class AbstractWithRelaysTagIT extends BaseTestFixtures {
   }
 
   protected void submitRelayEvent_WithDuration(EventIF event, String url) {
-    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), DURATION_MINUTES_DEBUG).getFlag());
+    assertEquals(true, new NostrEventPublisher(url).send(new EventMessage(event.asGenericEventRecord()), DURATION_SECONDS_NORMAL).getFlag());
   }
 
   protected void submitAimgEvent(EventIF eventIF) {
