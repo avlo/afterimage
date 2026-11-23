@@ -41,15 +41,15 @@ import static com.prosilion.superconductor.base.service.event.plugin.kind.type.S
 import com.prosilion.superconductor.base.service.request.ReqServiceIF;
 import com.prosilion.superconductor.base.service.request.subscriber.NotifierService;
 import com.prosilion.superconductor.lib.redis.service.RedisCacheService;
-import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Primary;
+
+import java.util.List;
 
 @Slf4j
 public abstract class AfterimageBaseConfig {
@@ -148,6 +148,7 @@ public abstract class AfterimageBaseConfig {
      @NonNull @Qualifier("followSetsEventKindPlugin") FollowSetsEventKindPlugin followSetsEventKindPlugin,
      @NonNull CuratedBadgeAwardCanonicalEventKindPlugin curatedBadgeAwardCanonicalEventKindPlugin,
      @NonNull Identity afterimageInstanceIdentity,
+     @NonNull CacheCuratedBadgeAwardCanonicalEventService cacheCuratedBadgeAwardCanonicalEventService,
      @NonNull CacheServiceIF cacheServiceIF) {
     return new UniversalVoteEventKindPlugin(
        superconductorRelayUrl,
@@ -155,9 +156,10 @@ public abstract class AfterimageBaseConfig {
        followSetsEventKindPlugin,
        curatedBadgeAwardCanonicalEventKindPlugin,
        afterimageInstanceIdentity,
+       cacheCuratedBadgeAwardCanonicalEventService,
        cacheServiceIF);
   }
-  
+
   @Bean
   SuperconductorSearchRelaysListEventKindPlugin superconductorSearchRelaysListEventKindPlugin(
      @NonNull Identity afterimageInstanceIdentity,
