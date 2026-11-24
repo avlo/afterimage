@@ -149,6 +149,7 @@ public abstract class AfterimageBaseConfig {
      @NonNull CuratedBadgeAwardCanonicalEventKindPlugin curatedBadgeAwardCanonicalEventKindPlugin,
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull CacheCuratedBadgeAwardCanonicalEventService cacheCuratedBadgeAwardCanonicalEventService,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
      @NonNull CacheServiceIF cacheServiceIF) {
     return new UniversalVoteEventKindPlugin(
        superconductorRelayUrl,
@@ -157,6 +158,7 @@ public abstract class AfterimageBaseConfig {
        curatedBadgeAwardCanonicalEventKindPlugin,
        afterimageInstanceIdentity,
        cacheCuratedBadgeAwardCanonicalEventService,
+       cacheFollowSetsEventService,
        cacheServiceIF);
   }
 

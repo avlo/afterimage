@@ -9,11 +9,13 @@ import com.prosilion.nostr.event.curated.CuratedBadgeDefinitionGenericEvent;
 import com.prosilion.nostr.event.internal.Relay;
 import com.prosilion.nostr.tag.AddressTag;
 import com.prosilion.nostr.tag.EventTag;
+import com.prosilion.nostr.tag.PubKeyTag;
 import com.prosilion.nostr.tag.ReferenceTag;
 import com.prosilion.nostr.tag.RelayTag;
 import com.prosilion.nostr.user.Identity;
 import com.prosilion.superconductor.autoconfigure.curation.service.CacheCuratedBadgeDefinitionGenericEventServiceIF;
 import com.prosilion.superconductor.autoconfigure.curation.service.event.award.CacheCuratedBadgeAwardCanonicalEventService;
+import com.prosilion.superconductor.autoconfigure.curation.service.event.sets.CacheFollowSetsEventService;
 import com.prosilion.superconductor.base.cache.CacheServiceIF;
 import com.prosilion.superconductor.base.service.event.plugin.EventPluginIF;
 import com.prosilion.superconductor.base.service.event.plugin.kind.NonPublishingEventKindPlugin;
@@ -30,6 +32,7 @@ public class UniversalVoteEventKindPlugin extends NonPublishingEventKindPlugin {
   private final Identity superconductorInstanceIdentity;
   private final Relay superconductorRelay;
   private final CacheCuratedBadgeAwardCanonicalEventService cacheCuratedBadgeAwardCanonicalEventService;
+  private final CacheFollowSetsEventService cacheFollowSetsEventService;
   CacheServiceIF cacheServiceIF;
 
   public UniversalVoteEventKindPlugin(
@@ -39,6 +42,7 @@ public class UniversalVoteEventKindPlugin extends NonPublishingEventKindPlugin {
      @NonNull EventPluginIF eventPluginIF,
      @NonNull Identity superconductorInstanceIdentity,
      @NonNull CacheCuratedBadgeAwardCanonicalEventService cacheCuratedBadgeAwardCanonicalEventService,
+     @NonNull CacheFollowSetsEventService cacheFollowSetsEventService,
      CacheServiceIF cacheServiceIF) {
     super(eventPluginIF);
     this.superconductorInstanceIdentity = superconductorInstanceIdentity;
@@ -46,6 +50,7 @@ public class UniversalVoteEventKindPlugin extends NonPublishingEventKindPlugin {
     this.followSetsEventKindPlugin = followSetsEventKindPlugin;
     this.superconductorRelay = new Relay(superconductorRelayUrl);
     this.cacheCuratedBadgeAwardCanonicalEventService = cacheCuratedBadgeAwardCanonicalEventService;
+    this.cacheFollowSetsEventService = cacheFollowSetsEventService;
     this.cacheServiceIF = cacheServiceIF;
     log.debug("using superconductorRelayUrl: [{}]", superconductorRelayUrl);
   }
@@ -61,8 +66,8 @@ public class UniversalVoteEventKindPlugin extends NonPublishingEventKindPlugin {
              incomingVoteEvent.findFirstTag(RelayTag.class).map(RelayTag::getRelay).map(Relay::getUrl).orElse(fromRelay.getUrl())));
 
     if (curatedBadgeAwardCanonicalEventOpt.isPresent()) {
-      log.debug("returning existing matching voteEvent");
-      return curatedBadgeAwardCanonicalEventOpt.map(EventIF::asGenericEventRecord);
+      log.debug("curatedBadgeAwardCanonicalEvent exists, returning existing FollowSetsEvent");
+      return cacheFollowSetsEventService.getBy(incomingVoteEvent.getTypeSpecificTags(PubKeyTag.class).getFirst()).stream().findFirst().map(EventIF::asGenericEventRecord);
     }
 
     AddressTag suppliedAddressTag = incomingVoteEvent.requireFirstTag(AddressTag.class);
