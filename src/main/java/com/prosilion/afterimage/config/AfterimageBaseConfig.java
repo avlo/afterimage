@@ -164,28 +164,36 @@ public abstract class AfterimageBaseConfig {
 
   @Bean
   SuperconductorSearchRelaysListEventKindPlugin superconductorSearchRelaysListEventKindPlugin(
+     @NonNull String superconductorRelayUrl,
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull RedisCacheService redisCacheService,
      @NonNull EventPlugin eventPlugin,
-     @NonNull UniversalVoteEventKindPlugin universalVoteEventKindPlugin) {
+     @NonNull UniversalVoteEventKindPlugin universalVoteEventKindPlugin,
+     @NonNull DeleteEventServiceIF deleteEventServiceIF) {
     return new SuperconductorSearchRelaysListEventKindPlugin(
+       superconductorRelayUrl,
        afterimageInstanceIdentity,
        redisCacheService,
        eventPlugin,
-       universalVoteEventKindPlugin);
+       universalVoteEventKindPlugin,
+       deleteEventServiceIF);
   }
 
   @Bean
   AfterimageRelaySetsEventKindPlugin afterimageRelaySetsEventKindPlugin(
+     @NonNull String superconductorRelayUrl,
      @NonNull Identity afterimageInstanceIdentity,
      @NonNull RedisCacheService redisCacheService,
      @NonNull EventPlugin eventPlugin,
-     @NonNull FollowSetsEventKindPlugin followSetsEventKindPlugin) {
+     @NonNull FollowSetsEventKindPlugin followSetsEventKindPlugin,
+     @NonNull DeleteEventServiceIF deleteEventServiceIF) {
     return new AfterimageRelaySetsEventKindPlugin(
+       superconductorRelayUrl,
        afterimageInstanceIdentity,
        redisCacheService,
        eventPlugin,
-       followSetsEventKindPlugin);
+       followSetsEventKindPlugin,
+       deleteEventServiceIF);
   }
 
   @Bean
